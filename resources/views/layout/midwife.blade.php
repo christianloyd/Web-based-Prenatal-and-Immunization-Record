@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Midwife Dashboard') - Laravel</title>
+    <title>@yield('title', 'Midwife Dashboard')</title>
+    <link rel="icon" type="image/png" sizes="40x40" href="{{ asset('images/logo1.webp') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Add Font Awesome -->
@@ -32,9 +33,14 @@
             
             <div class="p-4 sm:p-6 border-b border-primary">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-lg sm:text-xl font-bold">Midwife Portal</h1>
-                        <p class="text-xs sm:text-sm text-gray-300 mt-1">Healthcare Dashboard</p>
+                    <div class="flex items-center">
+                        <!--<img src="{{ asset('images/logo1.webp') }}" 
+                             alt="Healthcare Logo" 
+                             class="w-8 h-8 sm:w-10 sm:h-10 mr-3 object-contain">-->
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-bold">Midwife Portal</h1>
+                            <p class="text-xs sm:text-sm text-gray-300 mt-1">Healthcare Dashboard</p>
+                        </div>
                     </div>
                     <!-- Close button for mobile -->
                     <button @click="sidebarOpen = false" 

@@ -22,8 +22,15 @@
             <!-- TODO: Replace with DaisyUI navbar brand -->
             <!-- Original: div with border-b border-primary -->
             <div class="p-6 border-b border-primary">
-                <h1 class="text-xl font-bold">Barangay Health Worker Portal</h1>
-                <p class="text-sm text-gray-300 mt-1">Healthcare Dashboard</p>
+                <div class="flex items-center">
+                    <!--<img src="{{ asset('images/logo1.webp') }}" 
+                         alt="Healthcare Logo" 
+                         class="w-10 h-10 mr-3 object-contain">!-->
+                    <div>
+                        <h1 class="text-xl font-bold">Barangay Health Worker Portal</h1>
+                        <p class="text-sm text-gray-300 mt-1">Healthcare Dashboard</p>
+                    </div>
+                </div>
             </div>
             
             <!-- TODO: Replace with DaisyUI menu component -->

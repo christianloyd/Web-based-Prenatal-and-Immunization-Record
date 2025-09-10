@@ -76,10 +76,10 @@
             <!-- Logo/Brand -->
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-center">
-                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path>
-                        </svg>
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3 p-1">
+                        <img src="{{ asset('images/logo1.webp') }}" 
+                             alt="Healthcare Logo" 
+                             class="w-full h-full object-contain">
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-800">{{ config('app.name', 'Healthcare Portal') }}</h1>
