@@ -11,6 +11,7 @@ class Immunization extends Model
     use HasFactory;
 
     protected $fillable = [
+        'formatted_immunization_id',
         'child_record_id',
         'vaccine_id',          // New field
         'vaccine_name',        // Keep for backward compatibility during migration
@@ -29,6 +30,29 @@ class Immunization extends Model
         'administered_date' => 'date',
         'schedule_time' => 'datetime:H:i'
     ];
+
+    /* ----------------------------------------------------------
+       Boot logic (auto-ID)
+    ---------------------------------------------------------- */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($immunization) {
+            if (empty($immunization->formatted_immunization_id)) {
+                $immunization->formatted_immunization_id = static::generateImmunizationId();
+            }
+        });
+    }
+
+    /* ----------------------------------------------------------
+       Helper methods
+    ---------------------------------------------------------- */
+    public static function generateImmunizationId()
+    {
+        $last = static::orderByDesc('id')->first();
+        return 'IM-' . str_pad(($last ? $last->id + 1 : 1), 3, '0', STR_PAD_LEFT);
+    }
 
     // Relationships
     public function childRecord()

@@ -11,6 +11,7 @@ class Vaccine extends Model
     use HasFactory;
 
     protected $fillable = [
+        'formatted_vaccine_id',
         'name',
         'category',
         'dosage',
@@ -26,6 +27,29 @@ class Vaccine extends Model
         'current_stock' => 'integer',
         'min_stock' => 'integer'
     ];
+
+    /* ----------------------------------------------------------
+       Boot logic (auto-ID)
+    ---------------------------------------------------------- */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($vaccine) {
+            if (empty($vaccine->formatted_vaccine_id)) {
+                $vaccine->formatted_vaccine_id = static::generateVaccineId();
+            }
+        });
+    }
+
+    /* ----------------------------------------------------------
+       Helper methods
+    ---------------------------------------------------------- */
+    public static function generateVaccineId()
+    {
+        $last = static::orderByDesc('id')->first();
+        return 'VC-' . str_pad(($last ? $last->id + 1 : 1), 3, '0', STR_PAD_LEFT);
+    }
 
     // Relationships
     public function stockTransactions()
@@ -113,7 +137,8 @@ class Vaccine extends Model
     {
         return $query->where(function ($q) use ($search) {
             $q->where('name', 'LIKE', "%{$search}%")
-              ->orWhere('category', 'LIKE', "%{$search}%");
+              ->orWhere('category', 'LIKE', "%{$search}%")
+              ->orWhere('formatted_vaccine_id', 'LIKE', "%{$search}%");
         });
     }
 

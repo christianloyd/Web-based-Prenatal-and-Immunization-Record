@@ -10,6 +10,7 @@ class ChildRecord extends Model
     use HasFactory;
 
     protected $fillable = [
+        'formatted_child_id',
         'child_name',
         'gender',
         'birth_height',
@@ -29,6 +30,29 @@ class ChildRecord extends Model
         'birth_height' => 'decimal:2',
         'birth_weight' => 'decimal:3',
     ];
+
+    /* ----------------------------------------------------------
+       Boot logic (auto-ID)
+    ---------------------------------------------------------- */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($childRecord) {
+            if (empty($childRecord->formatted_child_id)) {
+                $childRecord->formatted_child_id = static::generateChildId();
+            }
+        });
+    }
+
+    /* ----------------------------------------------------------
+       Helper methods
+    ---------------------------------------------------------- */
+    public static function generateChildId()
+    {
+        $last = static::withTrashed()->orderByDesc('id')->first();
+        return 'CH-' . str_pad(($last ? $last->id + 1 : 1), 3, '0', STR_PAD_LEFT);
+    }
 
     // Relationship to Patient (mother)
     public function mother()
@@ -90,6 +114,7 @@ class ChildRecord extends Model
     {
         return $query->where(function($q) use ($term) {
             $q->where('child_name', 'like', "%{$term}%")
+              ->orWhere('formatted_child_id', 'like', "%{$term}%")
               ->orWhere('phone_number', 'like', "%{$term}%")
               ->orWhere('mother_name', 'like', "%{$term}%")
               ->orWhereHas('mother', function($motherQuery) use ($term) {

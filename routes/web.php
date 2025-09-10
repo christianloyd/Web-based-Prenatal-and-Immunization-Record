@@ -10,8 +10,9 @@ use App\Http\Controllers\PrenatalCheckupController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\VaccineController;
-use App\Http\Controllers\CloudBackupController;
+use App\Http\Controllers\Midwife\CloudBackupController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GoogleAuthController;
 // Redirect root to login
 Route::get('/', fn () => redirect()->route('login'));
 
@@ -20,6 +21,11 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', fn () => view('login'))->name('login');
     Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate');
 });
+
+// Google OAuth routes (outside auth middleware for callback)
+Route::get('/google/auth', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.auth');
+Route::get('/google/callback', [GoogleAuthController::class, 'handleCallback'])->name('google.callback');
+Route::post('/google/disconnect', [GoogleAuthController::class, 'disconnect'])->name('google.disconnect');
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
@@ -59,9 +65,17 @@ Route::middleware('auth')->group(function () {
             Route::get('prenatalcheckup/patient/{patient}', [PrenatalCheckupController::class, 'showPatient'])
                  ->name('prenatalcheckup.patient');
 
-            //Cloud Backup Route
-            Route::get('cloudbackup', [CloudBackupController::class, 'index'])
-                 ->name('cloudbackup.index');
+            //Cloud Backup Routes
+            Route::prefix('cloudbackup')->name('cloudbackup.')->group(function () {
+                Route::get('/', [CloudBackupController::class, 'index'])->name('index');
+                Route::get('/data', [CloudBackupController::class, 'getData'])->name('data');
+                Route::post('/create', [CloudBackupController::class, 'store'])->name('store');
+                Route::get('/progress/{id}', [CloudBackupController::class, 'progress'])->name('progress');
+                Route::get('/download/{id}', [CloudBackupController::class, 'download'])->name('download');
+                Route::post('/restore', [CloudBackupController::class, 'restore'])->name('restore');
+                Route::delete('/{id}', [CloudBackupController::class, 'destroy'])->name('destroy');
+                Route::post('/estimate-size', [CloudBackupController::class, 'estimateSize'])->name('estimate-size');
+            });
 
             Route::post('vaccines/stock-transaction', [VaccineController::class, 'stockTransaction'])
                  ->name('vaccines.stock-transaction');

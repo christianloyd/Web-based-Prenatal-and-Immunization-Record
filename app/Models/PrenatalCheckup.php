@@ -10,6 +10,7 @@ use Carbon\Carbon;
 class PrenatalCheckup extends Model
 {
     protected $fillable = [
+        'formatted_checkup_id',
         'patient_id',
         'prenatal_record_id',
         'checkup_date',
@@ -35,6 +36,29 @@ class PrenatalCheckup extends Model
         'next_visit_date' => 'date',
         'swelling' => 'array',
     ];
+
+    /* ----------------------------------------------------------
+       Boot logic (auto-ID)
+    ---------------------------------------------------------- */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($checkup) {
+            if (empty($checkup->formatted_checkup_id)) {
+                $checkup->formatted_checkup_id = static::generateCheckupId();
+            }
+        });
+    }
+
+    /* ----------------------------------------------------------
+       Helper methods
+    ---------------------------------------------------------- */
+    public static function generateCheckupId()
+    {
+        $last = static::orderByDesc('id')->first();
+        return 'CK-' . str_pad(($last ? $last->id + 1 : 1), 3, '0', STR_PAD_LEFT);
+    }
 
     // Relationships
     public function patient()

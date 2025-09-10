@@ -272,6 +272,7 @@
                 <table class="w-full table-container">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
+                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Immunization ID</th>
                             <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'child_name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
                                     Child Name <i class="fas fa-sort ml-1 text-gray-400"></i>
@@ -301,6 +302,9 @@
                     <tbody class="divide-y divide-gray-200">
                         @foreach($immunizations as $immunization)
                         <tr class="table-row-hover">
+                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div class="font-medium text-blue-600">{{ $immunization->formatted_immunization_id ?? 'IM-001' }}</div>
+                            </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <div class="font-medium text-gray-900">{{ $immunization->childRecord->child_name ?? 'N/A' }}</div>
                             </td>

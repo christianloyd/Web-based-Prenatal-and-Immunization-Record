@@ -18,6 +18,7 @@ class PrenatalRecord extends Model
        Mass-assignable attributes
     ---------------------------------------------------------- */
     protected $fillable = [
+        'formatted_prenatal_id',
         'patient_id',
         'last_menstrual_period',
         'expected_due_date',
@@ -86,6 +87,11 @@ class PrenatalRecord extends Model
         parent::boot();
 
         static::creating(function ($record) {
+            // Auto-generate formatted ID if not provided
+            if (empty($record->formatted_prenatal_id)) {
+                $record->formatted_prenatal_id = static::generatePrenatalId();
+            }
+
             // Auto-calculate gestational age and trimester if LMP is provided
             if ($record->last_menstrual_period && !$record->gestational_age) {
                 $record->gestational_age = $record->calculateGestationalAgeFromLMP($record->last_menstrual_period);
@@ -101,6 +107,15 @@ class PrenatalRecord extends Model
                 $record->expected_due_date = Carbon::parse($record->last_menstrual_period)->addDays(280);
             }
         });
+    }
+
+    /* ----------------------------------------------------------
+       Helper methods
+    ---------------------------------------------------------- */
+    public static function generatePrenatalId()
+    {
+        $last = static::withTrashed()->orderByDesc('id')->first();
+        return 'PR-' . str_pad(($last ? $last->id + 1 : 1), 3, '0', STR_PAD_LEFT);
     }
 
     /* ----------------------------------------------------------
@@ -138,10 +153,11 @@ class PrenatalRecord extends Model
 
     public function scopeSearch($query, $term)
     {
-        return $query->whereHas('patient', function ($q) use ($term) {
-            $q->where('name', 'like', "%{$term}%")
-              ->orWhere('formatted_patient_id', 'like', "%{$term}%");
-        });
+        return $query->where('formatted_prenatal_id', 'like', "%{$term}%")
+              ->orWhereHas('patient', function ($q) use ($term) {
+                  $q->where('name', 'like', "%{$term}%")
+                    ->orWhere('formatted_patient_id', 'like', "%{$term}%");
+              });
     }
 
     /* ----------------------------------------------------------

@@ -54,7 +54,7 @@ class Patient extends Model
     public static function generatePatientId()
     {
         $last = static::withTrashed()->orderByDesc('id')->first();
-        return 'PT' . str_pad(($last ? $last->id + 1 : 1), 6, '0', STR_PAD_LEFT);
+        return 'PT-' . str_pad(($last ? $last->id + 1 : 1), 3, '0', STR_PAD_LEFT);
     }
 
     /* ----------------------------------------------------------
