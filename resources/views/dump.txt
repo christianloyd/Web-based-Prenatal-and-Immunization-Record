@@ -1,0 +1,16 @@
+function closeViewChildModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    
+    const modal = document.getElementById('viewChildModal');
+    const content = document.getElementById('viewChildModalContent');
+    
+    if (!modal || !content) return;
+    
+    content.classList.remove('translate-y-0', 'opacity-100');
+    content.classList.add('-translate-y-10', 'opacity-0');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }, 300);
+}
