@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Midwife Dashboard')</title>
-    <link rel="icon" type="image/png" sizes="40x40" href="{{ asset('images/logo1.webp') }}">
+    <title>@yield('title', 'Midwife Dashboard')</title> 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
     <!-- Add Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     @stack('styles')
@@ -23,13 +23,13 @@
              x-transition:leave-end="opacity-0"
              class="fixed inset-0 z-40 lg:hidden bg-gray-600 bg-opacity-75"
              @click="sidebarOpen = false"
-             style="display: none;"></div>
+              ></div>
 
         <!-- Left Sidebar Navigation -->
         <div class="fixed inset-y-0 left-0 z-50 w-64 bg-secondary text-white flex flex-col transform lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out"
              :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
              x-show="sidebarOpen || window.innerWidth >= 1024"
-             style="display: none;">
+              >
             
             <div class="p-4 sm:p-6 border-b border-primary">
                 <div class="flex items-center justify-between">
@@ -83,7 +83,7 @@
                             x-transition:leave-start="transform opacity-100 scale-100" 
                             x-transition:leave-end="transform opacity-0 scale-95" 
                             class="ml-4 sm:ml-6 mt-1 sm:mt-2 space-y-1" 
-                            style="display: none;">
+                             >
                             <li>
                                 <a href="{{ route('midwife.patients.index') }}" 
                                    class="nav-link flex items-center p-2 rounded-lg text-xs sm:text-sm {{ request()->routeIs('midwife.patients.index') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors"
@@ -125,7 +125,7 @@
                             x-transition:leave-start="transform opacity-100 scale-100" 
                             x-transition:leave-end="transform opacity-0 scale-95" 
                             class="ml-4 sm:ml-6 mt-1 sm:mt-2 space-y-1" 
-                            style="display: none;">
+                             >
                             <li>
                                 <a href="{{ route('midwife.prenatalrecord.index') }}" 
                                    class="nav-link flex items-center p-2 rounded-lg text-xs sm:text-sm {{ request()->routeIs('midwife.prenatalrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors"
@@ -175,7 +175,7 @@
                             x-transition:leave-start="transform opacity-100 scale-100" 
                             x-transition:leave-end="transform opacity-0 scale-95" 
                             class="ml-4 sm:ml-6 mt-1 sm:mt-2 space-y-1" 
-                            style="display: none;">
+                             >
                             <li>
                                 <a href="{{ route('midwife.childrecord.index') }}" 
                                    class="nav-link flex items-center p-2 rounded-lg text-xs sm:text-sm {{ request()->routeIs('midwife.childrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors"
@@ -254,7 +254,7 @@
                             x-transition:leave-start="transform opacity-100 scale-100" 
                             x-transition:leave-end="transform opacity-0 scale-95" 
                             class="ml-4 sm:ml-6 mt-1 sm:mt-2 space-y-1" 
-                            style="display: none;">
+                            >
                             <li>
                                 <a href="" 
                                    class="nav-link flex items-center p-2 rounded-lg text-xs sm:text-sm {{ request()->routeIs('midwife.reports.prenatal') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors"

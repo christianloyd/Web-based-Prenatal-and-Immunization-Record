@@ -14,3 +14,8 @@ function closeViewChildModal(event) {
         document.body.style.overflow = '';
     }, 300);
 }
+
+public function prenatalRecord()
+{
+    return $this->belongsTo(PrenatalRecord::class);
+}

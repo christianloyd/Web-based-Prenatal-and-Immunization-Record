@@ -3,6 +3,8 @@
 @section('page-title', 'Dashboard')
 @section('page-subtitle', 'Overview of your midwife practice')
 
+<link rel="icon" type="image/png" sizes="40x40" href="{{ asset('images/dash1.png') }}">
+
 @push('styles')
 <style>
     .primary-bg { background-color: #243b55; }
