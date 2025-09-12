@@ -19,15 +19,12 @@ class Immunization extends Model
         'schedule_date',
         'schedule_time',
         'status',
-        'administered_date',
-        'administered_by',
         'notes',
         'next_due_date'
     ];
 
     protected $casts = [
         'schedule_date' => 'date',
-        'administered_date' => 'date',
         'schedule_time' => 'datetime:H:i'
     ];
 

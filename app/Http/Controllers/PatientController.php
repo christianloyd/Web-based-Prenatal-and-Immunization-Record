@@ -4,9 +4,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\HealthcareNotification;
+use Illuminate\Support\Facades\Cache;
 
 class PatientController extends Controller
 {
@@ -66,9 +69,20 @@ class PatientController extends Controller
         }
 
         try {
-            Patient::create($request->only([
+            $patient = Patient::create($request->only([
                 'name', 'age', 'contact', 'emergency_contact', 'address', 'occupation'
             ]));
+
+            // Send notification to all healthcare workers about new patient registration
+            $this->notifyHealthcareWorkers(
+                'New Patient Registered',
+                "A new patient '{$patient->name}' has been registered in the system.",
+                'success',
+                Auth::user()->role === 'midwife' 
+                    ? route('midwife.patients.show', $patient->id)
+                    : route('bhw.patients.show', $patient->id),
+                ['patient_id' => $patient->id, 'action' => 'patient_registered']
+            );
 
             $redirectRoute = Auth::user()->role === 'midwife' 
                 ? 'midwife.patients.index' 
@@ -192,5 +206,30 @@ class PatientController extends Controller
                            ->get(['id', 'name', 'formatted_patient_id', 'age']);
                            
         return response()->json($patients);
+    }
+
+    /**
+     * Helper method to notify all healthcare workers about healthcare events
+     */
+    private function notifyHealthcareWorkers($title, $message, $type = 'info', $actionUrl = null, $data = [])
+    {
+        // Get all healthcare workers (midwives and BHWs)
+        $healthcareWorkers = User::whereIn('role', ['midwife', 'bhw'])
+            ->where('id', '!=', Auth::id()) // Exclude the current user
+            ->get();
+
+        foreach ($healthcareWorkers as $worker) {
+            $worker->notify(new HealthcareNotification(
+                $title,
+                $message,
+                $type,
+                $actionUrl,
+                array_merge($data, ['notified_by' => Auth::user()->name])
+            ));
+            
+            // Clear notification cache for the recipient
+            Cache::forget("unread_notifications_count_{$worker->id}");
+            Cache::forget("recent_notifications_{$worker->id}");
+        }
     }
 }

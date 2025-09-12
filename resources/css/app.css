@@ -1,5 +1,170 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@plugin "daisyui";
+
+/* Global Font Size Standards */
+@layer base {
+    /* Headings - 20px */
+    h1, h2, h3, h4, h5, h6,
+    .heading,
+    .text-heading,
+    .page-title,
+    .section-title,
+    .modal-title,
+    .card-title,
+    .table-header {
+        font-size: 20px !important;
+        line-height: 1.25;
+    }
+    
+    /* Sub-headings - 16px */
+    .sub-heading,
+    .text-sub-heading,
+    .section-subtitle,
+    .form-label,
+    .nav-link,
+    .btn,
+    .tab-title,
+    .breadcrumb,
+    .stat-label,
+    .info-label {
+        font-size: 16px !important;
+        line-height: 1.3;
+    }
+    
+    /* Body text - 14px */
+    body,
+    p,
+    span,
+    div,
+    td,
+    th,
+    li,
+    a,
+    input,
+    textarea,
+    select,
+    .text-body,
+    .body-text,
+    .table-content,
+    .form-input,
+    .description,
+    .details {
+        font-size: 14px !important;
+        line-height: 1.4;
+    }
+    
+    /* Exceptions for specific elements that need to maintain their size */
+    .icon,
+    .fa,
+    .fas,
+    .far,
+    .fab,
+    .text-icon {
+        font-size: inherit !important;
+    }
+}
+
+/* Component-specific font size overrides */
+@layer components {
+    /* Navigation */
+    .sidebar .nav-link {
+        font-size: 16px !important;
+    }
+    
+    /* Forms */
+    .form-group label {
+        font-size: 16px !important;
+        font-weight: 600;
+    }
+    
+    .form-control,
+    .form-input {
+        font-size: 14px !important;
+    }
+    
+    /* Tables */
+    .table thead th {
+        font-size: 16px !important;
+        font-weight: 600;
+    }
+    
+    .table tbody td {
+        font-size: 14px !important;
+    }
+    
+    /* Buttons */
+    .btn {
+        font-size: 16px !important;
+    }
+    
+    .btn-sm {
+        font-size: 14px !important;
+    }
+    
+    /* Cards */
+    .card-header h3,
+    .card-header h4,
+    .card-title {
+        font-size: 20px !important;
+    }
+    
+    .card-body {
+        font-size: 14px !important;
+    }
+    
+    /* Modals */
+    .modal-header h3,
+    .modal-title {
+        font-size: 20px !important;
+    }
+    
+    .modal-body {
+        font-size: 14px !important;
+    }
+    
+    /* Alerts and notifications */
+    .alert {
+        font-size: 14px !important;
+    }
+    
+    /* Badges and tags */
+    .badge,
+    .tag {
+        font-size: 14px !important;
+    }
+    
+    /* Timeline and history items */
+    .timeline-item .vaccine-name,
+    .timeline-item .checkup-title,
+    .immunization-card .vaccine-name {
+        font-size: 20px !important;
+    }
+    
+    .timeline-item .vaccine-date,
+    .timeline-item .checkup-date {
+        font-size: 16px !important;
+    }
+    
+    .timeline-item .vaccine-details,
+    .timeline-item .checkup-details {
+        font-size: 14px !important;
+    }
+}
+
+/* Responsive font adjustments */
+@media (max-width: 768px) {
+    /* Slightly reduce font sizes on mobile if needed */
+    .mobile-small h1, .mobile-small h2, .mobile-small h3 {
+        font-size: 18px !important;
+    }
+    
+    .mobile-small .sub-heading {
+        font-size: 15px !important;
+    }
+    
+    .mobile-small .body-text {
+        font-size: 13px !important;
+    }
+}
 

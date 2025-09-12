@@ -117,26 +117,17 @@
 </div>
 @endif
 
-<!-- Patient List -->
+<!-- Scheduled Checkups -->
 <div class="bg-white rounded-lg border shadow-sm">
     <div class="border-b px-6 py-4">
         <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800">Patient List</h3>
+            <h3 class="text-lg font-semibold text-gray-800">Scheduled Checkups</h3>
             <div class="flex space-x-3">
                 <input type="text" id="searchInput" placeholder="Search patients..." 
                        class="input-focus px-3 py-2 border border-gray-300 rounded-lg text-sm w-64"
                        onkeyup="searchPatients()">
-                <select id="statusFilter" class="input-focus px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        onchange="filterPatients()">
-                    <option value="">All Statuses</option>
-                    <option value="no_checkups">No Checkups</option>
-                    <option value="completed">On Track</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="overdue">Overdue</option>
-                    <option value="scheduled">Scheduled</option>
-                </select>
                 <button onclick="openCheckupModal()" class="btn-hover bg-green-600 text-white px-4 py-2 rounded-lg font-medium">
-                    <i class="fas fa-stethoscope mr-2"></i>Add Checkup
+                    <i class="fas fa-stethoscope mr-2"></i>Schedule Checkup
                 </button>
             </div>
         </div>
@@ -147,30 +138,32 @@
             <thead>
                 <tr>
                     <th>Patient Name</th>
-                    <th>Age</th>
-                    <th>Weeks Pregnant</th>
+                    <th>Scheduled Date</th>
+                    <th>Scheduled Time</th>
                     <th>Last Checkup</th>
-                    <th>Next Visit</th>
-                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="patientTableBody">
+            <tbody id="checkupTableBody">
                 @forelse($patients as $patient)
-                <tr class="patient-row" data-status="{{ $patient->checkup_status }}">
+                @php
+                    $nextVisit = $patient->nextVisitFromCheckups();
+                @endphp
+                @if($nextVisit)
+                <tr class="patient-row">
                     <td>
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user-pregnant text-pink-600"></i>
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <!--<i class="fas fa-calendar-check text-blue-600"></i>-->
                             </div>
                             <div>
                                 <p class="font-medium text-gray-800 patient-name">{{ $patient->name }}</p>
-                                <!--<p class="text-sm text-gray-600 patient-id">ID: {{ $patient->formatted_patient_id }}</p>-->
+                                <p class="text-sm text-gray-600">{{ $patient->weeks_pregnant_from_record ?? 'N/A' }}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="text-gray-800">{{ $patient->age }}</td>
-                    <td class="text-gray-800">{{ $patient->weeks_pregnant_from_record ?? 'N/A' }}</td>
+                    <td class="text-gray-800">{{ \Carbon\Carbon::parse($nextVisit->next_visit_date)->format('M d, Y') }}</td>
+                    <td class="text-gray-800">{{ \Carbon\Carbon::parse($nextVisit->next_visit_time)->format('h:i A') }}</td>
                     <td class="text-gray-600">
                         @if($patient->latestCheckup)
                             {{ $patient->latestCheckup->checkup_date->format('M d, Y') }}
@@ -178,57 +171,25 @@
                             No checkups yet
                         @endif
                     </td>
-                    <td class="text-gray-600">
-                        @php
-                            $nextVisit = $patient->nextVisitFromCheckups();
-                        @endphp
-                        @if($nextVisit)
-                            {{ \Carbon\Carbon::parse($nextVisit->next_visit_date)->format('M d, Y') }}
-                        @else
-                            Not scheduled
-                        @endif
-                    </td>
-                    <td>
-                        @php
-                            $status = $patient->checkup_status;
-                        @endphp
-                        <span class="status-badge status-{{ $status }}">
-                            @switch($status)
-                                @case('overdue')
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>Overdue
-                                    @break
-                                @case('upcoming')
-                                    <i class="fas fa-clock mr-1"></i>Upcoming
-                                    @break
-                                @case('completed')
-                                    <i class="fas fa-check mr-1"></i>On Track
-                                    @break
-                                @case('no_checkups')
-                                    <i class="fas fa-info mr-1"></i>No Checkups
-                                    @break
-                                @default
-                                    <i class="fas fa-calendar mr-1"></i>Scheduled
-                            @endswitch
-                        </span>
-                    </td>
                     <td>
                         <div class="flex space-x-2">
-                            <a href="{{ route('midwife.prenatalcheckup.patient', $patient) }}" 
-                               class="btn-hover text-blue-600 hover:text-blue-700 text-sm" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </a>
                             <button onclick="addCheckupForPatient({{ $patient->id }}, '{{ $patient->name }}')" 
-                                    class="btn-hover text-purple-600 hover:text-purple-700 text-sm" title="Add Checkup">
-                                <i class=""></i>
+                                    class="btn-hover text-green-600 hover:text-green-700 text-sm" title="Complete Checkup">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button onclick="editScheduledCheckup({{ $patient->id }})" 
+                                    class="btn-hover text-blue-600 hover:text-blue-700 text-sm" title="Edit Schedule">
+                                <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
+                @endif
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-8 text-gray-500">
-                        <i class="fas fa-users text-3xl mb-2"></i>
-                        <p>No patients with active prenatal records found.</p>
+                    <td colspan="5" class="text-center py-8 text-gray-500">
+                        <i class="fas fa-calendar-times text-3xl mb-2"></i>
+                        <p>No scheduled checkups found.</p>
                     </td>
                 </tr>
                 @endforelse

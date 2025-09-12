@@ -206,7 +206,7 @@
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
         <div>
-            <div class="flex space-x-4">
+            <div id="bhw-child-stats-container" class="flex space-x-4">
                 <div class="bg-white p-4 rounded-lg shadow-sm border">
                     <div class="text-2xl font-bold text-primary">{{ $childRecords->total() ?? 0 }}</div>
                     <div class="text-sm text-gray-600">Total Children</div>
@@ -214,6 +214,7 @@
             </div>
         </div>
         <div class="flex space-x-3">
+            @include('components.refresh-data-button', ['id' => 'bhw-child-refresh-btn'])
             <button onclick="openAddModal()" 
                 class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <i class="fas fa-plus text-sm"></i>
@@ -241,7 +242,7 @@
                         <option value="Female" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
                     </select>
                     <button type="submit" class="btn-minimal px-4 py-2.5 bg-[#68727A] text-white rounded-lg">
-                        <i class="fas fa-filter mr-2"></i>Search
+                        <i class="fas fa-search mr-2"></i>Search
                     </button>
                     <a href="{{ route('bhw.childrecord.index') }}" class="btn-minimal px-4 py-2.5 text-gray-600 border border-gray-300 rounded-lg text-center">
                         <i class="fas fa-times mr-2"></i>Clear
@@ -251,8 +252,17 @@
         </div>
     </div>
 
+    <!-- Include Table Skeleton -->
+    @include('components.table-skeleton', [
+        'id' => 'bhw-child-table-skeleton',
+        'rows' => 5,
+        'columns' => 6,
+        'showStats' => true,
+        'statsId' => 'bhw-child-stats-skeleton'
+    ])
+
     <!-- Records Table -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div id="bhw-child-main-content" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         @if($childRecords->count() > 0)
             <div class="table-wrapper">
                 <table class="w-full table-container">
@@ -304,7 +314,7 @@
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <div class="action-buttons flex flex-col sm:flex-row sm:justify-center space-y-2 sm:space-y-0 sm:space-x-2">
-                                    <a href="#" onclick='openViewRecordModal(@json($record->toArray()))' class="btn-action btn-view inline-flex items-center justify-center">
+                                    <a href="{{ route('bhw.childrecord.show', $record->id) }}" class="btn-action btn-view inline-flex items-center justify-center">
                                         <i class="fas fa-eye mr-1"></i><span class="hidden sm:inline">View</span>
                                     </a>
                                     <a href="#" onclick='openEditRecordModal(@json($record->toArray()))' class="btn-action btn-edit inline-flex items-center justify-center">
@@ -1210,4 +1220,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+{{-- Include Refresh Data Script --}}
+@include('components.refresh-data-script', [
+    'contentId' => 'bhw-child-main-content',
+    'skeletonId' => 'bhw-child-table-skeleton',
+    'statsId' => 'bhw-child-stats-container',
+    'statsSkeletonId' => 'bhw-child-stats-skeleton',
+    'refreshBtnId' => 'bhw-child-refresh-btn',
+    'hasStats' => true
+])
 @endpush

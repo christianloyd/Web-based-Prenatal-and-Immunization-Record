@@ -153,10 +153,11 @@
                         class="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base text-gray-600 border border-gray-300 rounded-md sm:rounded-lg hover:bg-gray-50 transition-colors">
                     Cancel
                 </button>
-                <button type="submit" 
-                        class="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 font-medium transition-colors">
-                    Create Prenatal Record
-                </button>
+            <button type="submit" 
+                    class="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 font-medium transition-colors flex items-center justify-center">
+                <i class="fas fa-save mr-2"></i>
+                Save Record
+            </button>
             </div>
         </form>
     </div>

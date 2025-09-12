@@ -53,13 +53,13 @@ class UserController extends Controller
             }
 
             // Apply sorting
-            $sortField = $request->get('sort', 'full_name');
+            $sortField = $request->get('sort', 'name');
             $sortDirection = $request->get('direction', 'asc');
 
-            if (in_array($sortField, ['full_name', 'username', 'role', 'created_at', 'is_active'])) {
+            if (in_array($sortField, ['name', 'username', 'role', 'created_at', 'is_active'])) {
                 $query->orderBy($sortField, $sortDirection);
             } else {
-                $query->orderBy('full_name', 'asc');
+                $query->orderBy('name', 'asc');
             }
 
             // Paginate results
@@ -122,7 +122,7 @@ class UserController extends Controller
             }
 
             return redirect()->route('midwife.user.index')
-                           ->with('success', 'User "' . $newUser->full_name . '" has been successfully created.');
+                           ->with('success', 'User "' . $newUser->name . '" has been successfully created.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             if ($request->expectsJson()) {
@@ -245,7 +245,7 @@ class UserController extends Controller
             }
 
             return redirect()->route('midwife.user.index')
-                           ->with('success', 'User "' . $user->full_name . '" has been successfully updated.');
+                           ->with('success', 'User "' . $user->name . '" has been successfully updated.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             if ($request->expectsJson()) {
@@ -331,7 +331,7 @@ class UserController extends Controller
                 }
             }
 
-            $userName = $user->full_name;
+            $userName = $user->name;
             $user->delete();
 
             if (request()->expectsJson()) {
@@ -421,7 +421,7 @@ class UserController extends Controller
                 return redirect()->back()->with('error', 'User is already inactive.');
             }
 
-            $userName = $user->full_name;
+            $userName = $user->name;
             $user->update(['is_active' => false]);
 
             if (request()->expectsJson()) {
@@ -489,7 +489,7 @@ class UserController extends Controller
                 return redirect()->back()->with('error', 'User is already active.');
             }
 
-            $userName = $user->full_name;
+            $userName = $user->name;
             $user->update(['is_active' => true]);
 
             if (request()->expectsJson()) {
@@ -579,9 +579,9 @@ class UserController extends Controller
         }
 
         try {
-            $users = User::select('id', 'full_name', 'username', 'role')
+            $users = User::select('id', 'name', 'username', 'role')
                         ->where('id', '!=', Auth::id())
-                        ->orderBy('full_name')
+                        ->orderBy('name')
                         ->get();
 
             return response()->json([

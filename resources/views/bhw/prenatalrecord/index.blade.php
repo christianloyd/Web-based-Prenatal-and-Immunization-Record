@@ -107,7 +107,58 @@
         background-color: #6b7280;
         color: white;
     }
+    .btn-view {
+        background-color: #f8fafc;
+        color: #475569;
+        border-color: #e2e8f0;
+    }
+    
+    .btn-view:hover {
+        background-color: #68727A;
+        color: white;
+        border-color: #68727A;
+    }
+    
+    .btn-edit {
+        background-color: #fef3c7;
+        color: #92400e;
+        border-color: #fde68a;
+    }
+    
+    .btn-edit:hover {
+        background-color: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+    .btn-primary {
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    /* Force navigation text visibility - FIXED VERSION */
+.w-64.bg-secondary nav a,
+.w-64.bg-secondary nav li a,
+.w-64.bg-secondary .nav-link,
+.bg-secondary nav a,
+.bg-secondary nav li a,
+.bg-secondary .nav-link {
+    color: white !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure all text elements in sidebar navigation are visible */
+.w-64.bg-secondary nav,
+.w-64.bg-secondary nav *,
+.bg-secondary nav,
+.bg-secondary nav * {
+    color: white !important;
+}
 </style>
+
 @endpush
 
 @section('content')
@@ -144,7 +195,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex space-x-3">
+        <div class="flex space-x-3"> 
             <!-- FIXED: Changed from anchor to button that opens modal -->
             <button onclick="openPrenatalModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -252,13 +303,15 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-4">
-                                <button onclick="openViewPrenatalModal({{ $record }})" 
-                                        class="text-blue-600 hover:text-blue-800 font-medium">
-                                    View
-                                </button>
+                            <a href="{{ route('bhw.prenatalrecord.show', $record->id) }}" 
+                                class="btn-action btn-view inline-flex items-center justify-center">
+                                <i class="fas fa-eye mr-1"></i>
+                            <span class="hidden sm:inline">View Details</span>
+                                </a>
                                 <button onclick="openEditPrenatalModal({{ $record }})" 
-                                        class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-3 py-1 rounded font-medium">
-                                    Edit
+                                class="btn-action btn-edit inline-flex items-center justify-center">
+                                <i class="fas fa-edit mr-1"></i>
+                            <span class="hidden sm:inline">Edit
                                 </button>
                             </div>
                         </td>
@@ -626,4 +679,6 @@ document.addEventListener('click', function(e) {
     }
 });
 </script>
+ 
+
 @endpush

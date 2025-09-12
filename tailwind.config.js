@@ -14,9 +14,6 @@ export default {
               secondary: '#141e30',
               'paynes-gray': '#68727A',
               'charcoal': '#36535E',
-              '': '#3B82F6',
-              '': '#2563EB',
-              
           }
       },
   },

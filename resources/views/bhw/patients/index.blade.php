@@ -129,7 +129,7 @@
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
         <div>
-            <div class="flex space-x-4">
+            <div id="patient-stats-container" class="flex space-x-4">
                 <div class="bg-white p-4 rounded-lg shadow-sm border">
                     <div class="text-2xl font-bold text-primary">{{ $patients->total() ?? 0 }}</div>
                     <div class="text-sm text-gray-600">Total Patients</div>
@@ -141,6 +141,7 @@
             </div>
         </div>
         <div class="flex space-x-3">
+            @include('components.refresh-data-button', ['id' => 'bhw-patient-refresh-btn'])
             <button onclick="openPatientModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-charcoal-700 transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
@@ -174,8 +175,17 @@
         </form>
     </div>
 
+    <!-- Include Table Skeleton -->
+    @include('components.table-skeleton', [
+        'id' => 'bhw-patient-table-skeleton',
+        'rows' => 5,
+        'columns' => 7,
+        'showStats' => true,
+        'statsId' => 'bhw-patient-stats-skeleton'
+    ])
+
     <!-- Patients Table -->
-    <div class="bg-white rounded-lg shadow-sm border">
+    <div id="bhw-patient-main-content" class="bg-white rounded-lg shadow-sm border">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50">
@@ -332,7 +342,6 @@ function openViewPatientModal(patient) {
     document.getElementById('viewPatientEmergencyContact').textContent = patient.emergency_contact || 'N/A';
     document.getElementById('viewPatientAddress').textContent = patient.address || 'N/A';
     document.getElementById('viewPatientOccupation').textContent = patient.occupation || 'N/A';
-    document.getElementById('viewPatientPrenatalRecords').textContent = patient.total_prenatal_records || '0';
     
     // Set risk status with appropriate styling
     const riskStatusElement = document.getElementById('viewPatientRiskStatus');
@@ -340,14 +349,6 @@ function openViewPatientModal(patient) {
         riskStatusElement.innerHTML = '<span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">High Risk Age</span>';
     } else {
         riskStatusElement.innerHTML = '<span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Normal</span>';
-    }
-    
-    // Set active status
-    const activeStatusElement = document.getElementById('viewPatientActiveStatus');
-    if (patient.has_active_prenatal_record) {
-        activeStatusElement.innerHTML = '<span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Active</span>';
-    } else {
-        activeStatusElement.innerHTML = '<span class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Inactive</span>';
     }
     
     // Set created date if available
@@ -514,4 +515,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+{{-- Include Refresh Data Script --}}
+@include('components.refresh-data-script', [
+    'contentId' => 'bhw-patient-main-content',
+    'skeletonId' => 'bhw-patient-table-skeleton',
+    'statsId' => 'patient-stats-container',
+    'statsSkeletonId' => 'bhw-patient-stats-skeleton',
+    'refreshBtnId' => 'bhw-patient-refresh-btn',
+    'hasStats' => true
+])
 @endpush

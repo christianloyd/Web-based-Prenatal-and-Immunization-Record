@@ -209,6 +209,7 @@
              
         </div>
         <div class="flex space-x-3">
+            @include('components.refresh-data-button', ['id' => 'child-refresh-btn'])
             <button onclick="openAddModal()" 
                 class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <i class="fas fa-plus text-sm"></i>
@@ -225,7 +226,7 @@
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         <input type="text" name="search" value="{{ request('search') }}" 
-                               placeholder="Search by child name, mother's name..." 
+                               placeholder="Search by child name" 
                                class="input-clean w-full pl-10 pr-4 py-2.5 rounded-lg">
                     </div>
                 </div>
@@ -236,7 +237,7 @@
                         <option value="Female" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
                     </select>
                     <button type="submit" class="btn-minimal px-4 py-2.5 bg-[#68727A] text-white rounded-lg">
-                        <i class="fas fa-filter mr-2"></i>Search
+                        <i class="fas fa-search mr-2"></i>Search
                     </button>
                     <a href="{{ route('midwife.childrecord.index') }}" class="btn-minimal px-4 py-2.5 text-gray-600 border border-gray-300 rounded-lg text-center">
                         <i class="fas fa-times mr-2"></i>Clear
@@ -246,8 +247,16 @@
         </div>
     </div>
 
+    <!-- Include Table Skeleton -->
+    @include('components.table-skeleton', [
+        'id' => 'child-table-skeleton',
+        'rows' => 5,
+        'columns' => 6,
+        'showStats' => false
+    ])
+
     <!-- Records Table -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div id="child-main-content" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         @if($childRecords->count() > 0)
             <div class="table-wrapper">
                 <table class="w-full table-container">
@@ -299,7 +308,7 @@
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <div class="action-buttons flex flex-col sm:flex-row sm:justify-center space-y-2 sm:space-y-0 sm:space-x-2">
-                                    <a href="#" onclick='openViewRecordModal(@json($record->toArray()))' class="btn-action btn-view inline-flex items-center justify-center">
+                                    <a href="{{ route('midwife.childrecord.show', $record->id) }}" class="btn-action btn-view inline-flex items-center justify-center">
                                         <i class="fas fa-eye mr-1"></i><span class="hidden sm:inline">View</span>
                                     </a>
                                     <a href="#" onclick='openEditRecordModal(@json($record->toArray()))' class="btn-action btn-edit inline-flex items-center justify-center">
@@ -1161,4 +1170,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+{{-- Include Refresh Data Script --}}
+@include('components.refresh-data-script', [
+    'contentId' => 'child-main-content',
+    'skeletonId' => 'child-table-skeleton',
+    'refreshBtnId' => 'child-refresh-btn',
+    'hasStats' => false
+])
 @endpush

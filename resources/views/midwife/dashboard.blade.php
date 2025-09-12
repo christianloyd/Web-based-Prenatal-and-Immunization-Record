@@ -156,6 +156,22 @@
             </div>
         </div>
 
+        <!-- Total Children Records -->
+        <div class="stat-card p-6 fade-in">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Children Records</p>
+                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['total_children']) }}</p>
+                    <p class="text-sm text-purple-600 mt-1">
+                        <i class="fas fa-arrow-up mr-1"></i>+{{ $stats['children_change'] }} this month
+                    </p>
+                </div>
+                <div class="bg-purple-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-child text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
         
     </div>
 

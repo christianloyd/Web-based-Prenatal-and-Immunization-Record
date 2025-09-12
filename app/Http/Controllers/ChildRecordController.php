@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 use App\Models\ChildRecord;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Patient;
+use App\Notifications\HealthcareNotification;
+use Illuminate\Support\Facades\Cache;
 
 class ChildRecordController extends Controller
 {
@@ -219,6 +222,20 @@ class ChildRecordController extends Controller
                 'mother_exists' => $validated['mother_exists'],
                 'created_by' => $user->id
             ]);
+
+            // Get mother name for notification
+            $mother = Patient::find($motherId);
+            
+            // Send notification to all healthcare workers about new child record
+            $this->notifyHealthcareWorkers(
+                'New Child Record Created',
+                "A new child record has been created for '{$childRecord->child_name}' (Mother: {$mother->name}).",
+                'success',
+                Auth::user()->role === 'midwife' 
+                    ? route('midwife.childrecord.show', $childRecord->id)
+                    : route('bhw.childrecord.show', $childRecord->id),
+                ['child_record_id' => $childRecord->id, 'mother_id' => $motherId, 'action' => 'child_record_created']
+            );
             
         } catch (\Exception $e) {
             \Log::error('Error creating child record: ' . $e->getMessage(), [
@@ -253,36 +270,64 @@ class ChildRecordController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ChildRecord $childRecord)
+    public function show($id)
     {
         // Check authorization
         if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentication required.'
-            ], 401);
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authentication required.'
+                ], 401);
+            }
+            abort(401, 'Authentication required');
         }
 
         $user = Auth::user();
         
         // Authorize roles
         if (!in_array($user->role, ['midwife', 'bhw'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access.'
-            ], 403);
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access.'
+                ], 403);
+            }
+            abort(403, 'Unauthorized access');
         }
 
         try {
-            return response()->json([
-                'success' => true,
-                'data' => $childRecord
-            ]);
+            // Load child record with immunizations using eager loading (following prenatal pattern)
+            $childRecord = ChildRecord::with([
+                'immunizations' => function($query) {
+                    $query->orderBy('vaccination_date', 'desc');
+                },
+                'mother'
+            ])->findOrFail($id);
+            
+            // If it's an AJAX request, return JSON
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $childRecord
+                ]);
+            }
+            
+            // For regular requests, return the view
+            $viewPath = $user->role === 'bhw' ? 'bhw.childrecord.show' : 'midwife.childrecord.show';
+            
+            return view($viewPath, compact('childRecord'));
+            
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Record not found.'
-            ], 404);
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Record not found.'
+                ], 404);
+            }
+            
+            $redirectRoute = $user->role === 'bhw' ? 'bhw.childrecord.index' : 'midwife.childrecord.index';
+            return redirect()->route($redirectRoute)->with('error', 'Child record not found.');
         }
     }
 
@@ -546,6 +591,31 @@ public function update(Request $request, $id)
 
             return redirect()->route($redirectRoute)
                            ->withErrors(['error' => 'Error deleting record. Please try again.']);
+        }
+    }
+
+    /**
+     * Helper method to notify all healthcare workers about healthcare events
+     */
+    private function notifyHealthcareWorkers($title, $message, $type = 'info', $actionUrl = null, $data = [])
+    {
+        // Get all healthcare workers (midwives and BHWs)
+        $healthcareWorkers = User::whereIn('role', ['midwife', 'bhw'])
+            ->where('id', '!=', Auth::id()) // Exclude the current user
+            ->get();
+
+        foreach ($healthcareWorkers as $worker) {
+            $worker->notify(new HealthcareNotification(
+                $title,
+                $message,
+                $type,
+                $actionUrl,
+                array_merge($data, ['notified_by' => Auth::user()->name])
+            ));
+            
+            // Clear notification cache for the recipient
+            Cache::forget("unread_notifications_count_{$worker->id}");
+            Cache::forget("recent_notifications_{$worker->id}");
         }
     }
 }

@@ -6,13 +6,15 @@ use App\Http\Controllers\PrenatalController;
 use App\Http\Controllers\PrenatalRecordController;
 use App\Http\Controllers\ChildRecordController;
 use App\Http\Controllers\ImmunizationController;
-use App\Http\Controllers\PrenatalCheckupController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\VaccineController;
 use App\Http\Controllers\Midwife\CloudBackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\PrenatalCheckupController;
 // Redirect root to login
 Route::get('/', fn () => redirect()->route('login'));
 
@@ -39,6 +41,17 @@ Route::middleware('auth')->group(function () {
         };
     })->name('dashboard');
 
+    // Notification routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread-count', [NotificationController::class, 'getUnreadCount'])->name('unread-count');
+        Route::get('/recent', [NotificationController::class, 'getRecent'])->name('recent');
+        Route::post('/mark-as-read/{id}', [NotificationController::class, 'markAsRead'])->name('mark-as-read');
+        Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-as-read');
+        Route::delete('/{id}', [NotificationController::class, 'delete'])->name('delete');
+        Route::post('/send-test', [NotificationController::class, 'sendTest'])->name('send-test');
+    });
+
     /* ----------------------------------------------------------
        MIDWIFE AREA — prefixed & named
        ---------------------------------------------------------- */
@@ -56,14 +69,18 @@ Route::middleware('auth')->group(function () {
             /* --- NEW: complete resource for PrenatalRecord --- */
             Route::resource('prenatalrecord', PrenatalRecordController::class);
 
+            //Prenatal Checkup Routes
+            Route::resource('prenatalcheckup', PrenatalCheckupController::class);
+
             //Child Record Routes
             Route::resource('childrecord', ChildRecordController::class);
             Route::put('childrecord/{id}', [ChildRecordController::class, 'update'])->name('childrecord.update');
+            
+            //Child Immunization Routes
+            Route::post('childrecord/{childRecord}/immunizations', [App\Http\Controllers\ChildImmunizationController::class, 'store'])->name('childrecord.immunizations.store');
+            Route::put('childrecord/{childRecord}/immunizations/{immunization}', [App\Http\Controllers\ChildImmunizationController::class, 'update'])->name('childrecord.immunizations.update');
+            Route::delete('childrecord/{childRecord}/immunizations/{immunization}', [App\Http\Controllers\ChildImmunizationController::class, 'destroy'])->name('childrecord.immunizations.destroy');
 
-            //Prenatal Checkup Routes
-            Route::resource('prenatalcheckup', PrenatalCheckupController::class);
-            Route::get('prenatalcheckup/patient/{patient}', [PrenatalCheckupController::class, 'showPatient'])
-                 ->name('prenatalcheckup.patient');
 
             //Cloud Backup Routes
             Route::prefix('cloudbackup')->name('cloudbackup.')->group(function () {
@@ -87,7 +104,11 @@ Route::middleware('auth')->group(function () {
             Route::resource('vaccines', VaccineController::class);
 
             //Report
-            Route::view('/report', 'midwife.report')->name('report');
+            Route::get('/reports', [ReportController::class, 'midwifeIndex'])->name('report');
+            Route::get('/reports/print', [ReportController::class, 'printView'])->name('report.print');
+            Route::post('/reports/generate', [ReportController::class, 'generateReport'])->name('report.generate');
+            Route::post('/reports/export-pdf', [ReportController::class, 'exportPdf'])->name('report.export.pdf');
+            Route::post('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('report.export.excel');
 
             // User Management Routes
             Route::resource('user', UserController::class);
@@ -101,15 +122,24 @@ Route::middleware('auth')->group(function () {
             ->name('bhw.')
             ->group(function () {
 
-            // Dashboard route (simple view for now, you can create BHW DashboardController later)
-            Route::get('/dashboard', function() {
-                return view('bhw.dashboard');
-            })->name('dashboard');
+            // Dashboard route
+            Route::get('/dashboard', [DashboardController::class, 'bhwIndex'])->name('dashboard');
             
             Route::resource('patients', PatientController::class);
             Route::resource('prenatalrecord', PrenatalRecordController::class);
-            Route::resource('childrecord', ChildRecordController::class); 
-            Route::view('/report', 'bhw.report')->name('report');
+            Route::resource('childrecord', ChildRecordController::class);
+            Route::resource('immunizations', ImmunizationController::class);
+            
+            //Child Immunization Routes for BHW
+            Route::post('childrecord/{childRecord}/immunizations', [App\Http\Controllers\ChildImmunizationController::class, 'store'])->name('childrecord.immunizations.store');
+            Route::put('childrecord/{childRecord}/immunizations/{immunization}', [App\Http\Controllers\ChildImmunizationController::class, 'update'])->name('childrecord.immunizations.update');
+            Route::delete('childrecord/{childRecord}/immunizations/{immunization}', [App\Http\Controllers\ChildImmunizationController::class, 'destroy'])->name('childrecord.immunizations.destroy');
+            
+            Route::get('/report', [ReportController::class, 'bhwIndex'])->name('report');
+            Route::get('/report/print', [ReportController::class, 'printView'])->name('report.print');
+            Route::post('/report/generate', [ReportController::class, 'generateReport'])->name('report.generate');
+            Route::post('/report/export-pdf', [ReportController::class, 'exportPdf'])->name('report.export.pdf');
+            Route::post('/report/export-excel', [ReportController::class, 'exportExcel'])->name('report.export.excel');
          });
 
     // Logout

@@ -10,7 +10,7 @@
         <!-- Modal Header -->
         <div class="flex justify-between items-center mb-6">
             <h2 id="modalTitle" class="text-xl font-semibold text-gray-900 flex items-center">
-                <i class="fas fa-user-plus text-[#68727A] mr-2"></i>
+                <i class="fas fa-plus text-[#68727A] mr-2"></i>
                 Add User
             </h2>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
@@ -46,11 +46,11 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                            <input type="text" id="full_name" name="full_name" required 
-                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('full_name') error-border @enderror"
+                            <input type="text" id="name" name="name" required 
+                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('name') error-border @enderror"
                                    placeholder="Enter full name"
-                                   value="{{ old('full_name') }}">
-                            @error('full_name')
+                                   value="{{ old('name') }}">
+                            @error('name')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>

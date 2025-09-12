@@ -35,7 +35,7 @@ return new class extends Migration
             $table->time('next_visit_time')->nullable();
             $table->text('next_visit_notes')->nullable();
             
-            $table->enum('status', ['completed', 'scheduled', 'cancelled'])->default('completed');
+            $table->enum('status', ['completed', 'upcoming', 'cancelled'])->default('upcoming');
             $table->timestamps();
         });
     }

@@ -65,21 +65,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Address Information -->
-                    <div>
-                        <h3 class="text-lg font-semibold text-charcoal mb-4 flex items-center border-b border-gray-200 pb-2">
-                            <svg class="w-5 h-5 text-paynes-gray mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            Address Information
-                        </h3>
-                        <div class="border border-gray-200 p-4 rounded-lg">
-                            <label class="text-sm font-medium text-paynes-gray uppercase tracking-wide mb-2 block">Complete Address</label>
-                            <p class="text-charcoal leading-relaxed" id="viewPatientAddress">-</p>
-                        </div>
-                    </div>
-
                 </div>
 
                 <!-- Right Column -->
@@ -105,27 +90,19 @@
                         </div>
                     </div>
 
-                    <!-- Medical Records Summary -->
+                    <!-- Address Information -->
                     <div>
                         <h3 class="text-lg font-semibold text-charcoal mb-4 flex items-center border-b border-gray-200 pb-2">
                             <svg class="w-5 h-5 text-paynes-gray mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13H14a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                             </svg>
-                            Medical Records Summary
+                            Address Information
                         </h3>
-                        <div class="space-y-4">
-                            <div class="border border-gray-200 p-4 rounded-lg">
-                                <label class="text-sm font-medium text-paynes-gray uppercase tracking-wide">Total Prenatal Records</label>
-                                <p class="text-charcoal font-semibold text-lg mt-1" id="viewPatientPrenatalRecords">-</p>
-                            </div>
-                            <div class="border border-gray-200 p-4 rounded-lg">
-                                <label class="text-sm font-medium text-paynes-gray uppercase tracking-wide">Active Status</label>
-                                <p class="text-charcoal font-semibold text-lg mt-1" id="viewPatientActiveStatus">-</p>
-                            </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <label class="text-sm font-medium text-paynes-gray uppercase tracking-wide mb-2 block">Complete Address</label>
+                            <p class="text-charcoal leading-relaxed" id="viewPatientAddress">-</p>
                         </div>
                     </div>
-
-                     
 
                 </div>
             </div>

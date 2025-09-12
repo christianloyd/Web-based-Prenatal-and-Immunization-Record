@@ -61,7 +61,7 @@
     
     .btn-primary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 12px rgba(20, 42, 77, 0.3);
     }
 
     /* Status Badge Styles */
@@ -144,6 +144,7 @@
     <div class="flex justify-between items-center mb-6">
          <div> </div>
         <div class="flex space-x-3">
+            @include('components.refresh-data-button', ['id' => 'prenatal-refresh-btn'])
             <!-- FIXED: Changed from anchor to button that opens modal -->
             <button onclick="openPrenatalModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -190,6 +191,7 @@
 
     <!-- Prenatal Records Table -->
     <div class="bg-white rounded-lg shadow-sm border">
+        @include('components.table-skeleton', ['id' => 'prenatal-skeleton'])
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50">
@@ -251,11 +253,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-4">
-                                <button onclick="openViewPrenatalModal({{ $record }})" 
+                                <a href="{{ route('midwife.prenatalrecord.show', $record->id) }}" 
                                 class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
-                            <span class="hidden sm:inline">View</span>
-                                </button>
+                            <span class="hidden sm:inline">View Details</span>
+                                </a>
                                 <button onclick="openEditPrenatalModal({{ $record }})" 
                                 class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
@@ -296,13 +298,14 @@
 <!-- Add Prenatal Record Modal -->
 @include('partials.midwife.prenatalrecord.prenataladd')
 
-<!-- View Prenatal Record Modal -->
-@include('partials.midwife.prenatalrecord.prenatalview')
+<!-- View Prenatal Record Modal --> 
 
 <!-- Edit Prenatal Record Modal -->
 @include('partials.midwife.prenatalrecord.prenataledit')
 
 @endsection
+
+@include('components.refresh-data-script', ['refreshButtonId' => 'prenatal-refresh-btn', 'skeletonId' => 'prenatal-skeleton', 'tableSelector' => '.overflow-x-auto table'])
 
 @push('scripts')
 <script>

@@ -8,9 +8,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/css/prenatalrecord.css',
                 'resources/js/app.js',
-                'resources/js/prenatalrecord.js',
             ],
             refresh: true,
         }),
@@ -29,13 +27,7 @@ export default defineConfig({
         },
     },
     build: {
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    vendor: ['lodash'],
-                },
-            },
-        },
+        outDir: 'public/build',
     },
     
 });

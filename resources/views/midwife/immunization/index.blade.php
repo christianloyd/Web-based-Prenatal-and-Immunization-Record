@@ -254,7 +254,7 @@
                            placeholder="From Date" class="input-clean px-3 py-2.5 rounded-lg">
                     <div class="flex gap-2">
                         <button type="submit" class="btn-minimal px-4 py-2.5 bg-[#68727A] text-white rounded-lg">
-                            <i class="fas fa-filter mr-2"></i>Search
+                            <i class="fas fa-search mr-2"></i>Search
                         </button>
                         <a href="{{ route('midwife.immunization.index') }}" class="btn-minimal px-4 py-2.5 text-gray-600 border border-gray-300 rounded-lg">
                             <i class="fas fa-times"></i>Clear

@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\PrenatalRecord;
 use App\Models\Patient;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Notifications\HealthcareNotification;
+use Illuminate\Support\Facades\Cache;
 
 class PrenatalRecordController extends Controller
 {
@@ -118,7 +121,7 @@ class PrenatalRecordController extends Controller
                 $gestationalAge = "{$weekText} {$dayText}";
             }
 
-            PrenatalRecord::create([
+            $prenatalRecord = PrenatalRecord::create([
                 'patient_id' => $request->patient_id,
                 'last_menstrual_period' => $request->last_menstrual_period,
                 'expected_due_date' => $request->expected_due_date ?? $lmp->copy()->addDays(280)->toDateString(),
@@ -133,6 +136,20 @@ class PrenatalRecordController extends Controller
                 'height' => $request->height,
                 'status' => 'normal',
             ]);
+
+            // Get patient name for notification
+            $patient = Patient::find($request->patient_id);
+            
+            // Send notification to all healthcare workers about new prenatal record
+            $this->notifyHealthcareWorkers(
+                'New Prenatal Record Created',
+                "A new prenatal record has been created for patient '{$patient->name}' (Gestational Age: {$gestationalAge}).",
+                'info',
+                Auth::user()->role === 'midwife' 
+                    ? route('midwife.prenatalrecord.show', $prenatalRecord->id)
+                    : route('bhw.prenatalrecord.show', $prenatalRecord->id),
+                ['prenatal_record_id' => $prenatalRecord->id, 'patient_id' => $patient->id, 'action' => 'prenatal_record_created']
+            );
 
             $redirectRoute = Auth::user()->role === 'midwife' 
                 ? 'midwife.prenatalrecord.index' 
@@ -152,7 +169,12 @@ class PrenatalRecordController extends Controller
     // Show a single prenatal record
     public function show($id)
     {
-        $prenatalRecord = PrenatalRecord::with(['patient'])->findOrFail($id);
+        $prenatalRecord = PrenatalRecord::with([
+            'patient.prenatalCheckups' => function($query) {
+                $query->orderBy('checkup_date', 'desc');
+            },
+            'patient.latestCheckup'
+        ])->findOrFail($id);
         
         $view = auth()->user()->role === 'midwife' 
             ? 'midwife.prenatalrecord.show' 
@@ -327,5 +349,30 @@ class PrenatalRecordController extends Controller
                 ];
             })
         ]);
+    }
+
+    /**
+     * Helper method to notify all healthcare workers about healthcare events
+     */
+    private function notifyHealthcareWorkers($title, $message, $type = 'info', $actionUrl = null, $data = [])
+    {
+        // Get all healthcare workers (midwives and BHWs)
+        $healthcareWorkers = User::whereIn('role', ['midwife', 'bhw'])
+            ->where('id', '!=', Auth::id()) // Exclude the current user
+            ->get();
+
+        foreach ($healthcareWorkers as $worker) {
+            $worker->notify(new HealthcareNotification(
+                $title,
+                $message,
+                $type,
+                $actionUrl,
+                array_merge($data, ['notified_by' => Auth::user()->name])
+            ));
+            
+            // Clear notification cache for the recipient
+            Cache::forget("unread_notifications_count_{$worker->id}");
+            Cache::forget("recent_notifications_{$worker->id}");
+        }
     }
 }

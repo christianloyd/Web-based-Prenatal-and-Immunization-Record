@@ -2,194 +2,110 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Vaccine;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class VaccineSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        // Clear existing data
+        DB::table('vaccines')->delete();
+
+        // Define vaccines matching the actual table structure
         $vaccines = [
-            // Routine Immunization Vaccines (matching Immunization model names)
             [
                 'name' => 'BCG',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.1ml',
-                'current_stock' => 120,
-                'min_stock' => 15,
-                'expiry_date' => Carbon::now()->addMonths(18),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Bacillus Calmette-Guérin vaccine for tuberculosis prevention',
-            ],
-            [
-                'name' => 'Hepatitis B',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 150,
+                'category' => 'Tuberculosis Prevention',
+                'dosage' => '1 dose (0.05ml for infants)',
+                'current_stock' => rand(50, 200),
                 'min_stock' => 20,
-                'expiry_date' => Carbon::now()->addMonths(18),
+                'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
                 'storage_temp' => '2-8°C',
-                'notes' => 'For newborns and high-risk adults',
+                'notes' => 'Protects against tuberculosis. Given at birth to 2 months. Intradermal injection.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
             ],
             [
-                'name' => 'DPT',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 85,
-                'min_stock' => 15,
-                'expiry_date' => Carbon::now()->addMonths(20),
+                'name' => 'Pentavalent',
+                'category' => 'Multi-disease Prevention',
+                'dosage' => '3 doses (0.5ml each)',
+                'current_stock' => rand(50, 200),
+                'min_stock' => 30,
+                'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
                 'storage_temp' => '2-8°C',
-                'notes' => 'Diphtheria, Pertussis, and Tetanus combination vaccine',
+                'notes' => 'Protects against Diphtheria, Pertussis, Tetanus, Hepatitis B, and Haemophilus influenzae type b. Given at 6, 10, 14 weeks.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
             ],
             [
                 'name' => 'OPV',
-                'category' => 'Routine Immunization',
-                'dosage' => '2 drops',
-                'current_stock' => 200,
+                'category' => 'Polio Prevention',
+                'dosage' => '2 doses (2 drops each)',
+                'current_stock' => rand(50, 200),
                 'min_stock' => 25,
-                'expiry_date' => Carbon::now()->addMonths(15),
+                'expiry_date' => Carbon::now()->addYears(1)->format('Y-m-d'),
                 'storage_temp' => '2-8°C',
-                'notes' => 'Oral Polio Vaccine - live attenuated',
+                'notes' => 'Oral Polio Vaccine. Protects against poliomyelitis. Given at 6, 10 weeks.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
             ],
             [
                 'name' => 'IPV',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 90,
-                'min_stock' => 15,
-                'expiry_date' => Carbon::now()->addMonths(22),
+                'category' => 'Polio Prevention',
+                'dosage' => '2 doses (0.5ml each)',
+                'current_stock' => rand(50, 200),
+                'min_stock' => 20,
+                'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
                 'storage_temp' => '2-8°C',
-                'notes' => 'Inactivated Polio Vaccine',
-            ],
-            [
-                'name' => 'Hib',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 70,
-                'min_stock' => 12,
-                'expiry_date' => Carbon::now()->addMonths(16),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Haemophilus influenzae type b vaccine',
+                'notes' => 'Inactivated Polio Vaccine. Given at 14 weeks and 9 months. Intramuscular injection.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
             ],
             [
                 'name' => 'PCV',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 60,
-                'min_stock' => 10,
-                'expiry_date' => Carbon::now()->addMonths(14),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Pneumococcal conjugate vaccine',
-            ],
-            [
-                'name' => 'MMR',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 75,
-                'min_stock' => 15,
-                'expiry_date' => Carbon::now()->addMonths(24),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Measles, Mumps, and Rubella - live attenuated vaccine',
-            ],
-            [
-                'name' => 'Varicella',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 45,
-                'min_stock' => 8,
-                'expiry_date' => Carbon::now()->addMonths(20),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Chickenpox vaccine - live attenuated',
-            ],
-            [
-                'name' => 'Hepatitis A',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 55,
-                'min_stock' => 10,
-                'expiry_date' => Carbon::now()->addMonths(18),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Hepatitis A vaccine for endemic areas',
-            ],
-            [
-                'name' => 'Td',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 8,  // Low stock
-                'min_stock' => 20,
-                'expiry_date' => Carbon::now()->addDays(25), // Expiring soon
-                'storage_temp' => '2-8°C',
-                'notes' => 'Tetanus-Diphtheria toxoid, booster every 10 years',
-            ],
-            [
-                'name' => 'Tdap',
-                'category' => 'Routine Immunization',
-                'dosage' => '0.5ml',
-                'current_stock' => 40,
-                'min_stock' => 12,
-                'expiry_date' => Carbon::now()->addMonths(16),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Tetanus, Diphtheria, and Pertussis booster',
-            ],
-            
-            // Seasonal Vaccines
-            [
-                'name' => 'Influenza',
-                'category' => 'Seasonal',
-                'dosage' => '0.5ml',
-                'current_stock' => 0, // Out of stock
+                'category' => 'Pneumonia Prevention',
+                'dosage' => '3 doses (0.5ml each)',
+                'current_stock' => rand(50, 200),
                 'min_stock' => 30,
-                'expiry_date' => Carbon::now()->addMonths(6),
+                'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
                 'storage_temp' => '2-8°C',
-                'notes' => 'Annual seasonal flu vaccination recommended',
+                'notes' => 'Pneumococcal Conjugate Vaccine. Protects against pneumonia and meningitis. Given at 6, 10, 14 weeks.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
             ],
-            
-            // COVID-19 Vaccines
             [
-                'name' => 'COVID-19 mRNA',
-                'category' => 'COVID-19',
-                'dosage' => '0.3ml',
-                'current_stock' => 5, // Low stock
+                'name' => 'MCV',
+                'category' => 'Measles Prevention',
+                'dosage' => '2 doses (0.5ml each)',
+                'current_stock' => rand(50, 200),
                 'min_stock' => 25,
-                'expiry_date' => Carbon::now()->addMonths(8),
+                'expiry_date' => Carbon::now()->addYears(1)->format('Y-m-d'),
                 'storage_temp' => '2-8°C',
-                'notes' => 'mRNA COVID-19 vaccine, store in refrigerator',
+                'notes' => 'Measles-Containing Vaccine (MMR). Protects against Measles, Mumps, and Rubella. Given at 9, 12 months.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
             ],
-            
-            // Travel Vaccines
             [
-                'name' => 'Yellow Fever',
-                'category' => 'Travel',
-                'dosage' => '0.5ml',
-                'current_stock' => 40,
-                'min_stock' => 10,
-                'expiry_date' => Carbon::now()->addMonths(36),
-                'storage_temp' => '2-8°C',
-                'notes' => 'Required for travel to endemic areas, valid for 10 years',
-            ],
+                'name' => 'Vitamin A',
+                'category' => 'Vitamin Supplementation',
+                'dosage' => '2 doses (capsule/drops)',
+                'current_stock' => rand(100, 300),
+                'min_stock' => 50,
+                'expiry_date' => Carbon::now()->addYears(3)->format('Y-m-d'),
+                'storage_temp' => 'Room temperature',
+                'notes' => 'Vitamin A supplementation. Prevents vitamin A deficiency. Given at 6, 12 months, then every 6 months.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]
         ];
 
-        foreach ($vaccines as $vaccine) {
-            $createdVaccine = Vaccine::create($vaccine);
-            
-            // Create initial stock transaction if stock > 0
-            if ($vaccine['current_stock'] > 0) {
-                $createdVaccine->stockTransactions()->create([
-                    'transaction_type' => 'in',
-                    'quantity' => $vaccine['current_stock'],
-                    'previous_stock' => 0,
-                    'new_stock' => $vaccine['current_stock'],
-                    'reason' => 'Initial stock entry from seeder'
-                ]);
-            }
-        }
-        
+        // Insert vaccines
+        DB::table('vaccines')->insert($vaccines);
+
         $this->command->info('Vaccine seeder completed successfully!');
-        $this->command->info('Created ' . count($vaccines) . ' vaccine records with stock transactions.');
+        $this->command->info('Generated: 7 vaccines with complete immunization schedule information');
+        $this->command->info('Vaccines: BCG (1 dose), Pentavalent (3 doses), OPV (2 doses), IPV (2 doses), PCV (3 doses), MCV (2 doses), Vitamin A (2 doses)');
     }
 }

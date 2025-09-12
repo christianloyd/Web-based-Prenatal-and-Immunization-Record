@@ -4,22 +4,23 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\HasDatabaseNotifications;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasDatabaseNotifications;
 
     protected $fillable = [
-        'full_name',
+        'name',
         'username',
+        'password',
+        'role',
         'gender',
         'age',
         'contact_number',
         'address',
-        'role',
-        'password',
         'is_active',
     ];
 
@@ -39,7 +40,7 @@ class User extends Authenticatable
     public static function validationRules($isUpdate = false)
     {
         $rules = [
-            'full_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users,username',
             'gender' => 'required|in:Male,Female',
             'age' => 'required|integer|min:18|max:100',
@@ -127,7 +128,7 @@ class User extends Authenticatable
     public static function updateValidationRules($userId)
     {
         return [
-            'full_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users,username,' . $userId,
             'gender' => 'required|in:Male,Female',
             'age' => 'required|integer|min:18|max:100',
@@ -142,8 +143,8 @@ class User extends Authenticatable
     public static function validationMessages()
     {
         return [
-            'full_name.required' => 'Full name is required.',
-            'full_name.max' => 'Full name cannot exceed 255 characters.',
+            'name.required' => 'Name is required.',
+            'name.max' => 'Name cannot exceed 255 characters.',
             'username.required' => 'Username is required.',
             'username.unique' => 'This username is already taken.',
             'username.max' => 'Username cannot exceed 50 characters.',
@@ -217,7 +218,7 @@ class User extends Authenticatable
     {
         if ($search) {
             return $query->where(function($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
+                $q->where('name', 'like', "%{$search}%")
                   ->orWhere('username', 'like', "%{$search}%")
                   ->orWhere('contact_number', 'like', "%{$search}%");
             });

@@ -50,8 +50,8 @@ class PrenatalRecord extends Model
         'trimester'             => 'integer'
     ];
 
-    /* ----------------------------------------------------------
-       Helper method to calculate gestational age in weeks and days
+        /* ----------------------------------------------------------
+    Helper method to calculate gestational age in weeks and days
     ---------------------------------------------------------- */
     private function calculateGestationalAgeFromLMP($lmpDate, $currentDate = null)
     {
@@ -67,7 +67,7 @@ class PrenatalRecord extends Model
         $weeks = intval($totalDays / 7);
         $days = $totalDays % 7;
         
-        // Format the result
+        // Always return in consistent format: "X weeks Y days"
         if ($weeks == 0) {
             return $days == 1 ? "1 day" : "{$days} days";
         } elseif ($days == 0) {

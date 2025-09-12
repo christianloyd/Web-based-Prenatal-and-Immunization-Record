@@ -206,6 +206,64 @@
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
+    /* Flowbite Modal Transition Styles */
+    .modal-transition {
+        transition: opacity 0.25s ease-in-out;
+        background-color: rgba(0, 0, 0, 0);
+    }
+    
+    .modal-transition:not(.hidden) {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-transition.hidden {
+        opacity: 0;
+        background-color: rgba(0, 0, 0, 0);
+    }
+    
+    .modal-content-transition {
+        transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+        transform: translateY(-16px) scale(0.95);
+        opacity: 0;
+    }
+    
+    .modal-transition:not(.hidden) .modal-content-transition {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    
+    /* Smooth modal entrance animation */
+    .modal-transition.show {
+        animation: modalFadeIn 0.25s ease-out forwards;
+    }
+    
+    .modal-transition.show .modal-content-transition {
+        animation: modalSlideIn 0.25s ease-out forwards;
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            background-color: rgba(0, 0, 0, 0);
+        }
+        to {
+            opacity: 1;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    }
+    
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-16px) scale(0.95);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
 </style>
 @endpush
 
@@ -228,7 +286,8 @@
     <!-- Header Actions --> 
 <div class="flex justify-between items-center mb-6">
     <div>
-        <div class="flex space-x-4">
+        <!-- Statistics Cards -->
+        <div id="stats-container" class="flex space-x-4">
             <div class="bg-white p-4 rounded-lg shadow-sm border">
                 <div class="text-2xl font-bold text-primary">{{ $users->total() ?? 0 }}</div>
                 <div class="text-sm text-gray-600">Total Users</div>
@@ -250,11 +309,40 @@
                 <div class="text-sm text-gray-600">BHWs</div>
             </div>
         </div>
+        
+        <!-- Statistics Skeleton -->
+        <div id="stats-skeleton" class="hidden flex space-x-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm border animate-pulse">
+                <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border animate-pulse">
+                <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border animate-pulse">
+                <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border animate-pulse">
+                <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border animate-pulse">
+                <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+        </div>
     </div>
     <div class="flex space-x-3">
+        <button onclick="simulateDataRefresh()" 
+            class="btn-minimal px-4 py-2 bg-gray-600 text-white rounded-lg font-medium flex items-center space-x-2 hover:bg-gray-700">
+            <i class="fas fa-sync-alt text-sm"></i>
+            <span>Refresh Data</span>
+        </button>
         <button onclick="openAddModal()" 
             class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
-            <i class="fas fa-user-plus text-sm"></i>
+            <i class="fas fa-plus text-sm"></i>
             <span>Add User</span>
         </button>
     </div>
@@ -290,7 +378,7 @@
                     <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                     <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
-                <button type="submit" class="btn-minimal px-4 py-2.5 bg-[#68727A] text-white rounded-lg">
+                <button type="submit" onclick="showSkeletonLoaders()" class="btn-minimal px-4 py-2.5 bg-[#68727A] text-white rounded-lg">
                     <i class="fas fa-filter mr-2"></i>Filter
                 </button>
                 <a href="{{ route('midwife.user.index') }}" class="btn-minimal px-4 py-2.5 text-gray-600 border border-gray-300 rounded-lg text-center">
@@ -303,13 +391,53 @@
 
     <!-- Users Table -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Table Skeleton -->
+        <div id="table-skeleton" class="hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex space-x-4 animate-pulse">
+                        <div class="h-4 bg-gray-200 rounded w-20"></div>
+                        <div class="h-4 bg-gray-200 rounded w-16"></div>
+                        <div class="h-4 bg-gray-200 rounded w-12"></div>
+                        <div class="h-4 bg-gray-200 rounded w-14"></div>
+                        <div class="h-4 bg-gray-200 rounded w-16"></div>
+                        <div class="h-4 bg-gray-200 rounded w-20"></div>
+                        <div class="h-4 bg-gray-200 rounded w-16"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="divide-y divide-gray-200">
+                @for($i = 0; $i < 5; $i++)
+                <div class="px-4 py-3 animate-pulse">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="h-4 bg-gray-200 rounded w-32"></div>
+                            <div class="h-4 bg-gray-200 rounded w-24"></div>
+                            <div class="h-6 bg-gray-200 rounded-full w-20"></div>
+                            <div class="h-6 bg-gray-200 rounded-full w-16"></div>
+                            <div class="h-4 bg-gray-200 rounded w-20"></div>
+                            <div class="h-4 bg-gray-200 rounded w-28"></div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <div class="h-8 bg-gray-200 rounded w-12"></div>
+                            <div class="h-8 bg-gray-200 rounded w-12"></div>
+                            <div class="h-8 bg-gray-200 rounded w-20"></div>
+                        </div>
+                    </div>
+                </div>
+                @endfor
+            </div>
+        </div>
+
+        <!-- Actual Table Content -->
+        <div id="table-content">
         @if($users->count() > 0)
             <div class="table-wrapper">
             <table class="w-full table-container">
     <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
             <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                <a href="{{ request()->fullUrlWithQuery(['sort' => 'full_name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
+                <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
                     Full Name <i class="fas fa-sort ml-1 text-gray-400"></i>
                 </a>
             </th>
@@ -330,7 +458,7 @@
         @foreach($users as $user)
         <tr class="table-row-hover">
             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                <div class="font-medium text-gray-900">{{ $user->full_name ?? 'N/A' }}</div>
+                <div class="font-medium text-gray-900">{{ $user->name ?? 'N/A' }}</div>
                 <div class="text-sm text-gray-500 sm:hidden">{{ $user->username ?? 'N/A' }}</div>
             </td>
             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
@@ -371,11 +499,11 @@
                     </a>
                     <!-- UPDATED ACTION BUTTONS -->
                     @if($user->is_active)
-                        <button onclick='confirmDeactivateUser({{ $user->id }}, "{{ $user->full_name }}")' class="btn-action btn-deactivate inline-flex items-center justify-center bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500">
+                        <button onclick="confirmDeactivate('{{ $user->name }}', function() { deactivateUser({{ $user->id }}) })" class="btn-action btn-deactivate inline-flex items-center justify-center bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500">
                             <i class="fas fa-user-slash mr-1"></i><span class="hidden sm:inline">Deactivate</span>
                         </button>
                     @else
-                        <button onclick='confirmActivateUser({{ $user->id }}, "{{ $user->full_name }}")' class="btn-action btn-activate inline-flex items-center justify-center bg-green-100 text-green-700 border-green-200 hover:bg-green-500 hover:text-white hover:border-green-500">
+                        <button onclick="confirmActivate('{{ $user->name }}', function() { activateUser({{ $user->id }}) })" class="btn-action btn-activate inline-flex items-center justify-center bg-green-100 text-green-700 border-green-200 hover:bg-green-500 hover:text-white hover:border-green-500">
                             <i class="fas fa-user-check mr-1"></i><span class="hidden sm:inline">Activate</span>
                         </button>
                     @endif
@@ -406,10 +534,11 @@
                     @endif
                 </p>
                 <button onclick="openAddModal()" class="btn-minimal btn-primary-clean px-6 py-3 rounded-lg font-medium inline-flex items-center">
-                    <i class="fas fa-user-plus mr-2"></i>Add User
+                    <i class="fas fa-plus mr-2"></i>Add User
                 </button>
             </div>
         @endif
+        </div> <!-- Close table-content div -->
     </div>
 </div>
 
@@ -419,6 +548,7 @@
 <!-- View User Modal -->
 @include('partials.user.userview')
 
+{{-- Activation/Deactivation now uses the global confirmation modal --}}
 
 @endsection
 @push('scripts')
@@ -440,7 +570,7 @@ let isEditMode = false;
 function openAddModal() {
     console.log('Opening add modal...'); // Debug log
     resetForm();
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus text-[#68727A] mr-2"></i>Add User';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus text-[#68727A] mr-2"></i>Add User';
     document.getElementById('userForm').action = '{{ route("midwife.user.store") }}';
     document.getElementById('userId').value = '';
     
@@ -475,7 +605,7 @@ function openEditUserModal(user) {
     console.log('Opening edit modal for user:', user); // Debug log
     resetForm();
     populateEditForm(user);
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit text-[#68727A] mr-2"></i>Edit User';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit text-[#68727A] mr-2"></i>Edit User';
     document.getElementById('userForm').action = '/midwife/user/' + user.id;
     
     // Add method override for PUT
@@ -515,17 +645,6 @@ function openViewUserModal(user) {
 /**
  * User Activation/Deactivation Functions
  */
-function confirmDeactivateUser(userId, userName) {
-    if (confirm(`Are you sure you want to deactivate user "${userName}"? They will no longer be able to access the system.`)) {
-        deactivateUser(userId);
-    }
-}
-
-function confirmActivateUser(userId, userName) {
-    if (confirm(`Are you sure you want to activate user "${userName}"? They will regain access to the system.`)) {
-        activateUser(userId);
-    }
-}
 
 function deactivateUser(userId) {
     const form = document.createElement('form');
@@ -653,7 +772,7 @@ function resetForm() {
 function populateEditForm(user) {
     const fields = {
         'userId': user.id,
-        'full_name': user.full_name || '',
+        'name': user.name || '',
         'username': user.username || '',
         'age': user.age || '',
         'contact_number': user.contact_number || '',
@@ -675,7 +794,7 @@ function populateEditForm(user) {
 
 function populateViewModal(user) {
     const viewFields = {
-        'modalFullName': user.full_name || 'N/A',
+        'modalFullName': user.name || 'N/A',
         'modalGender': user.gender || 'N/A',
         'modalAge': user.age || 'N/A',
         'modalRole': user.role || 'N/A',
@@ -851,7 +970,7 @@ function setupPhoneNumberFormatting() {
  * Form Validation Functions
  */
 function validateForm() {
-    const requiredFields = ['full_name', 'username', 'age', 'contact_number', 'role'];
+    const requiredFields = ['name', 'username', 'age', 'contact_number', 'role'];
     let isValid = true;
     const errors = [];
 
@@ -957,7 +1076,7 @@ function showValidationErrors(errors) {
 
 function getFieldLabel(fieldId) {
     const labels = {
-        'full_name': 'Full Name',
+        'name': 'Full Name',
         'username': 'Username',
         'age': 'Age',
         'contact_number': 'Contact Number',
@@ -1003,6 +1122,58 @@ function setupModalEventListeners() {
 }
 
 /**
+ * Skeleton Loading Functions
+ */
+function showSkeletonLoaders() {
+    // Hide actual content
+    document.getElementById('stats-container').classList.add('hidden');
+    document.getElementById('table-content').classList.add('hidden');
+    
+    // Show skeletons
+    document.getElementById('stats-skeleton').classList.remove('hidden');
+    document.getElementById('table-skeleton').classList.remove('hidden');
+}
+
+function hideSkeletonLoaders() {
+    // Show actual content
+    document.getElementById('stats-container').classList.remove('hidden');
+    document.getElementById('table-content').classList.remove('hidden');
+    
+    // Hide skeletons
+    document.getElementById('stats-skeleton').classList.add('hidden');
+    document.getElementById('table-skeleton').classList.add('hidden');
+}
+
+function simulateDataRefresh() {
+    // Add spinning animation to refresh button
+    const refreshBtn = document.querySelector('button[onclick="simulateDataRefresh()"]');
+    const refreshIcon = refreshBtn.querySelector('i');
+    const originalText = refreshBtn.querySelector('span').textContent;
+    
+    if (refreshIcon) {
+        refreshIcon.classList.add('fa-spin');
+    }
+    refreshBtn.querySelector('span').textContent = 'Refreshing...';
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    
+    showSkeletonLoaders();
+    
+    // Get current URL with all filters and search parameters
+    const currentUrl = window.location.href;
+    
+    // Add a small delay to show the skeleton, then reload
+    setTimeout(() => {
+        window.location.href = currentUrl;
+    }, 800);
+}
+
+// Alternative function for immediate refresh without skeleton
+function refreshData() {
+    window.location.reload();
+}
+
+/**
  * Document Ready Event Listener - Only for setup functions
  */
 document.addEventListener('DOMContentLoaded', function() {
@@ -1022,14 +1193,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const userIdInput = document.getElementById('userId');
         if (userIdInput && userIdInput.value) {
             isEditMode = true;
-            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit text-[#68727A] mr-2"></i>Edit User';
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit text-[#68727A] mr-2"></i>Edit User';
             document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save mr-2"></i>Update User';
             const userId = userIdInput.value;
             document.getElementById('userForm').action = '/midwife/user/' + userId;
             addMethodOverride('PUT');
         } else {
             isEditMode = false;
-            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus text-[#68727A] mr-2"></i>Add User';
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus text-[#68727A] mr-2"></i>Add User';
             document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save mr-2"></i>Save User';
             document.getElementById('userForm').action = '/midwife/user';
         }

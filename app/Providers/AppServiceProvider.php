@@ -5,6 +5,12 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\View\Composers\ChildRecordComposer;
+use App\Models\Patient;
+use App\Models\Vaccine;
+use App\Models\PrenatalCheckup;
+use App\Observers\PatientObserver;
+use App\Observers\VaccineObserver;
+use App\Observers\PrenatalCheckupObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,7 +63,12 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot()
-{
-    View::composer('*childadd*', ChildRecordComposer::class);
-}
+    {
+        View::composer('*childadd*', ChildRecordComposer::class);
+        
+        // Register model observers for automatic notifications
+        Patient::observe(PatientObserver::class);
+        Vaccine::observe(VaccineObserver::class);
+        PrenatalCheckup::observe(PrenatalCheckupObserver::class);
+    }
 }

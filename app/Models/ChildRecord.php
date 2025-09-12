@@ -50,7 +50,7 @@ class ChildRecord extends Model
     ---------------------------------------------------------- */
     public static function generateChildId()
     {
-        $last = static::withTrashed()->orderByDesc('id')->first();
+        $last = static::orderByDesc('id')->first();
         return 'CH-' . str_pad(($last ? $last->id + 1 : 1), 3, '0', STR_PAD_LEFT);
     }
 
@@ -58,6 +58,12 @@ class ChildRecord extends Model
     public function mother()
     {
         return $this->belongsTo(Patient::class, 'mother_id');
+    }
+
+    // Relationship to immunizations
+    public function immunizations()
+    {
+        return $this->hasMany(Immunization::class);
     }
 
     // Accessor for mother's name with fallback

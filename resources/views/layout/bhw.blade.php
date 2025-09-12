@@ -8,12 +8,150 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
      
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Flowbite CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    
+    <style>
+        /* Import Inter font for system-wide use - optimized weights only */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* Apply Inter font system-wide */
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Fix layout shaking by ensuring consistent scrollbar behavior */
+        html {
+            overflow-y: scroll; /* Always show vertical scrollbar space */
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        
+        /* Custom scrollbar styling */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db #f3f4f6;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        
+        /* Ensure layout stability */
+        .main-container {
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Prevent content jumping during navigation */
+        .content-wrapper {
+            min-height: calc(100vh - 120px); /* Adjust based on header height */
+        }
+        
+        /* Prevent layout shifts during transitions */
+        * {
+            box-sizing: border-box;
+        }
+        
+        /* Smooth transitions for all elements */
+        .transition-all {
+            transition-duration: 150ms !important;
+        }
+        
+        /* Prevent transform origin issues */
+        [class*="transform"] {
+            transform-origin: center;
+        }
+        
+        /* Ensure consistent width calculations */
+        .w-64 {
+            width: 16rem !important;
+        }
+        
+        /* Fix navigation menu button movements */
+        .nav-link {
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            text-decoration: none !important;
+            transition: background-color 0.15s ease, color 0.15s ease !important;
+            transform: none !important;
+        }
+        
+        .nav-link:hover,
+        .nav-link:focus,
+        .nav-link:active {
+            transform: none !important;
+            outline: none !important;
+        }
+        
+        /* Prevent any button movement or jumping */
+        nav a, nav button {
+            transform: none !important;
+            will-change: auto !important;
+        }
+        
+        /* Ensure sidebar stays fixed during navigation */
+        .sidebar-nav {
+            position: fixed !important;
+            transform: none !important;
+        }
+        
+        /* Stop all transforms and animations on navigation */
+        nav *, nav i, .fas, .fa {
+            transform: none !important;
+            animation: none !important;
+            transition: background-color 0.15s ease, color 0.15s ease !important;
+        }
+        
+        /* Prevent flash of unstyled content */
+        main {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Force navigation text visibility */
+        .sidebar-nav a,
+        .sidebar-nav li a,
+        nav a,
+        nav ul li a {
+            color: white !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        /* Ensure text in navigation is always visible */
+        .w-64.bg-secondary a,
+        .bg-secondary a {
+            color: rgba(255, 255, 255, 1) !important;
+        }
+        
+    </style>
+    
     @stack('styles')
     @stack('scripts')
    
    
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-gray-50">
     <div class="flex h-screen">
         <!-- Left Sidebar Navigation -->
         <!-- TODO: Replace with DaisyUI drawer component -->
@@ -50,31 +188,25 @@
                     <li>
                         <!-- TODO: Replace with DaisyUI menu-item -->
                         <!-- Original: a with nav-link class -->
-                        <a href="{{ route('bhw.patients.index') }}" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('bhw.patients.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="prenatalrecord">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                            </svg>
-                           Patients Registration
+                        <a href="{{ route('bhw.patients.index') }}" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('bhw.patients.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="patients">
+                            <i class="fas fa-user-plus w-5 h-5 mr-3"></i>
+                           Patient Registration
                         </a>
                     </li> 
                     <li>
                         <!-- TODO: Replace with DaisyUI menu-item -->
                         <!-- Original: a with nav-link class -->
-                        <a href="{{ route('bhw.prenatalrecord.index') }}" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('bhw.prenatalrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="prenatalrecord">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                            </svg>
+                        <a href="{{ route('bhw.prenatalrecord.index') }}" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('bhw.prenatalrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="prenatal">
+                            <i class="fas fa-file-medical w-5 h-5 mr-3"></i>
                             Prenatal Records
                         </a>
                     </li> 
                     <li>
                         <!-- TODO: Replace with DaisyUI menu-item -->
                         <!-- Original: a with nav-link class -->
-                        <a href="{{ route('bhw.childrecord.index') }}" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('bhw.childrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="immunization">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Child Record
+                        <a href="{{ route('bhw.childrecord.index') }}" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('bhw.childrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="child-records">
+                            <i class="fas fa-child w-5 h-5 mr-3"></i>
+                            Child Records
                         </a>
                     </li>
                      
@@ -82,10 +214,8 @@
                     <li>
                         <!-- TODO: Replace with DaisyUI menu-item -->
                         <!-- Original: a with nav-link class -->
-                        <a href="#" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('reports') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="reports">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"></path>
-                            </svg>
+                        <a href="{{ route('bhw.report') }}" class="nav-link flex items-center p-3 rounded-lg {{ request()->routeIs('bhw.report*') ? 'bg-primary text-white' : 'hover:bg-primary' }} transition-colors" data-section="reports">
+                            <i class="fas fa-chart-bar w-5 h-5 mr-3"></i>
                             Reports
                         </a>
                     </li>
@@ -139,11 +269,20 @@
             <!-- Main Content -->
             <!-- TODO: Replace with DaisyUI container -->
             <!-- Original: main with custom-scrollbar -->
-            <main class="flex-1 p-6 overflow-y-auto custom-scrollbar">
-                @yield('content')
+            <main class="flex-1 p-6 overflow-y-scroll custom-scrollbar">
+                <div class="content-wrapper">
+                    @yield('content')
+                </div>
             </main>
         </div>
     </div> 
+    <!-- Flowbite JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    
+    
     @stack('scripts')
+    
+    {{-- Include Global Confirmation Modal --}}
+    @include('components.confirmation-modal')
 </body>
 </html>

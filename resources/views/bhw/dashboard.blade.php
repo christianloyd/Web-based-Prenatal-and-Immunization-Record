@@ -1,232 +1,414 @@
 @extends('layout.bhw')
 @section('title', 'Dashboard')
-@section('page-title', 'Dashboard Overview')
-@section('page-subtitle', 'Monitor patient care and health records')
+@section('page-title', 'Dashboard')
+@section('page-subtitle', 'Overview of barangay health worker activities')
 
+<link rel="icon" type="image/png" sizes="40x40" href="{{ asset('images/dash1.png') }}">
 
+@push('styles')
+<style>
+    .primary-bg { background-color: #243b55; }
+    .secondary-bg { background-color: #141e30; }
+    .primary-text { color: #243b55; }
+    .secondary-text { color: #141e30; }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 0.5rem;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(36, 59, 85, 0.1);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+        display: block;
+        background: #fafafa;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+    }
+    
+    .chart-container canvas {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+    }
+    
+    .chart-card {
+        min-height: 400px;
+        background: white;
+        border-radius: 0.5rem;
+        border: 1px solid #e5e7eb;
+        padding: 1.5rem;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dashboard-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .dashboard-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .dashboard-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (max-width: 767px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+    }
+</style>
+@endpush
 
 @section('content')
-<!-- Dashboard Section -->
-<div id="dashboard-section" class="section-content">
-    <!-- Stats Cards Grid -->
-    <!-- TODO: Replace with DaisyUI stats component -->
-    <!-- Original: grid with gap-6 mb-8 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Active Pregnancies Card -->
-        <!-- TODO: Replace with DaisyUI stat card -->
-        <!-- Original: bg-white p-6 rounded-lg shadow-sm border -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border stat-card">
+<div class="space-y-6">
+    <!-- Success/Error Messages -->
+    @if(session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative fade-in" role="alert">
+        <span class="block sm:inline">{{ session('success') }}</span>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative fade-in" role="alert">
+        <span class="block sm:inline">{{ session('error') }}</span>
+    </div>
+    @endif
+
+    <!-- Statistics Cards -->
+    <div class="dashboard-grid cols-4">
+        <!-- Total Mothers -->
+        <div class="stat-card p-6 fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600">Active Pregnancies</p>
-                    <p class="text-3xl font-bold text-primary">{{ $stats['active_pregnancies'] ?? 24 }}</p>
+                    <p class="text-sm font-medium text-gray-600">Total Mothers</p>
+                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['total_mothers']) }}</p>
+                    <p class="text-sm text-green-600 mt-1">
+                        <i class="fas fa-arrow-up mr-1"></i>+{{ $stats['mothers_change'] }} this month
+                    </p>
                 </div>
-                <!-- TODO: Replace with DaisyUI avatar or icon -->
-                <!-- Original: bg-primary bg-opacity-10 p-3 rounded-full -->
-                <div class="bg-primary bg-opacity-10 p-3 rounded-full">
-                    <svg class="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+                <div class="primary-bg text-white p-3 rounded-lg">
+                    <i class="fas fa-female text-2xl"></i>
                 </div>
             </div>
         </div>
-        
-        <!-- Babies Born Card -->
-        <!-- TODO: Replace with DaisyUI stat card -->
-        <!-- Original: bg-white p-6 rounded-lg shadow-sm border -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border stat-card">
+
+        <!-- Total Children -->
+        <div class="stat-card p-6 fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600">Babies Born</p>
-                    <p class="text-3xl font-bold text-primary">{{ $stats['babies_born'] ?? 156 }}</p>
+                    <p class="text-sm font-medium text-gray-600">Total Children</p>
+                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['total_children']) }}</p>
+                    <p class="text-sm text-blue-600 mt-1">
+                        <i class="fas fa-child mr-1"></i>Under care
+                    </p>
                 </div>
-                <!-- TODO: Replace with DaisyUI avatar or icon -->
-                <!-- Original: bg-primary bg-opacity-10 p-3 rounded-full -->
-                <div class="bg-primary bg-opacity-10 p-3 rounded-full">
-                    <svg class="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path>
-                    </svg>
+                <div class="bg-blue-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-child text-2xl"></i>
                 </div>
             </div>
         </div>
-        
-        <!-- Vaccinations Due Card -->
-        <!-- TODO: Replace with DaisyUI stat card with alert styling -->
-        <!-- Original: bg-white p-6 rounded-lg shadow-sm border -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border stat-card">
+
+        <!-- Girls -->
+        <div class="stat-card p-6 fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600">Vaccinations Due</p>
-                    <p class="text-3xl font-bold text-red-500">{{ $stats['vaccinations_due'] ?? 8 }}</p>
+                    <p class="text-sm font-medium text-gray-600">Girls</p>
+                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['girls_count']) }}</p>
+                    <p class="text-sm text-pink-600 mt-1">
+                        <i class="fas fa-heart mr-1"></i>{{ $stats['girls_percentage'] }}% of children
+                    </p>
                 </div>
-                <!-- TODO: Replace with DaisyUI alert icon -->
-                <!-- Original: bg-red-100 p-3 rounded-full -->
-                <div class="bg-red-100 p-3 rounded-full">
-                    <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
+                <div class="bg-pink-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-female text-2xl"></i>
                 </div>
             </div>
         </div>
-        
-        <!-- Appointments Today Card -->
-        <!-- TODO: Replace with DaisyUI stat card -->
-        <!-- Original: bg-white p-6 rounded-lg shadow-sm border -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border stat-card">
+
+        <!-- Boys -->
+        <div class="stat-card p-6 fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600">Appointments Today</p>
-                    <p class="text-3xl font-bold text-primary">{{ $stats['appointments_today'] ?? 12 }}</p>
+                    <p class="text-sm font-medium text-gray-600">Boys</p>
+                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['boys_count']) }}</p>
+                    <p class="text-sm text-indigo-600 mt-1">
+                        <i class="fas fa-star mr-1"></i>{{ $stats['boys_percentage'] }}% of children
+                    </p>
                 </div>
-                <!-- TODO: Replace with DaisyUI calendar icon -->
-                <!-- Original: bg-primary bg-opacity-10 p-3 rounded-full -->
-                <div class="bg-primary bg-opacity-10 p-3 rounded-full">
-                    <svg class="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                    </svg>
+                <div class="bg-indigo-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-male text-2xl"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity Section -->
-    <!-- TODO: Replace with DaisyUI card grid -->
-    <!-- Original: grid with gap-6 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Recent Appointments Card -->
-        <!-- TODO: Replace with DaisyUI card -->
-        <!-- Original: bg-white rounded-lg shadow-sm border -->
-        <div class="bg-white rounded-lg shadow-sm border">
-            <!-- TODO: Replace with DaisyUI card-title -->
-            <!-- Original: p-6 border-b -->
-            <div class="p-6 border-b">
-                <h3 class="text-lg font-semibold text-gray-800">Recent Appointments</h3>
-            </div>
-            <!-- TODO: Replace with DaisyUI card-body -->
-            <!-- Original: p-6 -->
-            <div class="p-6">
-                <!-- TODO: Replace with DaisyUI list group -->
-                <!-- Original: space-y-4 -->
-                <div class="space-y-4" id="recent-appointments">
-                    @forelse($recent_appointments ?? [] as $appointment)
-                        <!-- TODO: Replace with DaisyUI list item -->
-                        <!-- Original: flex items-center justify-between p-3 bg-gray-50 rounded-lg -->
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">{{ $appointment['patient_name'] }}</p>
-                                <p class="text-sm text-gray-600">{{ $appointment['description'] }}</p>
-                            </div>
-                            <!-- TODO: Replace with DaisyUI badge -->
-                            <!-- Original: text-sm text-primary font-medium -->
-                            <span class="text-sm text-primary font-medium">{{ $appointment['time'] }}</span>
-                        </div>
-                    @empty
-                        <!-- Default appointments when no data -->
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Sarah Williams</p>
-                                <p class="text-sm text-gray-600">28 weeks - Routine checkup</p>
-                            </div>
-                            <span class="text-sm text-primary font-medium">10:00 AM</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Maria Rodriguez</p>
-                                <p class="text-sm text-gray-600">36 weeks - Final checkup</p>
-                            </div>
-                            <span class="text-sm text-primary font-medium">2:30 PM</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Emma Thompson</p>
-                                <p class="text-sm text-gray-600">12 weeks - First visit</p>
-                            </div>
-                            <span class="text-sm text-primary font-medium">4:00 PM</span>
-                        </div>
-                    @endforelse
-                </div>
+    <!-- Charts Section -->
+    <div class="dashboard-grid cols-2">
+        <!-- Prenatal Status Chart -->
+        <div class="chart-card fade-in">
+            <h3 class="text-lg font-semibold primary-text mb-4">
+                <i class="fas fa-chart-pie mr-2"></i>Prenatal Records Status
+            </h3>
+            <div class="chart-container">
+                <canvas id="prenatalChart"></canvas>
             </div>
         </div>
 
-        <!-- Upcoming Vaccinations Card -->
-        <!-- TODO: Replace with DaisyUI card -->
-        <!-- Original: bg-white rounded-lg shadow-sm border -->
-        <div class="bg-white rounded-lg shadow-sm border">
-            <!-- TODO: Replace with DaisyUI card-title -->
-            <!-- Original: p-6 border-b -->
-            <div class="p-6 border-b">
-                <h3 class="text-lg font-semibold text-gray-800">Upcoming Vaccinations</h3>
+        <!-- Monthly Patient Registrations Chart -->
+        <div class="chart-card fade-in">
+            <h3 class="text-lg font-semibold primary-text mb-4">
+                <i class="fas fa-chart-line mr-2"></i>Monthly Patient Registrations
+            </h3>
+            <div class="chart-container">
+                <canvas id="registrationsChart"></canvas>
             </div>
-            <!-- TODO: Replace with DaisyUI card-body -->
-            <!-- Original: p-6 -->
+        </div>
+    </div>
+
+    <!-- Lists Section -->
+    <div class="dashboard-grid cols-1">
+        <!-- Recent Patient Registrations -->
+        <div class="bg-white rounded-lg border fade-in">
+            <div class="border-b px-6 py-4">
+                <h3 class="text-lg font-semibold primary-text">
+                    <i class="fas fa-user-plus mr-2"></i>Recent Patient Registrations
+                </h3>
+            </div>
             <div class="p-6">
-                <!-- TODO: Replace with DaisyUI list group -->
-                <!-- Original: space-y-4 -->
-                <div class="space-y-4" id="upcoming-vaccinations">
-                    @forelse($upcoming_vaccinations ?? [] as $vaccination)
-                        <!-- TODO: Replace with DaisyUI alert item -->
-                        <!-- Original: flex with dynamic color classes -->
-                        <div class="flex items-center justify-between p-3 bg-{{ $vaccination['status_color'] }}-50 rounded-lg border border-{{ $vaccination['status_color'] }}-200">
-                            <div>
-                                <p class="font-medium text-gray-800">{{ $vaccination['baby_name'] }}</p>
-                                <p class="text-sm text-{{ $vaccination['status_color'] }}-600">{{ $vaccination['vaccines'] }}</p>
+                @if($recentRegistrations->count() > 0)
+                    <div class="space-y-4">
+                        @foreach($recentRegistrations as $registration)
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="primary-bg text-white p-2 rounded-full">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $registration['patient_name'] }}</p>
+                                        <p class="text-sm text-gray-600">Age: {{ $registration['age'] }} - {{ $registration['contact'] }}</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm text-gray-500 font-medium">
+                                    {{ $registration['registration_date']->format('M j, Y') }}
+                                </span>
                             </div>
-                            <span class="text-sm text-{{ $vaccination['status_color'] }}-600 font-medium">{{ $vaccination['due_date'] }}</span>
-                        </div>
-                    @empty
-                        <!-- Default vaccinations when no data -->
-                        <!-- TODO: Replace with DaisyUI alert -->
-                        <!-- Original: bg-red-50 rounded-lg border border-red-200 -->
-                        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
-                            <div>
-                                <p class="font-medium text-gray-800">Baby Johnson</p>
-                                <p class="text-sm text-red-600">2 months - DPT, Polio, Hib</p>
-                            </div>
-                            <span class="text-sm text-red-600 font-medium">Tomorrow</span>
-                        </div>
-                        <!-- TODO: Replace with DaisyUI warning alert -->
-                        <!-- Original: bg-yellow-50 rounded-lg border border-yellow-200 -->
-                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                            <div>
-                                <p class="font-medium text-gray-800">Baby Martinez</p>
-                                <p class="text-sm text-yellow-600">4 months - DPT, Polio, Hib</p>
-                            </div>
-                            <span class="text-sm text-yellow-600 font-medium">3 days</span>
-                        </div>
-                        <!-- TODO: Replace with DaisyUI info alert -->
-                        <!-- Original: bg-blue-50 rounded-lg border border-blue-200 -->
-                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <div>
-                                <p class="font-medium text-gray-800">Baby Chen</p>
-                                <p class="text-sm text-blue-600">6 months - DPT, Polio, Hib</p>
-                            </div>
-                            <span class="text-sm text-blue-600 font-medium">1 week</span>
-                        </div>
-                    @endforelse
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-8">
+                        <i class="fas fa-user-plus text-4xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-500">No recent registrations</p>
+                    </div>
+                @endif
+                
+                <div class="mt-4 pt-4 border-t">
+                    <a href="{{ route('bhw.patients.index') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        View all patients <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" 
+        onerror="console.error('Primary CDN failed, trying fallback...'); this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js';"></script>
 <script>
-    // Dashboard-specific JavaScript
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize dashboard functionality
-        console.log('Dashboard loaded');
+    function initializeCharts() {
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        console.log('Chart Data:', {!! json_encode($charts) !!});
         
-        // Fixed: Removed unwanted hover event listeners that caused background changes
-        // TODO: Replace with DaisyUI component interactions
-        
-        // Optional: Add click handlers for cards if needed
-        const statCards = document.querySelectorAll('.stat-card');
-        statCards.forEach(card => {
-            card.addEventListener('click', function() {
-                // Handle card click if needed
-                console.log('Card clicked:', this);
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js failed to load!');
+            document.querySelectorAll('.chart-container').forEach(container => {
+                container.innerHTML = '<div class="flex items-center justify-center h-full text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Chart library failed to load</div>';
             });
+            return;
+        }
+        
+        console.log('DOM loaded, initializing charts...');
+    
+        const primaryColor = '#243b55';
+        const secondaryColor = '#141e30';
+        const chartColors = {
+            primary: primaryColor,
+            secondary: secondaryColor,
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            info: '#3b82f6'
+        };
+
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: secondaryColor,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: primaryColor,
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            }
+        };
+
+        // Prenatal Status Pie Chart
+        try {
+            const prenatalCtx = document.getElementById('prenatalChart');
+            if (prenatalCtx) {
+                new Chart(prenatalCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Active Prenatal', 'Completed Prenatal'],
+                        datasets: [{
+                            data: [
+                                {{ $charts['prenatal']['active'] ?? 0 }},
+                                {{ $charts['prenatal']['completed'] ?? 0 }}
+                            ],
+                            backgroundColor: [
+                                chartColors.info,
+                                chartColors.success
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                ...commonOptions.plugins.tooltip,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error creating prenatal chart:', error);
+        }
+
+        // Monthly Patient Registrations Line Chart
+        try {
+            const registrationsCtx = document.getElementById('registrationsChart');
+            if (registrationsCtx) {
+                new Chart(registrationsCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($charts['monthly_registrations']['labels'] ?? []) !!},
+                        datasets: [{
+                            label: 'New Patient Registrations',
+                            data: {!! json_encode($charts['monthly_registrations']['data'] ?? []) !!},
+                            borderColor: chartColors.primary,
+                            backgroundColor: chartColors.primary + '20',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: chartColors.primary,
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        ...commonOptions,
+                        scales: {
+                            x: {
+                                grid: { 
+                                    color: '#f3f4f6',
+                                    borderColor: '#e5e7eb'
+                                },
+                                ticks: { 
+                                    color: '#6b7280',
+                                    font: { size: 12 }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { 
+                                    color: '#f3f4f6',
+                                    borderColor: '#e5e7eb'
+                                },
+                                ticks: { 
+                                    color: '#6b7280',
+                                    font: { size: 12 }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Number of Registrations',
+                                    color: '#6b7280'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error creating registrations chart:', error);
+        }
+
+        // Auto-hide success/error messages after 5 seconds
+        const alerts = document.querySelectorAll('.bg-green-100[role="alert"], .bg-red-100[role="alert"]');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        });
+
+    } // Close initializeCharts function
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(initializeCharts, 100);
+    });
+
+    window.addEventListener('resize', function() {
+        Chart.helpers.each(Chart.instances, function(instance) {
+            instance.resize();
         });
     });
 </script>

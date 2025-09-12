@@ -19,16 +19,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // Keep existing midwife seeder
-            MidwifeSeeder::class,
-            
-            // Add comprehensive healthcare data seeders
-            VaccineSeeder::class, // Must come first for vaccine references
+            // User accounts for healthcare workers
+            UserSeeder::class,
+             
             PatientSeeder::class,
-            ComprehensivePrenatalRecordSeeder::class,
-            ComprehensiveChildRecordSeeder::class,
-            ComprehensiveImmunizationSeeder::class,
-            ComprehensivePrenatalCheckupSeeder::class,
+            PrenatalRecordSeeder::class,
+            PrenatalCheckupSeeder::class,
         ]);
     }
 }
