@@ -3,7 +3,7 @@
     <div id="viewChildModalContent" class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto relative transform transition-all duration-300 -translate-y-10 opacity-0">
         
         <!-- Header -->
-        <div class="bg-gradient-to-r from-[#68727A] to-[#36535E] text-white p-6 rounded-t-xl relative">
+        <div class="bg-gradient-to-r from-charcoal to-paynes-gray text-white p-6 rounded-t-xl relative">
             <button onclick="closeViewChildModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:bg-opacity-20">
                 <i class="fas fa-times"></i>
             </button>
@@ -131,7 +131,7 @@
                         <i class="fas fa-edit"></i>
                         <span>Edit Record</span>
                     </button>
-                    <button onclick="closeViewChildModal()" class="bg-[#68727A] text-white px-6 py-2 rounded-lg hover:bg-[#36535E] transition-colors flex items-center space-x-2">
+                    <button onclick="closeViewChildModal()" class="bg-secondary text-white px-6 py-2 rounded-lg hover:bg-charcoal transition-colors flex items-center space-x-2">
                         <i class="fas fa-check"></i>
                         <span>Close</span>
                     </button>

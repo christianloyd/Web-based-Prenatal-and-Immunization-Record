@@ -72,23 +72,19 @@
     @media (max-width: 767px) {
         .dashboard-grid { grid-template-columns: 1fr; }
     }
+
+    /* Custom large stat numbers */
+    .stat-number {
+        font-size: 2rem !important;
+        line-height: 1 !important;
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="space-y-6">
     <!-- Success/Error Messages -->
-    @if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative fade-in" role="alert">
-        <span class="block sm:inline">{{ session('success') }}</span>
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative fade-in" role="alert">
-        <span class="block sm:inline">{{ session('error') }}</span>
-    </div>
-    @endif
+    @include('components.flowbite-alert')
 
     <!-- Statistics Cards -->
     <div class="dashboard-grid cols-4">
@@ -97,10 +93,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Total Mothers</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['total_mothers']) }}</p>
-                    <p class="text-sm text-green-600 mt-1">
-                        <i class="fas fa-arrow-up mr-1"></i>+{{ $stats['mothers_change'] }} this month
-                    </p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['total_mothers']) }}</p>
                 </div>
                 <div class="primary-bg text-white p-3 rounded-lg">
                     <i class="fas fa-female text-2xl"></i>
@@ -113,10 +106,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Total Children</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['total_children']) }}</p>
-                    <p class="text-sm text-blue-600 mt-1">
-                        <i class="fas fa-child mr-1"></i>Under care
-                    </p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['total_children']) }}</p>
                 </div>
                 <div class="bg-blue-500 text-white p-3 rounded-lg">
                     <i class="fas fa-child text-2xl"></i>
@@ -129,10 +119,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Girls</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['girls_count']) }}</p>
-                    <p class="text-sm text-pink-600 mt-1">
-                        <i class="fas fa-heart mr-1"></i>{{ $stats['girls_percentage'] }}% of children
-                    </p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['girls_count']) }}</p>
                 </div>
                 <div class="bg-pink-500 text-white p-3 rounded-lg">
                     <i class="fas fa-female text-2xl"></i>
@@ -145,10 +132,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Boys</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['boys_count']) }}</p>
-                    <p class="text-sm text-indigo-600 mt-1">
-                        <i class="fas fa-star mr-1"></i>{{ $stats['boys_percentage'] }}% of children
-                    </p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['boys_count']) }}</p>
                 </div>
                 <div class="bg-indigo-500 text-white p-3 rounded-lg">
                     <i class="fas fa-male text-2xl"></i>

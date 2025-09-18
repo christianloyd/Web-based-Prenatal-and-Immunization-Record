@@ -438,8 +438,8 @@
             <div class="form-group">
                 <label class="form-label">Report Format</label>
                 <select class="form-select" name="report_format" onchange="toggleReportFormat()">
-                    <option value="dynamic" {{ ($currentFilters['report_format'] ?? 'dynamic') === 'dynamic' ? 'selected' : '' }}>📊 Dynamic Analytics Report</option>
-                    <option value="custom" {{ ($currentFilters['report_format'] ?? '') === 'custom' ? 'selected' : '' }}>📋 Custom Paper Report</option>
+                    <option value="dynamic" {{ ($currentFilters['report_format'] ?? 'dynamic') === 'dynamic' ? 'selected' : '' }}> Dynamic Analytics Report</option>
+                    <option value="custom" {{ ($currentFilters['report_format'] ?? '') === 'custom' ? 'selected' : '' }}> Custom Paper Report</option>
                 </select>
             </div>
             
@@ -455,9 +455,9 @@
             
             <div class="form-group">
                 <label class="form-label">Month</label>
-                <select class="form-select" name="month">
+                <select class="form-select" name="month" id="monthFilter">
                     @foreach($availableMonths as $value => $label)
-                        <option value="{{ $value }}" {{ ($currentFilters['month'] ?? '') === $value ? 'selected' : '' }}>
+                        <option value="{{ $value }}" {{ ($currentFilters['month'] ?? '') === (string)$value ? 'selected' : '' }}>
                             {{ $label }}
                         </option>
                     @endforeach
@@ -474,7 +474,9 @@
             </div>
             
         </div>
-        
+
+       
+
         <div style="margin-top: 24px; display: flex; gap: 12px; align-items: center;">
             <button type="submit" class="btn btn-primary" id="updateReportBtn">
                 <span class="btn-content">
@@ -490,8 +492,8 @@
             <div class="report-format-info" style="flex: 1; padding: 12px 16px; background: var(--gray-50); border-radius: 8px; font-size: 0.875rem; color: var(--gray-600);">
                 <span id="formatDescription">
                     {{ ($currentFilters['report_format'] ?? 'dynamic') === 'dynamic' ? 
-                        '📊 Interactive charts, real-time analytics, and comprehensive data visualizations' : 
-                        '📋 Traditional paper-style report format with structured layout and summary tables'
+                        ' Interactive charts, real-time analytics, and comprehensive data visualizations' : 
+                        ' Traditional paper-style report format with structured layout and summary tables'
                     }}
                 </span>
             </div>
@@ -528,10 +530,10 @@
                 </button>
             </div>
         </div>
-        <button class="btn btn-success" onclick="scheduleReport()">
+        <!--<button class="btn btn-success" onclick="scheduleReport()">
             <i class="fas fa-clock"></i>
             Schedule Report
-        </button>
+        </button>-->
     </div>
 </div>
 
@@ -556,6 +558,11 @@
             <h3 class="section-title">
                 <i class="fas fa-chart-line"></i>
                 <span id="reportTitle">{{ $availableMonths[$currentFilters['month'] ?? ''] ?? 'All Data' }} Report</span>
+                @if(config('app.debug'))
+                <small style="color: #666; font-size: 0.8rem; font-weight: normal;">
+                    (Filter: {{ $currentFilters['month'] ?? 'None' }})
+                </small>
+                @endif
             </h3>
             
             <div class="grid-4">
@@ -1106,9 +1113,25 @@
         const reportForm = document.querySelector('form');
         if (reportForm) {
             reportForm.addEventListener('submit', function(e) {
+                // Debug: Log form data before submission
+                const formData = new FormData(reportForm);
+                console.log('Form data being submitted:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, '=', value);
+                }
+
+                // Check if month filter has a value
+                const monthSelect = document.getElementById('monthFilter');
+                if (monthSelect) {
+                    console.log('Month filter value:', monthSelect.value);
+                }
+
                 handleUpdateReportLoading();
             });
         }
+
+        // Add debug info about current filters
+        console.log('Current filters on page load:', @json($currentFilters ?? []));
     });
 </script>
 @endsection

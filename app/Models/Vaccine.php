@@ -15,6 +15,7 @@ class Vaccine extends Model
         'name',
         'category',
         'dosage',
+        'dose_count',
         'current_stock',
         'min_stock',
         'expiry_date',
@@ -25,7 +26,8 @@ class Vaccine extends Model
     protected $casts = [
         'expiry_date' => 'date',
         'current_stock' => 'integer',
-        'min_stock' => 'integer'
+        'min_stock' => 'integer',
+        'dose_count' => 'integer'
     ];
 
     /* ----------------------------------------------------------
@@ -52,10 +54,7 @@ class Vaccine extends Model
     }
 
     // Relationships
-    public function stockTransactions()
-    {
-        return $this->hasMany(StockTransaction::class);
-    }
+    // Note: StockTransaction functionality has been removed
 
     // Accessors & Mutators
     public function getStockStatusAttribute()
@@ -165,24 +164,18 @@ class Vaccine extends Model
     public function updateStock($quantity, $type, $reason)
     {
         $previousStock = $this->current_stock;
-        
+
         if ($type === 'in') {
             $this->current_stock += $quantity;
         } else {
             $this->current_stock = max(0, $this->current_stock - $quantity);
         }
-        
+
         $this->save();
-        
-        // Record transaction
-        $this->stockTransactions()->create([
-            'transaction_type' => $type,
-            'quantity' => $quantity,
-            'previous_stock' => $previousStock,
-            'new_stock' => $this->current_stock,
-            'reason' => $reason
-        ]);
-        
+
+        // Note: StockTransaction recording has been removed
+        // Stock is still updated but no transaction history is kept
+
         return $this;
     }
 }

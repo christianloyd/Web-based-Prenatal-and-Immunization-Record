@@ -1,17 +1,17 @@
 <!-- Add Prenatal Record Modal -->
-<div id="prenatal-modal" class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-2 sm:p-4 pt-4 sm:pt-8" 
+<div id="prenatal-modal" class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-4 pt-8"
      role="dialog" aria-modal="true" onclick="closePrenatalModal(event)">
     
-    <div class="modal-content relative w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl bg-white rounded-lg sm:rounded-xl shadow-2xl p-3 sm:p-4 md:p-6 my-2 sm:my-4 md:my-8" onclick="event.stopPropagation()">
+    <div class="modal-content relative w-full max-w-2xl md:max-w-4xl lg:max-w-6xl bg-white rounded-lg sm:rounded-xl shadow-2xl p-4 sm:p-6 my-4 sm:my-8" onclick="event.stopPropagation()">
         
         <!-- Header -->
         <div class="flex justify-between items-center mb-4 sm:mb-6">
-            <h3 class="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <h3 class="text-lg sm:text-xl font-semibold flex items-center" style="color: #1f2937;">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" style="color: #243b55;">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                 </svg>
-                <span class="hidden sm:inline">Add New Prenatal Record</span>
-                <span class="sm:hidden">Add Prenatal Record</span>
+                <span class="hidden sm:inline" style="color: #1f2937;">Add New Prenatal Record</span>
+                <span class="sm:hidden" style="color: #1f2937;">Add Prenatal Record</span>
             </h3>
             <button type="button" onclick="closePrenatalModal()" 
                     class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
@@ -22,8 +22,20 @@
         </div>
 
         <!-- Form -->
-        <form action="{{ route('midwife.prenatalrecord.store') }}" method="POST" id="prenatal-form" class="space-y-4 sm:space-y-6">
+        <form action="{{ route('midwife.prenatalrecord.store') }}" method="POST" id="prenatal-form" class="space-y-4 sm:space-y-6" novalidate>
             @csrf
+
+            <!-- Show server-side validation errors -->
+            @if ($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <div class="font-medium">Please correct the following errors:</div>
+                    <ul class="list-disc list-inside mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <!-- Patient Selection Section -->
             <div class="border-b pb-3 sm:pb-4 mb-4 sm:mb-6">
@@ -31,18 +43,21 @@
                 <div>
                     <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Select Patient/Mother *</label>
                     <select name="patient_id" id="patient-select" required 
-                            class="w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('patient_id') error-border @enderror">
                         <option value="">Choose a patient...</option>
                         @if(isset($patients) && count($patients) > 0)
                             @foreach($patients as $patient)
                                 <option value="{{ $patient->id }}">
-                                    {{ $patient->name }}
+                                    {{ $patient->formatted_patient_id ?? 'P-' . str_pad($patient->id, 3, '0', STR_PAD_LEFT) }} - {{ $patient->name }}
                                 </option>
                             @endforeach
                         @else
                             <option value="" disabled>No patients available</option>
                         @endif
                     </select>
+                    @error('patient_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                     <p class="text-xs sm:text-sm text-gray-500 mt-1">
                         Don't see the patient? <a href="{{ route('midwife.patients.index') }}" class="text-blue-600 hover:text-blue-800 underline" target="_blank">Register a new patient first</a>
                     </p>
@@ -56,24 +71,19 @@
                     <div class="sm:col-span-2 lg:col-span-1">
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Last Menstrual Period *</label>
                         <input type="date" name="last_menstrual_period" id="lmp-input" required 
-                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('last_menstrual_period') error-border @enderror"
+                               value="{{ old('last_menstrual_period') }}">
+                        @error('last_menstrual_period')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div class="sm:col-span-2 lg:col-span-1">
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Expected Due Date</label>
                         <input type="date" name="expected_due_date" id="edd-input"
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <p class="text-xs text-gray-500 mt-1">Auto-calculated if left blank</p>
+                       <!-- <p class="text-xs text-gray-500 mt-1">Auto-calculated if left blank</p>-->
                     </div>
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="normal">Normal</option>
-                            <option value="monitor">Monitor</option>
-                            <option value="high-risk">High Risk</option>
-                            <option value="due">Appointment Due</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
+                    <!-- Status field removed - will be calculated on backend -->
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Gravida</label>
                         <select name="gravida" class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -145,6 +155,13 @@
                               placeholder="Any additional notes or observations..."
                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
                 </div>
+                <!-- Note about status calculation -->
+                <div class="bg-blue-50 p-3 rounded-lg">
+                   <!-- <p class="text-xs sm:text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <strong>Note:</strong> The record status will be automatically calculated based on the pregnancy information and medical assessments.
+                    </p>-->
+                </div>
             </div>
 
             <!-- Modal Footer -->
@@ -154,7 +171,7 @@
                     Cancel
                 </button>
                 <button type="submit" 
-                    class="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 font-medium transition-colors flex items-center justify-center">
+                    class="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-primary text-white rounded-md sm:rounded-lg hover:bg-blue-700 font-medium transition-colors flex items-center justify-center">
                 <i class="fas fa-save mr-2"></i>
                 Save Record
             </button>

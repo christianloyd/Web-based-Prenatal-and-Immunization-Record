@@ -6,6 +6,7 @@ use App\Models\PrenatalCheckup;
 use App\Models\PrenatalRecord;
 use App\Models\Patient;
 use App\Models\User;
+use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -92,8 +93,9 @@ class PrenatalCheckupController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'prenatal_record_id' => 'required|exists:prenatal_records,id',
+            'patient_id' => 'required|exists:patients,id',
             'checkup_date' => 'required|date',
+            'checkup_time' => 'required|date_format:H:i',
             'gestational_age_weeks' => 'nullable|integer|min:1|max:45',
             'weight_kg' => 'nullable|numeric|min:30|max:200',
             'blood_pressure_systolic' => 'nullable|integer|min:70|max:250',
@@ -104,8 +106,9 @@ class PrenatalCheckupController extends Controller
             'symptoms' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
             'next_visit_date' => 'nullable|date|after:checkup_date',
+            'next_visit_time' => 'nullable|date_format:H:i',
+            'next_visit_notes' => 'nullable|string|max:500',
             'conducted_by' => 'nullable|exists:users,id',
-            'status' => 'required|in:scheduled,completed,cancelled,rescheduled',
         ]);
 
         if ($validator->fails()) {
@@ -113,43 +116,79 @@ class PrenatalCheckupController extends Controller
         }
 
         try {
+            // Get patient and their active prenatal record
+            $patient = Patient::findOrFail($request->patient_id);
+            $prenatalRecord = $patient->prenatalRecords()->where('is_active', true)->first();
+
+            // Determine status based on whether medical data is provided
+            $hasmedicalData = $request->weight_kg || $request->blood_pressure_systolic ||
+                             $request->fetal_heart_rate || $request->fundal_height_cm ||
+                             $request->symptoms || $request->notes;
+
+            $status = $hasmedicalData ? 'done' : 'upcoming';
+
+            // Create prenatal checkup directly (simplified - no complex appointment linking)
             $checkup = PrenatalCheckup::create([
-                'prenatal_record_id' => $request->prenatal_record_id,
+                'patient_id' => $request->patient_id,
+                'prenatal_record_id' => $prenatalRecord ? $prenatalRecord->id : null,
                 'checkup_date' => $request->checkup_date,
+                'checkup_time' => $request->checkup_time,
                 'gestational_age_weeks' => $request->gestational_age_weeks,
                 'weight_kg' => $request->weight_kg,
                 'blood_pressure_systolic' => $request->blood_pressure_systolic,
                 'blood_pressure_diastolic' => $request->blood_pressure_diastolic,
                 'fetal_heart_rate' => $request->fetal_heart_rate,
                 'fundal_height_cm' => $request->fundal_height_cm,
-                'presentation' => $request->presentation,
                 'symptoms' => $request->symptoms,
                 'notes' => $request->notes,
+                'status' => $status,
                 'next_visit_date' => $request->next_visit_date,
+                'next_visit_time' => $request->next_visit_time,
+                'next_visit_notes' => $request->next_visit_notes,
                 'conducted_by' => $request->conducted_by ?? Auth::id(),
-                'status' => $request->status,
+                // Legacy fields for backward compatibility
+                'bp_high' => $request->blood_pressure_systolic,
+                'bp_low' => $request->blood_pressure_diastolic,
+                'weight' => $request->weight_kg,
+                'baby_heartbeat' => $request->fetal_heart_rate,
+                'belly_size' => $request->fundal_height_cm,
             ]);
 
-            // Get prenatal record and patient for notification
-            $prenatalRecord = PrenatalRecord::with('patient')->find($request->prenatal_record_id);
-            
+            // If scheduling next visit, create another upcoming checkup
+            if ($request->next_visit_date && $request->schedule_next) {
+                PrenatalCheckup::create([
+                    'patient_id' => $request->patient_id,
+                    'prenatal_record_id' => $prenatalRecord ? $prenatalRecord->id : null,
+                    'checkup_date' => $request->next_visit_date,
+                    'checkup_time' => $request->next_visit_time ?? '09:00',
+                    'status' => 'upcoming',
+                    'notes' => $request->next_visit_notes,
+                    'conducted_by' => Auth::id(),
+                ]);
+            }
+
             // Send notification to all healthcare workers about new checkup
+            $statusMessage = $status === 'done' ? 'completed' : 'scheduled';
             $this->notifyHealthcareWorkers(
-                'New Prenatal Checkup Scheduled',
-                "A new prenatal checkup has been scheduled for patient '{$prenatalRecord->patient->first_name} {$prenatalRecord->patient->last_name}' on " . Carbon::parse($request->checkup_date)->format('M d, Y'),
+                "Prenatal Checkup {$statusMessage}",
+                "A prenatal checkup has been {$statusMessage} for patient '{$patient->first_name} {$patient->last_name}' on " . Carbon::parse($request->checkup_date)->format('M d, Y'),
                 'info',
-                Auth::user()->role === 'midwife' 
+                Auth::user()->role === 'midwife'
                     ? route('midwife.prenatalcheckup.show', $checkup->id)
                     : route('bhw.prenatalcheckup.show', $checkup->id),
-                ['checkup_id' => $checkup->id, 'prenatal_record_id' => $prenatalRecord->id, 'action' => 'checkup_created']
+                ['checkup_id' => $checkup->id, 'prenatal_record_id' => $prenatalRecord ? $prenatalRecord->id : null, 'action' => 'checkup_created']
             );
 
             $redirectRoute = Auth::user()->role === 'midwife' 
                 ? 'midwife.prenatalcheckup.index' 
                 : 'bhw.prenatalcheckup.index';
                 
+            $successMessage = $status === 'done'
+                ? 'Prenatal checkup completed and recorded successfully!'
+                : 'Prenatal checkup scheduled successfully!';
+
             return redirect()->route($redirectRoute)
-                ->with('success', 'Prenatal checkup created successfully!');
+                ->with('success', $successMessage);
 
         } catch (\Exception $e) {
             \Log::error('Error creating prenatal checkup: ' . $e->getMessage());
@@ -314,7 +353,7 @@ class PrenatalCheckupController extends Controller
     {
         try {
             $checkup = PrenatalCheckup::with('prenatalRecord.patient')->findOrFail($id);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $checkup
@@ -323,6 +362,25 @@ class PrenatalCheckupController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Checkup not found'
+            ], 404);
+        }
+    }
+
+    // AJAX endpoint to get full checkup data for modals
+    public function getData($id)
+    {
+        try {
+            $checkup = PrenatalCheckup::with([
+                'patient',
+                'prenatalRecord.patient',
+                'appointment',
+                'conductedBy'
+            ])->findOrFail($id);
+
+            return response()->json($checkup);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Checkup not found'
             ], 404);
         }
     }
@@ -406,6 +464,62 @@ class PrenatalCheckupController extends Controller
             // Clear notification cache for the recipient
             Cache::forget("unread_notifications_count_{$worker->id}");
             Cache::forget("recent_notifications_{$worker->id}");
+        }
+    }
+
+    // Update only the schedule/appointment details
+    public function updateSchedule(Request $request, $id)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $checkup = PrenatalCheckup::with(['prenatalRecord.patient'])->findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'next_visit_date' => 'required|date|after:today',
+            'next_visit_time' => 'required|date_format:H:i',
+            'next_visit_notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            // Update only the scheduling fields
+            $checkup->update([
+                'next_visit_date' => $request->next_visit_date,
+                'next_visit_time' => $request->next_visit_time,
+                'next_visit_notes' => $request->next_visit_notes,
+            ]);
+
+            // Send notification about schedule update
+            $patient = $checkup->prenatalRecord->patient;
+            $formattedDate = Carbon::parse($request->next_visit_date)->format('F j, Y');
+            $formattedTime = Carbon::parse($request->next_visit_time)->format('g:i A');
+
+            $this->notifyHealthcareWorkers(
+                'Appointment Rescheduled',
+                "Prenatal checkup appointment for {$patient->first_name} {$patient->last_name} has been rescheduled to {$formattedDate} at {$formattedTime}.",
+                'info',
+                Auth::user()->role === 'midwife'
+                    ? route('midwife.prenatalcheckup.index')
+                    : route('bhw.prenatalcheckup.index'),
+                [
+                    'checkup_id' => $checkup->id,
+                    'action' => 'appointment_rescheduled',
+                    'patient_name' => "{$patient->first_name} {$patient->last_name}",
+                    'new_date' => $formattedDate,
+                    'new_time' => $formattedTime
+                ]
+            );
+
+            return redirect()->back()->with('success', 'Appointment schedule updated successfully!');
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating prenatal checkup schedule: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update appointment schedule. Please try again.');
         }
     }
 }

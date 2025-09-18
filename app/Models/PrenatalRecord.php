@@ -96,9 +96,10 @@ class PrenatalRecord extends Model
             if ($record->last_menstrual_period && !$record->gestational_age) {
                 $record->gestational_age = $record->calculateGestationalAgeFromLMP($record->last_menstrual_period);
                 
-                // Calculate trimester based on weeks
+                // Calculate trimester based on whole weeks
                 $lmp = Carbon::parse($record->last_menstrual_period);
-                $gestational_weeks = $lmp->diffInWeeks(Carbon::now());
+                $totalDays = $lmp->diffInDays(Carbon::now());
+                $gestational_weeks = intval($totalDays / 7);
                 $record->trimester = $gestational_weeks <= 12 ? 1 : ($gestational_weeks <= 26 ? 2 : 3);
             }
 
@@ -171,7 +172,8 @@ class PrenatalRecord extends Model
     public function getCurrentTrimester()
     {
         if (!$this->last_menstrual_period) return null;
-        $weeks = $this->last_menstrual_period->diffInWeeks(Carbon::now());
+        $totalDays = $this->last_menstrual_period->diffInDays(Carbon::now());
+        $weeks = intval($totalDays / 7);
         return $weeks <= 12 ? 1 : ($weeks <= 26 ? 2 : 3);
     }
 
@@ -236,9 +238,9 @@ class PrenatalRecord extends Model
 
     public function getWeeksPregnantAttribute()
     {
-        return $this->last_menstrual_period
-            ? $this->last_menstrual_period->diffInWeeks(Carbon::now())
-            : 0;
+        if (!$this->last_menstrual_period) return 0;
+        $totalDays = $this->last_menstrual_period->diffInDays(Carbon::now());
+        return intval($totalDays / 7);
     }
 
     public function getIsHighRiskAttribute()
@@ -276,6 +278,17 @@ class PrenatalRecord extends Model
     public function prenatalCheckups()
 {
     return $this->hasMany(PrenatalCheckup::class);
+}
+
+public function latestCheckup()
+{
+    return $this->hasOne(PrenatalCheckup::class)->latest('checkup_date');
+}
+
+public function getLatestCheckupDateAttribute()
+{
+    $latestCheckup = $this->latestCheckup;
+    return $latestCheckup ? $latestCheckup->checkup_date : null;
 }
 
     /* ----------------------------------------------------------

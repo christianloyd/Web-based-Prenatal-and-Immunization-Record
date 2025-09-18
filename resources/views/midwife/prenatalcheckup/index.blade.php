@@ -1,442 +1,601 @@
 @extends('layout.midwife')
-@section('title', 'Prenatal Checkup Records')
-@section('page-title', 'Prenatal Checkup Records')
-@section('page-subtitle', 'List of all prenatal checkup records')
+@section('title', 'Prenatal Checkups')
+@section('page-title', 'Prenatal Checkups')
+@section('page-subtitle', 'Manage and monitor prenatal checkup appointments')
 
-@section('content')
+@push('styles')
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
+
+    :root {
+        --primary: #243b55;
+        --secondary: #141e30;
+    }
+
     * {
         font-family: 'Inter', sans-serif;
     }
-    
-    .btn-hover {
-        transition: all 0.2s ease;
-    }
-    
-    .btn-hover:hover {
-        transform: translateY(-1px);
-    }
-    
-    .input-focus {
-        transition: all 0.2s ease;
-    }
-    
-    .input-focus:focus {
-        border-color: #3b82f6;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    
-    .status-overdue { background-color: #fee2e2; color: #991b1b; }
-    .status-upcoming { background-color: #fef3c7; color: #92400e; }
-    .status-completed { background-color: #d1fae5; color: #065f46; }
-    .status-scheduled { background-color: #dbeafe; color: #1e40af; }
-    .status-no_checkups { background-color: #f3f4f6; color: #374151; }
-    
-    .modal-backdrop {
+
+    /* Modal Animation Styles */
+    .modal-overlay {
+        transition: opacity 0.3s ease-out;
+        z-index: 9999 !important;
         backdrop-filter: blur(4px);
     }
-    
-    table {
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-    
-    th {
-        background-color: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 12px 16px;
-        text-align: left;
-        font-weight: 600;
-        color: #374151;
-    }
-    
-    td {
-        padding: 12px 16px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    
-    tr:hover {
-        background-color: #f8fafc;
+
+    .modal-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
     }
 
+    .modal-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+        visibility: visible;
+    }
+
+    .modal-content {
+        transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        transform: translateY(-20px) scale(0.95);
+        opacity: 0;
+        z-index: 10000;
+    }
+
+    .modal-overlay.show .modal-content {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    /* Form Input Focus Styles */
+    .form-input {
+        transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(36, 59, 85, 0.15);
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    /* Button Styles */
+    .btn-primary {
+        transition: all 0.2s ease;
+        background-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(36, 59, 85, 0.3);
+        background-color: var(--secondary);
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+    }
+
+    .btn-view {
+        background-color: #f8fafc;
+        color: #475569;
+        border-color: #e2e8f0;
+    }
+
+    .btn-view:hover {
+        background-color: #68727A;
+        color: white;
+        border-color: #68727A;
+    }
+
+    .btn-edit {
+        background-color: #fef3c7;
+        color: #92400e;
+        border-color: #fde68a;
+    }
+
+    .btn-edit:hover {
+        background-color: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+
+    .btn-checkup {
+        background-color: #d1fae5;
+        color: #065f46;
+        border-color: #a7f3d0;
+    }
+
+    .btn-checkup:hover {
+        background-color: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+
+    /* Status Badge Styles */
+    .status-done {
+        background-color: #10b981;
+        color: white;
+    }
+
+    .status-upcoming {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    /* Alert Styles */
     .alert {
         padding: 1rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid;
+        display: flex;
+        align-items: center;
     }
 
     .alert-success {
         background-color: #d1fae5;
-        border: 1px solid #10b981;
+        border-color: #10b981;
         color: #065f46;
     }
 
     .alert-error {
         background-color: #fee2e2;
-        border: 1px solid #ef4444;
+        border-color: #ef4444;
         color: #991b1b;
     }
+
+    /* Table Styles */
+    .table-container {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
+
+    table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    th {
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        background-color: white;
+    }
+
+    tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    /* Patient Card Styles */
+    .patient-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    .patient-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transform: translateY(-1px);
+    }
 </style>
+@endpush
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+@section('content')
+<div class="space-y-6">
+    
 
-@if(session('success'))
-<div class="alert alert-success">
-    <i class="fas fa-check-circle mr-2"></i>
-    {{ session('success') }}
-</div>
-@endif
-
-@if(session('error'))
-<div class="alert alert-error">
-    <i class="fas fa-exclamation-circle mr-2"></i>
-    {{ session('error') }}
-</div>
-@endif
-
-@if($errors->any())
-<div class="alert alert-error">
-    <i class="fas fa-exclamation-triangle mr-2"></i>
-    <ul class="list-disc list-inside">
-        @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
-
-<!-- Scheduled Checkups -->
-<div class="bg-white rounded-lg border shadow-sm">
-    <div class="border-b px-6 py-4">
-        <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800">Scheduled Checkups</h3>
-            <div class="flex space-x-3">
-                <input type="text" id="searchInput" placeholder="Search patients..." 
-                       class="input-focus px-3 py-2 border border-gray-300 rounded-lg text-sm w-64"
-                       onkeyup="searchPatients()">
-                <button onclick="openCheckupModal()" class="btn-hover bg-green-600 text-white px-4 py-2 rounded-lg font-medium">
-                    <i class="fas fa-stethoscope mr-2"></i>Schedule Checkup
-                </button>
-            </div>
+    @if($errors->any())
+    <div class="alert alert-error">
+        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div>
+            @foreach($errors->all() as $error)
+                <p class="mb-1">{{ $error }}</p>
+            @endforeach
         </div>
     </div>
-    
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr>
-                    <th>Patient Name</th>
-                    <th>Scheduled Date</th>
-                    <th>Scheduled Time</th>
-                    <th>Last Checkup</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="checkupTableBody">
-                @forelse($patients as $patient)
-                @php
-                    $nextVisit = $patient->nextVisitFromCheckups();
-                @endphp
-                @if($nextVisit)
-                <tr class="patient-row">
+    @endif
+
+    <!-- Header Actions -->
+    <div class="flex justify-between items-center">
+        <div></div>
+        <div class="flex space-x-3">
+            <button onclick="openCheckupModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-all duration-200 flex items-center btn-primary" style="background-color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                <i class="fas fa-plus mr-2"></i>
+                Add Checkup
+            </button>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <form method="GET" action="{{ route('midwife.prenatalcheckup.index') }}">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <div class="relative">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by patient name"
+                               class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary form-input" style="border-color: #e5e7eb;">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <select name="status" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary form-input" style="border-color: #e5e7eb; focus:border-color: var(--primary);">
+                        <option value="">All Status</option>
+                        <option value="upcoming" {{ request('status') == 'upcoming' ? 'selected' : '' }}>Upcoming</option>
+                        <option value="done" {{ request('status') == 'done' ? 'selected' : '' }}>Done</option>
+                    </select>
+                </div>
+                <div class="flex space-x-2">
+                    <button type="submit" class="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-all duration-200 btn-primary" style="background-color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                        <i class="fas fa-search mr-2"></i>
+                        Search
+                    </button>
+                    <a href="{{ route('midwife.prenatalcheckup.index') }}" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-center">
+                        Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Prenatal Checkups Table -->
+    <div class="bg-white rounded-lg shadow-sm border table-container">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Patient Name</th>
+                        <th>Checkup Date</th>
+                        <th>Checkup Time</th>
+                        <th>Status</th>
+                        <th>Next Visit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($checkups as $checkup)
+                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="font-medium text-blue-600">
+                        {{ $checkup->prenatalRecord->patient->formatted_patient_id ?? 'N/A' }}
+                    </td>
                     <td>
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <!--<i class="fas fa-calendar-check text-blue-600"></i>-->
+                             
+                                
                             </div>
                             <div>
-                                <p class="font-medium text-gray-800 patient-name">{{ $patient->name }}</p>
-                                <p class="text-sm text-gray-600">{{ $patient->weeks_pregnant_from_record ?? 'N/A' }}</p>
-                            </div>
+                                <p class="font-medium text-gray-900">{{ $checkup->prenatalRecord->patient->name ?? 'N/A' }}</p>
+                                    </div>
                         </div>
                     </td>
-                    <td class="text-gray-800">{{ \Carbon\Carbon::parse($nextVisit->next_visit_date)->format('M d, Y') }}</td>
-                    <td class="text-gray-800">{{ \Carbon\Carbon::parse($nextVisit->next_visit_time)->format('h:i A') }}</td>
+                    <td class="text-gray-900">
+                        <span class="font-medium">{{ $checkup->checkup_date ? $checkup->checkup_date->format('M d, Y') : 'N/A' }}</span>
+                    </td>
+                    <td class="text-gray-900">
+                        <span class="text-sm">{{ $checkup->checkup_time ?? 'N/A' }}</span>
+                    </td>
+                    <td>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-{{ $checkup->status ?? 'upcoming' }}">
+                            <i class="fas {{ $checkup->status === 'done' ? 'fa-check' : 'fa-clock' }} mr-1"></i>
+                            {{ ucfirst($checkup->status ?? 'Upcoming') }}
+                        </span>
+                    </td>
                     <td class="text-gray-600">
-                        @if($patient->latestCheckup)
-                            {{ $patient->latestCheckup->checkup_date->format('M d, Y') }}
+                        @if($checkup->next_visit_date)
+                            {{ \Carbon\Carbon::parse($checkup->next_visit_date)->format('M d, Y') }}
                         @else
-                            No checkups yet
+                            <span class="text-gray-500">Not scheduled</span>
                         @endif
                     </td>
                     <td>
                         <div class="flex space-x-2">
-                            <button onclick="addCheckupForPatient({{ $patient->id }}, '{{ $patient->name }}')" 
-                                    class="btn-hover text-green-600 hover:text-green-700 text-sm" title="Complete Checkup">
-                                <i class="fas fa-check"></i>
+                            <button onclick="openViewCheckupModal({{ $checkup->id }})"
+                                    class="btn-action btn-view inline-flex items-center justify-center" title="View Checkup Details">
+                                <i class="fas fa-eye mr-1"></i>
+                                <span class="hidden sm:inline">View</span>
                             </button>
-                            <button onclick="editScheduledCheckup({{ $patient->id }})" 
-                                    class="btn-hover text-blue-600 hover:text-blue-700 text-sm" title="Edit Schedule">
-                                <i class="fas fa-edit"></i>
+                            <button onclick="openScheduleEditModal({{ $checkup->id }})"
+                                    class="btn-action btn-edit inline-flex items-center justify-center" title="Edit Schedule">
+                                <i class="fas fa-calendar-edit mr-1"></i>
+                                <span class="hidden sm:inline">Edit Schedule</span>
                             </button>
                         </div>
                     </td>
                 </tr>
-                @endif
                 @empty
                 <tr>
-                    <td colspan="5" class="text-center py-8 text-gray-500">
-                        <i class="fas fa-calendar-times text-3xl mb-2"></i>
-                        <p>No scheduled checkups found.</p>
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-900 mb-2">No prenatal checkups found</p>
+                            <p class="text-gray-600 mb-4">Get started by creating your first prenatal checkup</p>
+                            <button onclick="openCheckupModal()" class="btn-primary" style="background-color: var(--primary); color: white; padding: 8px 16px; border-radius: 8px; border: none; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                                <i class="fas fa-plus mr-2"></i>
+                                Create First Checkup
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 @endforelse
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <!-- Add Checkup Modal -->
-<div id="checkupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+<div id="checkupModal" class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4" onclick="closeCheckupModal(event)">
+    <div class="modal-content relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl my-4 flex flex-col" onclick="event.stopPropagation()">
         <div class="sticky top-0 bg-white border-b px-6 py-4 rounded-t-xl">
             <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800">
-                    <i class="fas fa-stethoscope mr-2 text-blue-600"></i>
-                    New Prenatal Checkup
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-calendar-plus mr-2 text-primary"></i>
+                    Complete Today's Checkup & Schedule Next Visit
                 </h2>
-                <button onclick="closeCheckupModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-xl"></i>
+                <button type="button" onclick="closeCheckupModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
                 </button>
             </div>
         </div>
 
-        <form action="{{ route('midwife.prenatalcheckup.store') }}" method="POST" class="p-6">
+        <div class="flex-1 overflow-y-auto">
+            <form id="checkupForm" action="{{ route('midwife.prenatalcheckup.store') }}" method="POST" class="p-6">
             @csrf
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Hidden field for conducted_by -->
+            <input type="hidden" name="conducted_by" value="{{ auth()->id() }}">
+
+            <!-- Workflow Instructions -->
+            <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-blue-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h4 class="text-sm font-medium text-blue-800">How it works:</h4>
+                        <p class="text-sm text-blue-700 mt-1">
+                            <strong>Option 1:</strong> Fill only date, time & patient → Creates "Upcoming" checkup<br>
+                            <strong>Option 2:</strong> Fill date, time, patient + medical data → Creates "Done" checkup
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <!-- Left Column -->
-                <div class="space-y-6">
+                <div class="space-y-4">
                     <!-- Basic Info -->
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h3 class="font-semibold text-gray-800 mb-4 flex items-center">
-                            <i class="fas fa-info-circle mr-2 text-blue-600"></i>Basic Information
+                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center border-b border-gray-100 pb-2">
+                            <svg class="w-5 h-5 mr-2 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            Basic Information
                         </h3>
                         <div class="grid grid-cols-1 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Select Patient *</label>
-                                <select name="patient_id" id="patient_select" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                                <select name="patient_id" id="patient_select" class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
                                     <option value="">Choose a patient...</option>
                                     @foreach($patients as $patient)
                                         <option value="{{ $patient->id }}" {{ old('patient_id') == $patient->id ? 'selected' : '' }}>
-                                            {{ $patient->name }}  - Age {{ $patient->age }}
+                                            {{ $patient->name }} - Age {{ $patient->age }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
-                            <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
-                            <input type="date" name="checkup_date" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                value="{{ date('Y-m-d') }}" 
-                                min="{{ date('Y-m-d') }}" 
-                                max="{{ date('Y-m-d') }}" 
-                                required readonly>
-                        </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                                    <input type="date" name="checkup_date" class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                        value="{{ date('Y-m-d') }}"
+                                        min="{{ date('Y-m-d') }}"
+                                        max="{{ date('Y-m-d') }}"
+                                        required readonly>
+                                </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Time *</label>
-                                    <input type="time" name="checkup_time" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
+                                    <input type="time" name="checkup_time" class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                                            value="{{ old('checkup_time', date('H:i')) }}" required>
                                 </div>
                             </div>
-                            <!--<div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Weeks Pregnant</label>
-                                <input type="text" name="weeks_pregnant" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                       value="{{ old('weeks_pregnant') }}" placeholder="e.g., 24 weeks">
-                            </div>-->
                         </div>
                     </div>
 
                     <!-- Vital Signs -->
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h3 class="font-semibold text-gray-800 mb-4 flex items-center">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
                             <i class="fas fa-heartbeat mr-2 text-red-600"></i>Basic Measurements
                         </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Blood Pressure</label>
                                 <div class="flex space-x-2">
-                                    <input type="number" name="bp_high" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                           value="{{ old('bp_high') }}" placeholder="120" min="50" max="300">
+                                    <input type="number" name="blood_pressure_systolic" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                           value="{{ old('blood_pressure_systolic') }}" placeholder="120" min="70" max="250">
                                     <span class="flex items-center text-gray-500">/</span>
-                                    <input type="number" name="bp_low" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                           value="{{ old('bp_low') }}" placeholder="80" min="30" max="200">
+                                    <input type="number" name="blood_pressure_diastolic" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                           value="{{ old('blood_pressure_diastolic') }}" placeholder="80" min="40" max="150">
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
-                                <input type="number" step="0.1" name="weight" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                       value="{{ old('weight') }}" placeholder="68.5" min="30" max="200">
+                                <input type="number" step="0.1" name="weight_kg" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                       value="{{ old('weight_kg') }}" placeholder="68.5" min="30" max="200">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Baby's Heartbeat (bpm)</label>
-                                <input type="number" name="baby_heartbeat" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                       value="{{ old('baby_heartbeat') }}" placeholder="140" min="100" max="200">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fetal Heart Rate (bpm)</label>
+                                <input type="number" name="fetal_heart_rate" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                       value="{{ old('fetal_heart_rate') }}" placeholder="140" min="100" max="180">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Belly Size (cm)</label>
-                                <input type="number" step="0.1" name="belly_size" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                       value="{{ old('belly_size') }}" placeholder="24" min="0" max="50">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fundal Height (cm)</label>
+                                <input type="number" step="0.1" name="fundal_height_cm" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                       value="{{ old('fundal_height_cm') }}" placeholder="24" min="10" max="50">
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Right Column -->
-                <div class="space-y-6">
-                    <!-- Health Check -->
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h3 class="font-semibold text-gray-800 mb-4 flex items-center">
-                            <i class="fas fa-user-md mr-2 text-green-600"></i>Health Check
+                <div class="space-y-4">
+                    <!-- Health Assessment -->
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-user-md mr-2 text-green-600"></i>Health Assessment
                         </h3>
-                        <div class="space-y-4">
+                        <div class="space-y-3">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Baby Movement</label>
-                                <div class="flex space-x-4">
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="baby_movement" value="active" class="text-blue-600" 
-                                               {{ old('baby_movement') == 'active' ? 'checked' : '' }}>
-                                        <span class="text-sm">Active</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="baby_movement" value="normal" class="text-blue-600"
-                                               {{ old('baby_movement') == 'normal' ? 'checked' : '' }}>
-                                        <span class="text-sm">Normal</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="baby_movement" value="less" class="text-blue-600"
-                                               {{ old('baby_movement') == 'less' ? 'checked' : '' }}>
-                                        <span class="text-sm">Less than usual</span>
-                                    </label>
-                                </div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Symptoms</label>
+                                <textarea name="symptoms" rows="2" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                          placeholder="Any symptoms reported by the patient...">{{ old('symptoms') }}</textarea>
                             </div>
-                            
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Any Swelling?</label>
-                                <div class="grid grid-cols-2 gap-2">
-                                    @php
-                                        $oldSwelling = old('swelling', []);
-                                    @endphp
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="swelling[]" value="feet" class="text-blue-600"
-                                               {{ in_array('feet', $oldSwelling) ? 'checked' : '' }}>
-                                        <span class="text-sm">Feet</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="swelling[]" value="hands" class="text-blue-600"
-                                               {{ in_array('hands', $oldSwelling) ? 'checked' : '' }}>
-                                        <span class="text-sm">Hands</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="swelling[]" value="face" class="text-blue-600"
-                                               {{ in_array('face', $oldSwelling) ? 'checked' : '' }}>
-                                        <span class="text-sm">Face</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="swelling[]" value="none" class="text-blue-600" onchange="toggleNoneSwelling(this)"
-                                               {{ in_array('none', $oldSwelling) ? 'checked' : '' }}>
-                                        <span class="text-sm">None</span>
-                                    </label>
-                                </div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Clinical Notes</label>
+                                <textarea name="notes" rows="3" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                          placeholder="Clinical observations, recommendations, and notes...">{{ old('notes') }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Notes and Next Visit -->
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h3 class="font-semibold text-gray-800 mb-4 flex items-center">
-                            <i class="fas fa-clipboard mr-2 text-purple-600"></i>Notes & Next Visit
+                    <!-- Next Visit -->
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-calendar mr-2 text-purple-600"></i>Next Visit
                         </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Health Notes</label>
-                                <textarea name="notes" rows="3" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                          placeholder="Any concerns, advice, or observations...">{{ old('notes') }}</textarea>
-                            </div>
-                            
-                            <div class="border-t pt-4">
-                            <div class="flex items-center space-x-3 mb-4">
-                                <input type="checkbox" id="scheduleNext" name="schedule_next" value="1" class="text-blue-600" 
-                                    onchange="toggleNextVisit()" {{ old('schedule_next') ? 'checked' : '' }}>
-                                <label for="scheduleNext" class="text-sm font-medium text-gray-700">Schedule next visit</label>
-                            </div>
-                                
-                                <div id="nextVisitFields" class="{{ old('schedule_next') ? '' : 'hidden' }} space-y-3">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Next Visit Date</label>
-                                            <input type="date" name="next_visit_date" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                   value="{{ old('next_visit_date') }}">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                                            <input type="time" name="next_visit_time" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                   value="{{ old('next_visit_time') }}">
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Reminder Notes</label>
-                                        <textarea name="next_visit_notes" rows="2" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                                  placeholder="What to prepare or remember for next visit...">{{ old('next_visit_notes') }}</textarea>
-                                    </div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <input type="checkbox" id="scheduleNext" name="schedule_next" value="1" class="text-blue-600"
+                                onchange="toggleNextVisit()" {{ old('schedule_next') ? 'checked' : '' }}>
+                            <label for="scheduleNext" class="text-sm font-medium text-gray-700">Schedule next visit</label>
+                        </div>
+
+                        <div id="nextVisitFields" class="{{ old('schedule_next') ? '' : 'hidden' }} space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Next Visit Date</label>
+                                    <input type="date" name="next_visit_date" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                           value="{{ old('next_visit_date') }}">
                                 </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                                    <input type="time" name="next_visit_time" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                           value="{{ old('next_visit_time') }}">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Reminder Notes</label>
+                                <textarea name="next_visit_notes" rows="2" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                          placeholder="What to prepare or remember for next visit...">{{ old('next_visit_notes') }}</textarea>
+                            </div>
+                        </div>
+
+                        <div id="noNextVisitMessage" class="{{ old('schedule_next') ? 'hidden' : '' }}">
+                            <div class="bg-gray-100 rounded-lg p-3 text-center">
+                                <p class="text-gray-600 text-sm">No next visit will be scheduled.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-3 mt-8 pt-6 border-t">
-                <button type="button" onclick="closeCheckupModal()" class="btn-hover px-6 py-2 border border-gray-300 rounded-lg text-gray-700">
-                    Cancel
-                </button>
-                <button type="submit" class="btn-hover bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">
-                    <i class="fas fa-save mr-2"></i>
-                    Save Checkup
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end space-x-3 p-6 border-t bg-white rounded-b-xl">
+            <button type="button" onclick="closeCheckupModal()" class="btn-hover px-6 py-2 border border-gray-300 rounded-lg text-gray-700">
+                Cancel
+            </button>
+            <button type="submit" form="checkupForm" class="btn-hover bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-secondary transition-all duration-200" style="background-color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                <i class="fas fa-save mr-2"></i>
+                Save Checkup
+            </button>
+        </div>
     </div>
 </div>
 
 <script>
     // Modal functions
     function openCheckupModal() {
-        document.getElementById('checkupModal').classList.remove('hidden');
+        const modal = document.getElementById('checkupModal');
+        if (!modal) {
+            console.error('Checkup modal not found');
+            return;
+        }
+
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            modal.classList.add('show');
+        });
         document.body.style.overflow = 'hidden';
     }
 
-    function closeCheckupModal() {
-        document.getElementById('checkupModal').classList.add('hidden');
-        document.body.style.overflow = '';
+    function closeCheckupModal(e) {
+        // Don't close if click is inside modal content
+        if (e && e.target !== e.currentTarget) return;
+
+        const modal = document.getElementById('checkupModal');
+        if (!modal) return;
+
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 300);
     }
 
-    // Add checkup for specific patient
-    function addCheckupForPatient(patientId, patientName) {
-        openCheckupModal();
-        document.getElementById('patient_select').value = patientId;
+    // Add checkup for specific patient (removed - no longer needed)
+
+    // View checkup details for patient
+    function viewCheckupDetails(patientId) {
+        console.log('View checkup details for patient:', patientId);
+        // This will be implemented to show existing checkup details
+        alert('View checkup functionality - Patient ID: ' + patientId);
+    }
+
+    // Edit scheduled checkup
+    function editScheduledCheckup(patientId) {
+        console.log('Edit scheduled checkup for patient:', patientId);
+        alert('Edit scheduled checkup functionality - Patient ID: ' + patientId);
     }
 
     // Toggle next visit fields
     function toggleNextVisit() {
         const checkbox = document.getElementById('scheduleNext');
         const fields = document.getElementById('nextVisitFields');
-        
+        const noMessage = document.getElementById('noNextVisitMessage');
+
         if (checkbox.checked) {
             fields.classList.remove('hidden');
+            if (noMessage) noMessage.classList.add('hidden');
         } else {
             fields.classList.add('hidden');
+            if (noMessage) noMessage.classList.remove('hidden');
         }
     }
 
@@ -527,4 +686,10 @@
         @endif
     });
 </script>
+
+<!-- Include Edit, Schedule Edit and View Partials -->
+@include('partials.midwife.prenatalcheckup.prenatalcheckupedit')
+@include('partials.midwife.prenatalcheckup.schedule_edit')
+@include('partials.midwife.prenatalcheckup.prenatalcheckupview')
+
 @endsection

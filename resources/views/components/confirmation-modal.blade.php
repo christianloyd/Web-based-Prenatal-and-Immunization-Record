@@ -201,7 +201,7 @@ function updateModalStyle(icon, confirmBtn, type) {
             break;
         case 'info':
             icon.className += ' text-blue-400 dark:text-blue-200';
-            confirmBtn.className += ' text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800';
+            confirmBtn.className += ' text-white bg-primary hover:bg-secondary focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800';
             break;
         default:
             icon.className += ' text-gray-400 dark:text-gray-200';

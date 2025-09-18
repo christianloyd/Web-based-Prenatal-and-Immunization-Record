@@ -1,7 +1,7 @@
 @extends('layout.midwife')
 @section('title', 'Vaccine Management')
 @section('page-title', 'Vaccine Management')
-@section('page-subtitle', 'Manage vaccine inventory and stock levels')
+@section('page-subtitle', 'Manage vaccine information')
 
 @push('styles')
 <style>
@@ -114,55 +114,14 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success/Error Messages -->
-    @if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('success') }}</span>
-    </div>
-    @endif
+   
 
-    @if(session('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('error') }}</span>
-    </div>
-    @endif
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white p-6 rounded-lg shadow-sm border">
-            <div class="text-center">
-                <div class="text-2xl font-bold text-primary">{{ $stats['total'] }}</div>
-                <div class="text-sm text-gray-600">Total Vaccines</div>
-            </div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm border">
-            <div class="text-center">
-                <div class="text-2xl font-bold text-green-600">{{ $stats['in_stock'] }}</div>
-                <div class="text-sm text-gray-600">In Stock</div>
-            </div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm border">
-            <div class="text-center">
-                <div class="text-2xl font-bold text-yellow-600">{{ $stats['low_stock'] }}</div>
-                <div class="text-sm text-gray-600">Low Stock</div>
-            </div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm border">
-            <div class="text-center">
-                <div class="text-2xl font-bold text-red-600">{{ $stats['out_of_stock'] }}</div>
-                <div class="text-sm text-gray-600">Out of Stock</div>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center">
         <div></div>
         <div class="flex space-x-3">
-            <button onclick="openStockModal()" class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-charcoal-700 transition-all duration-200 flex items-center btn-primary">
-                <i class="fas fa-box w-4 h-4 mr-2"></i>
-                Stock In/Out
-            </button>
             <button onclick="openVaccineModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-charcoal-700 transition-all duration-200 flex items-center btn-primary">
                 <i class="fas fa-plus w-4 h-4 mr-2"></i>
                 Add Vaccine
@@ -190,14 +149,6 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
-                    <select name="stock_status" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary form-input">
-                        <option value="">All Stock Levels</option>
-                        <option value="in-stock" {{ request('stock_status') === 'in-stock' ? 'selected' : '' }}>In Stock</option>
-                        <option value="low-stock" {{ request('stock_status') === 'low-stock' ? 'selected' : '' }}>Low Stock</option>
-                        <option value="out-of-stock" {{ request('stock_status') === 'out-of-stock' ? 'selected' : '' }}>Out of Stock</option>
-                    </select>
-                </div>
                 <div class="flex space-x-2">
                     <button type="submit" class="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-paynes-charcoal-700 transition-all duration-200 btn-primary">
                         Search
@@ -218,8 +169,8 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccine</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosage</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosage (ml)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doses</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -240,15 +191,13 @@
                                 {{ $vaccine->category }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $vaccine->dosage }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $vaccine->stock_status_color }} {{ $vaccine->stock_status === 'out-of-stock' || $vaccine->stock_status === 'low-stock' ? 'stock-badge' : '' }}">
-                                    <i class="fas {{ $vaccine->stock_status_icon }} mr-1"></i>
-                                    {{ $vaccine->current_stock }} units
-                                </span>
-                            </div>
-                            
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $vaccine->dosage }}{{ !str_contains($vaccine->dosage, 'ml') ? ' ml' : '' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                {{ $vaccine->dose_count }} {{ $vaccine->dose_count == 1 ? 'Dose' : 'Doses' }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="{{ $vaccine->is_expiring_soon ? 'text-red-600 font-medium' : 'text-gray-900' }}">
@@ -260,13 +209,13 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
-                            <button onclick='openViewVaccineModal(@json($vaccine))' class="btn-action btn-view inline-flex items-center justify-center">
+                            <button data-vaccine='@json($vaccine)' onclick='openViewVaccineModal(JSON.parse(this.dataset.vaccine))' class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
-                            <span class="hidden sm:inline">View</span>
+                            <span class="hidden sm:inline"><!--View--></span>
                             </button>
-                                <button onclick='openEditVaccineModal(@json($vaccine))' class="btn-action btn-edit inline-flex items-center justify-center">
+                                <button data-vaccine='@json($vaccine)' onclick='openEditVaccineModal(JSON.parse(this.dataset.vaccine))' class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
-                                <span class="hidden sm:inline">Edit</span>
+                                <span class="hidden sm:inline"><!--Edit--></span>
                             </button>
                             </div>
                         </td>
@@ -308,7 +257,6 @@
 @include('partials.midwife.vaccine.vaccine_edit')
 
 <!-- Stock Management Modal -->
-@include('partials.midwife.vaccine.stock_modal')
 
 @endsection
 
@@ -353,9 +301,13 @@ function openViewVaccineModal(vaccine) {
     // Populate modal fields
     document.getElementById('viewVaccineName').textContent = vaccine.name || 'N/A';
     document.getElementById('viewVaccineCategory').innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${vaccine.category_color}">${vaccine.category}</span>`;
-    document.getElementById('viewVaccineDosage').textContent = vaccine.dosage || 'N/A';
-    document.getElementById('viewVaccineCurrentStock').innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${vaccine.stock_status_color}"><i class="fas ${vaccine.stock_status_icon} mr-1"></i>${vaccine.current_stock} units</span>`;
-    document.getElementById('viewVaccineMinStock').textContent = vaccine.min_stock + ' units';
+    // Format dosage to ensure it shows ml
+    const dosageText = vaccine.dosage || 'N/A';
+    document.getElementById('viewVaccineDosage').textContent = dosageText !== 'N/A' && !dosageText.includes('ml') ? dosageText + ' ml' : dosageText;
+
+    // Set dose count with badge styling
+    const doseCount = vaccine.dose_count || 1;
+    document.getElementById('viewVaccineDoseCount').innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">${doseCount} ${doseCount == 1 ? 'Dose' : 'Doses'}</span>`;
     document.getElementById('viewVaccineExpiryDate').textContent = new Date(vaccine.expiry_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     document.getElementById('viewVaccineStorageTemp').textContent = vaccine.storage_temp || 'N/A';
     document.getElementById('viewVaccineNotes').textContent = vaccine.notes || 'No notes available';
@@ -417,7 +369,7 @@ function openEditVaccineModal(vaccine) {
         'edit-name': vaccine.name || '',
         'edit-category': vaccine.category || '',
         'edit-dosage': vaccine.dosage || '',
-        'edit-min-stock': vaccine.min_stock || '',
+        'edit-dose-count': vaccine.dose_count || '1',
         'edit-expiry-date': vaccine.expiry_date || '',
         'edit-storage-temp': vaccine.storage_temp || '',
         'edit-notes': vaccine.notes || ''
@@ -450,49 +402,6 @@ function closeEditVaccineModal(e) {
     }, 300);
 }
 
-// Stock Modal Management
-function openStockModal() {
-    const modal = document.getElementById('stock-modal');
-    if (!modal) return console.error('Stock modal not found');
-    
-    // Reset form and hide stock info
-    const form = modal.querySelector('form');
-    if (form) form.reset();
-    document.getElementById('currentStockInfo').classList.add('hidden');
-    
-    modal.classList.remove('hidden');
-    requestAnimationFrame(() => modal.classList.add('show'));
-    document.body.style.overflow = 'hidden';
-}
-
-function closeStockModal(e) {
-    if (e && e.target !== e.currentTarget) return;
-    const modal = document.getElementById('stock-modal');
-    if (!modal) return;
-    modal.classList.remove('show');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }, 300);
-}
-
-// Show current stock when vaccine is selected
-function updateStockInfo() {
-    const vaccineSelect = document.getElementById('vaccine_id');
-    const stockInfo = document.getElementById('currentStockInfo');
-    const stockAmount = document.getElementById('currentStockAmount');
-    
-    if (vaccineSelect.value) {
-        const selectedOption = vaccineSelect.options[vaccineSelect.selectedIndex];
-        const stockMatch = selectedOption.text.match(/\(Current: (\d+) units\)/);
-        if (stockMatch) {
-            stockAmount.textContent = stockMatch[1];
-            stockInfo.classList.remove('hidden');
-        }
-    } else {
-        stockInfo.classList.add('hidden');
-    }
-}
 
 // Close modals on Escape key
 document.addEventListener('keydown', e => {
@@ -500,7 +409,6 @@ document.addEventListener('keydown', e => {
         closeVaccineModal();
         closeViewVaccineModal();
         closeEditVaccineModal();
-        closeStockModal();
     }
 });
 

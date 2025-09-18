@@ -60,9 +60,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-1">Dosage</label>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Dosage (ml)</label>
                         <div class="bg-gray-50 border rounded-lg p-3">
                             <p id="viewVaccineDosage" class="text-gray-900">-</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Number of Doses</label>
+                        <div class="bg-gray-50 border rounded-lg p-3">
+                            <div id="viewVaccineDoseCount">-</div>
                         </div>
                     </div>
 
@@ -77,21 +84,8 @@
 
             <!-- Stock & Expiry Information -->
             <div class="section-divider">
-                <h4 class="text-lg font-medium mb-4 text-gray-800">STOCK & EXPIRY</h4>
+                <h4 class="text-lg font-medium mb-4 text-gray-800">EXPIRY INFORMATION</h4>
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-1">Current Stock</label>
-                        <div class="bg-gray-50 border rounded-lg p-3">
-                            <div id="viewVaccineCurrentStock">-</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-1">Minimum Stock Level</label>
-                        <div class="bg-gray-50 border rounded-lg p-3">
-                            <p id="viewVaccineMinStock" class="text-gray-900">-</p>
-                        </div>
-                    </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Expiry Date</label>

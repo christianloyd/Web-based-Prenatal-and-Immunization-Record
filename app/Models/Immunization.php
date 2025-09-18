@@ -111,7 +111,102 @@ class Immunization extends Model
                      ->get();
     }
 
-    // Dose options
+    // Vaccine dose configurations - defines how many doses each vaccine requires
+    public static function getVaccineDoseConfig()
+    {
+        return [
+            // Single dose vaccines
+            'BCG' => ['1st Dose'],
+            'Measles' => ['1st Dose'],
+            'MMR' => ['1st Dose'],
+
+            // Multi-dose vaccines
+            'IPV' => ['1st Dose', '2nd Dose'],
+            'OPV' => ['1st Dose', '2nd Dose', '3rd Dose'],
+            'DPT' => ['1st Dose', '2nd Dose', '3rd Dose'],
+            'Hepatitis B' => ['1st Dose', '2nd Dose', '3rd Dose'],
+            'HIB' => ['1st Dose', '2nd Dose', '3rd Dose'],
+            'PCV' => ['1st Dose', '2nd Dose', '3rd Dose'],
+            'Rotavirus' => ['1st Dose', '2nd Dose'],
+
+            // Annual/recurring vaccines
+            'Influenza' => ['Annual'],
+
+            // Default doses for unknown vaccines
+            'default' => ['1st Dose', '2nd Dose', '3rd Dose', 'Booster']
+        ];
+    }
+
+    // Get available doses for a specific vaccine
+    public static function getAvailableVaccineDoses($vaccineName)
+    {
+        $config = self::getVaccineDoseConfig();
+        return $config[$vaccineName] ?? $config['default'];
+    }
+
+    // Get available vaccines for a child (excluding fully completed vaccines)
+    public static function getAvailableVaccinesForChild($childId)
+    {
+        $allVaccines = Vaccine::select('id', 'name', 'category')
+                            ->orderBy('name')
+                            ->get();
+
+        $completedVaccines = self::getCompletedVaccinesForChild($childId);
+        $availableVaccines = [];
+
+        foreach ($allVaccines as $vaccine) {
+            $requiredDoses = self::getAvailableVaccineDoses($vaccine->name);
+            $completedDoses = $completedVaccines[$vaccine->name] ?? [];
+
+            // If it's a single dose vaccine and already completed, skip it
+            if (count($requiredDoses) === 1 && in_array($requiredDoses[0], $completedDoses)) {
+                continue;
+            }
+
+            // If all required doses are completed, skip it
+            if (count(array_diff($requiredDoses, $completedDoses)) === 0) {
+                continue;
+            }
+
+            $availableVaccines[] = $vaccine;
+        }
+
+        return collect($availableVaccines);
+    }
+
+    // Get available doses for a specific vaccine and child
+    public static function getAvailableDosesForChild($childId, $vaccineName)
+    {
+        $requiredDoses = self::getAvailableVaccineDoses($vaccineName);
+        $completedVaccines = self::getCompletedVaccinesForChild($childId);
+        $completedDoses = $completedVaccines[$vaccineName] ?? [];
+
+        // Return only doses that haven't been completed
+        return array_values(array_diff($requiredDoses, $completedDoses));
+    }
+
+    // Get completed vaccines and their doses for a child
+    public static function getCompletedVaccinesForChild($childId)
+    {
+        $completedImmunizations = self::where('child_record_id', $childId)
+                                     ->where('status', 'Done')
+                                     ->get();
+
+        $completed = [];
+        foreach ($completedImmunizations as $immunization) {
+            $vaccineName = $immunization->vaccine_name ?? $immunization->vaccine?->name;
+            if ($vaccineName) {
+                if (!isset($completed[$vaccineName])) {
+                    $completed[$vaccineName] = [];
+                }
+                $completed[$vaccineName][] = $immunization->dose;
+            }
+        }
+
+        return $completed;
+    }
+
+    // Dose options (keeping for backward compatibility)
     public static function getDoseOptions()
     {
         return [

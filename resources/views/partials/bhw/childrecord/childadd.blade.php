@@ -31,11 +31,11 @@
             
             <div class="flex justify-center space-x-4">
                 <button onclick="showMotherForm(true)" 
-                        class="btn-minimal bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                        class="btn-minimal bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
                     <i class="fas fa-check mr-2"></i>Yes, Select Existing Mother
                 </button>
                 <button onclick="showMotherForm(false)" 
-                        class="btn-minimal bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                        class="btn-minimal bg-secondary text-white px-6 py-3 rounded-lg font-medium hover:bg-charcoal transition-colors">
                     <i class="fas fa-plus mr-2"></i>No, Add New Mother
                 </button>
             </div>
@@ -87,11 +87,11 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
                                 <div class="flex space-x-6">
                                     <label class="flex items-center">
-                                        <input type="radio" name="gender" value="Male" class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Male' ? 'checked' : '' }}>
+                                        <input type="radio" name="gender" value="Male" required class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Male' ? 'checked' : '' }}>
                                         <span class="ml-2 text-gray-700">Male</span>
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="radio" name="gender" value="Female" class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Female' ? 'checked' : '' }}>
+                                        <input type="radio" name="gender" value="Female" required class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Female' ? 'checked' : '' }}>
                                         <span class="ml-2 text-gray-700">Female</span>
                                     </label>
                                 </div>
@@ -147,6 +147,29 @@
                                        placeholder="Hospital or location"
                                        value="{{ old('birthplace') }}">
                                 @error('birthplace')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Mother's Address (shows only for new mother) -->
+                            <div id="motherAddressField" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mother's Address *</label>
+                                <textarea name="mother_address" id="mother_address" rows="3"
+                                          class="form-input input-clean w-full px-4 py-2.5 rounded-lg resize-none @error('mother_address') error-border @enderror"
+                                          placeholder="Enter mother's complete address">{{ old('mother_address') }}</textarea>
+                                @error('mother_address')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Father's Name -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Father's Name</label>
+                                <input type="text" id="father_name" name="father_name"
+                                       class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('father_name') error-border @enderror"
+                                       placeholder="Enter father's full name"
+                                       value="{{ old('father_name') }}">
+                                @error('father_name')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -223,86 +246,57 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Mother's Contact Number *</label>
-                                <div class="relative">
-                                    <span class="phone-prefix">+63</span>
-                                    <input type="tel" name="mother_contact" id="mother_contact"
-                                           class="form-input input-clean phone-input w-full px-4 py-2.5 rounded-lg @error('mother_contact') error-border @enderror"
-                                           placeholder="9123456789"
-                                           pattern="[9]\d{9}"
-                                           maxlength="10"
-                                           value="{{ old('mother_contact') }}">
-                                </div>
-                                <div class="text-xs text-gray-500 mt-1">Format: 9123456789 (Philippine mobile number)</div>
+                                <input type="tel" name="mother_contact" id="mother_contact"
+                                       class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('mother_contact') error-border @enderror"
+                                       placeholder="+639123456789 or 09123456789"
+                                       pattern="(\+63|0)[0-9]{10}"
+                                       maxlength="13"
+                                       value="{{ old('mother_contact') }}">
+                                <div class="text-xs text-gray-500 mt-1">Format: +639123456789 or 09123456789 (Philippine mobile number)</div>
                                 @error('mother_contact')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+                        </div>
 
+                        <!-- Mother's Address and Father's Name moved to Birth Details section -->
+                    </div>
+
+                    <!-- Contact Details -->
+                    <div id="contactDetailsSection">
+                        <div class="section-header border-b pb-2 mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Contact Details</h3>
+                        </div>
+                        <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Mother's Address *</label>
-                                <textarea name="mother_address" id="mother_address" rows="2"
-                                          class="form-input input-clean w-full px-4 py-2.5 rounded-lg resize-none @error('mother_address') error-border @enderror"
-                                          placeholder="Enter mother's complete address">{{ old('mother_address') }}</textarea>
-                                @error('mother_address')
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone Number
+                                    <span id="phoneNumberNote" class="text-xs text-gray-500">(Will use mother's contact if existing mother selected)</span>
+                                </label>
+                                <input type="tel" id="phone_number" name="phone_number" required
+                                       class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('phone_number') error-border @enderror"
+                                       placeholder="+639123456789 or 09123456789"
+                                       pattern="(\+63|0)[0-9]{10}"
+                                       maxlength="13"
+                                       value="{{ old('phone_number') }}">
+                                <div class="text-xs text-gray-500 mt-1">Format: +639123456789 or 09123456789 (Philippine mobile number)</div>
+                                @error('phone_number')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                        </div>
-
-                        <!-- Father's Information -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2 mt-4">Father's Name</label>
-                            <input type="text" id="father_name" name="father_name"
-                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('father_name') error-border @enderror"
-                                   placeholder="Enter father's full name"
-                                   value="{{ old('father_name') }}">
-                            @error('father_name')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-
-                    
-<!-- Replace the Contact Details section in your childadd.blade.php with this: -->
-
-<!-- Contact Details -->
-<div class="contact-details-section">
-    <div class="section-header border-b pb-2 mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Contact Details</h3>
-        <p class="text-xs text-gray-500 mt-1">
-            <span id="contactSectionNote">Child's contact information</span>
-        </p>
-    </div>
-    <div class="space-y-4">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2" id="phoneLabel">
-                Phone Number *
-            </label>
-            <div class="relative">
-                <span class="phone-prefix">+63</span>
-                <input type="tel" id="phone_number" name="phone_number" required
-                       class="form-input input-clean phone-input w-full px-4 py-2.5 rounded-lg @error('phone_number') error-border @enderror"
-                       placeholder="9123456789"
-                       pattern="[9]\d{9}"
-                       maxlength="10"
-                       value="{{ old('phone_number') }}">
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">Format: 9123456789 (Philippine mobile number)</div>
-                            @error('phone_number')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
                         
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2" id="addressLabel">
-                                Address
-                            </label>
-                            <textarea id="address" name="address" rows="3"
-                                    class="form-input input-clean w-full px-4 py-2.5 rounded-lg resize-none @error('address') error-border @enderror"
-                                    placeholder="Enter complete address">{{ old('address') }}</textarea>
-                            @error('address')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Address
+                                    <span id="addressNote" class="text-xs text-gray-500">(Will use mother's address if existing mother selected)</span>
+                                </label>
+                                <textarea id="address" name="address" rows="3"
+                                          class="form-input input-clean w-full px-4 py-2.5 rounded-lg resize-none @error('address') error-border @enderror"
+                                          placeholder="Enter complete address">{{ old('address') }}</textarea>
+                                @error('address')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -314,7 +308,7 @@
                     <button type="button" onclick="closeModal()" class="btn-minimal px-6 py-2.5 text-gray-600 border border-gray-300 rounded-lg">
                         Cancel
                     </button>
-                    <button type="submit" id="submit-btn" class="btn-minimal btn-primary-clean px-6 py-2.5 rounded-lg font-medium">
+                    <button type="submit" id="submit-btn" class="btn-primary bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-secondary transition-all duration-200" style="background-color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
                         <i class="fas fa-save mr-2"></i>Save Record
                     </button>
                 </div>

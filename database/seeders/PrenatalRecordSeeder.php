@@ -30,7 +30,10 @@ class PrenatalRecordSeeder extends Seeder
             $patientId = $activePatientIds[$i % count($activePatientIds)];
             $lmpDate = Carbon::now()->subDays(rand(50, 280)); // LMP between 50-280 days ago
             $expectedDueDate = $lmpDate->copy()->addDays(280);
-            $gestationalWeeks = Carbon::now()->diffInWeeks($lmpDate);
+            
+            // Calculate gestational weeks properly (whole number)
+            $totalDays = $lmpDate->diffInDays(Carbon::now());
+            $gestationalWeeks = intval($totalDays / 7);
             $trimester = $this->getTrimester($gestationalWeeks);
             
             $prenatalRecords[] = [

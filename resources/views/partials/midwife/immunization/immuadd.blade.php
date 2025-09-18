@@ -20,7 +20,7 @@
         </div>
         
         <!-- Modal Body -->
-        <form id="immunizationForm" action="{{ route('midwife.immunization.store') }}" method="POST" class="space-y-5" novalidate>
+        <form id="immunizationForm" action="{{ route('midwife.immunization.store') }}" method="POST" class="space-y-5">
             @csrf
             <input type="hidden" id="immunizationId" name="id">
             
@@ -45,12 +45,13 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Select Child *</label>
-                            <select id="child_record_id" name="child_record_id" required 
-                                    class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('child_record_id') error-border @enderror">
+                            <select id="child_record_id" name="child_record_id" required
+                                    class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('child_record_id') error-border @enderror"
+                                    onchange="loadAvailableVaccines()">
                                 <option value="">Choose a child...</option>
                                 @foreach($childRecords as $child)
                                     <option value="{{ $child->id }}" {{ old('child_record_id') == $child->id ? 'selected' : '' }}>
-                                        {{ $child->child_name }}
+                                        {{ $child->formatted_child_id ?? 'CH-' . str_pad($child->id, 3, '0', STR_PAD_LEFT) }} - {{ $child->child_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -69,25 +70,15 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Select Vaccine *</label>
-                            <select id="vaccine_id" name="vaccine_id" required 
+                            <select id="vaccine_id" name="vaccine_id" required
                                     class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('vaccine_id') error-border @enderror"
-                                    onchange="updateVaccineInfo()">
+                                    onchange="loadAvailableDoses()">
                                 <option value="">Choose a vaccine...</option>
                                 @foreach($availableVaccines as $vaccine)
-                                    <option value="{{ $vaccine->id }}" 
-                                            data-stock="{{ $vaccine->current_stock }}"
+                                    <option value="{{ $vaccine->id }}"
                                             data-category="{{ $vaccine->category }}"
-                                            class="{{ $vaccine->current_stock <= 0 ? 'text-red-500' : ($vaccine->current_stock <= $vaccine->min_stock ? 'text-yellow-600' : 'text-green-600') }}"
-                                            {{ $vaccine->current_stock <= 0 ? 'disabled' : '' }}
                                             {{ old('vaccine_id') == $vaccine->id ? 'selected' : '' }}>
-                                        {{ $vaccine->name }} 
-                                        @if($vaccine->current_stock <= 0)
-                                            (OUT OF STOCK)
-                                        @elseif($vaccine->current_stock <= $vaccine->min_stock)
-                                            (LOW STOCK: {{ $vaccine->current_stock }})
-                                        @else
-                                            (Stock: {{ $vaccine->current_stock }})
-                                        @endif
+                                        {{ $vaccine->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -97,11 +88,7 @@
                             
                             <!-- Vaccine Info Display -->
                             <div id="vaccineInfo" class="hidden mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <span class="text-sm font-medium text-blue-900">Stock Available:</span>
-                                        <span id="vaccineStock" class="text-sm font-bold text-blue-700"></span>
-                                    </div>
+                                <div class="flex items-center justify-center">
                                     <div>
                                         <span class="text-xs px-2 py-1 rounded-full" id="vaccineCategory"></span>
                                     </div>
@@ -114,14 +101,9 @@
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Dose *</label>
-                            <select id="dose" name="dose" required 
+                            <select id="dose" name="dose" required
                                     class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('dose') error-border @enderror">
                                 <option value="">Select dose...</option>
-                                @foreach(\App\Models\Immunization::getDoseOptions() as $key => $value)
-                                    <option value="{{ $key }}" {{ old('dose') == $key ? 'selected' : '' }}>
-                                        {{ $value }}
-                                    </option>
-                                @endforeach
                             </select>
                             @error('dose')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -165,8 +147,8 @@
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                            <textarea id="notes" name="notes" rows="4"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes *</label>
+                            <textarea id="notes" name="notes" rows="4" required
                                       class="form-input input-clean w-full px-4 py-2.5 rounded-lg resize-none @error('notes') error-border @enderror"
                                       placeholder="Any special instructions or notes...">{{ old('notes') }}</textarea>
                             @error('notes')
@@ -183,7 +165,7 @@
                     Cancel
                 </button>
                 <button type="submit" id="submit-btn" class="btn-minimal btn-primary-clean px-6 py-2.5 rounded-lg font-medium">
-                    <i class="fas fa-calendar-plus mr-2"></i>Schedule Immunization
+                    <i class="fas fa-calendar-plus mr-2"></i>Save Schedule
                 </button>
             </div>
         </form>
@@ -195,30 +177,25 @@
 function updateVaccineInfo() {
     const vaccineSelect = document.getElementById('vaccine_id');
     const vaccineInfo = document.getElementById('vaccineInfo');
-    const vaccineStock = document.getElementById('vaccineStock');
     const vaccineCategory = document.getElementById('vaccineCategory');
-    const lowStockWarning = document.getElementById('lowStockWarning');
-    
-    if (vaccineSelect.value) {
+
+    if (vaccineSelect && vaccineSelect.value) {
         const selectedOption = vaccineSelect.options[vaccineSelect.selectedIndex];
-        const stock = parseInt(selectedOption.dataset.stock);
         const category = selectedOption.dataset.category;
-        
+
         // Show vaccine info
-        vaccineStock.textContent = stock + ' units';
-        vaccineCategory.textContent = category;
-        vaccineCategory.className = getCategoryClass(category);
-        vaccineInfo.classList.remove('hidden');
-        
-        // Show/hide low stock warning
-        if (stock <= 10 && stock > 0) { // Assuming min_stock is typically 10
-            lowStockWarning.classList.remove('hidden');
-        } else {
-            lowStockWarning.classList.add('hidden');
+        if (vaccineCategory) {
+            vaccineCategory.textContent = category;
+            vaccineCategory.className = getCategoryClass(category);
+        }
+        if (vaccineInfo) {
+            vaccineInfo.classList.remove('hidden');
         }
     } else {
-        vaccineInfo.classList.add('hidden');
-        lowStockWarning.classList.add('hidden');
+        // Hide vaccine info
+        if (vaccineInfo) {
+            vaccineInfo.classList.add('hidden');
+        }
     }
 }
 
@@ -233,16 +210,126 @@ function getCategoryClass(category) {
     return classes[category] || 'text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800';
 }
 
+// Load available vaccines when child is selected
+async function loadAvailableVaccines() {
+    const childId = document.getElementById('child_record_id').value;
+    const vaccineSelect = document.getElementById('vaccine_id');
+    const doseSelect = document.getElementById('dose');
+
+    // Reset vaccine and dose dropdowns
+    vaccineSelect.innerHTML = '<option value="">Choose a vaccine...</option>';
+    doseSelect.innerHTML = '<option value="">Select dose...</option>';
+
+    if (!childId) return;
+
+    try {
+        const userRole = '{{ auth()->user()->role }}';
+        const routeName = userRole === 'bhw' ? 'immunizations' : 'immunization';
+
+        const response = await fetch(`/${userRole}/${routeName}/child/${childId}/vaccines`);
+        const data = await response.json();
+
+        if (data.success && data.vaccines) {
+            data.vaccines.forEach(vaccine => {
+                const option = document.createElement('option');
+                option.value = vaccine.id;
+                option.dataset.category = vaccine.category;
+                option.textContent = vaccine.name;
+
+                vaccineSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading vaccines:', error);
+    }
+}
+
+// Load available doses when vaccine is selected
+async function loadAvailableDoses() {
+    const childIdElement = document.getElementById('child_record_id');
+    const vaccineIdElement = document.getElementById('vaccine_id');
+    const doseSelect = document.getElementById('dose');
+
+    if (!childIdElement || !vaccineIdElement || !doseSelect) {
+        console.error('Required elements not found');
+        return;
+    }
+
+    const childId = childIdElement.value;
+    const vaccineId = vaccineIdElement.value;
+
+    console.log('loadAvailableDoses called', {childId, vaccineId});
+
+    // Update vaccine info display (with error handling)
+    try {
+        updateVaccineInfo();
+    } catch (error) {
+        console.error('Error updating vaccine info:', error);
+    }
+
+    // Reset dose dropdown
+    doseSelect.innerHTML = '<option value="">Select dose...</option>';
+
+    if (!childId || !vaccineId) {
+        console.log('Missing childId or vaccineId, returning');
+        return;
+    }
+
+    try {
+        const userRole = '{{ auth()->user()->role }}';
+        const routeName = userRole === 'bhw' ? 'immunizations' : 'immunization';
+        const url = `/${userRole}/${routeName}/child/${childId}/vaccines/${vaccineId}/doses`;
+
+        console.log('Fetching doses from:', url);
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log('Dose response:', data);
+
+        if (data.success && data.doses) {
+            if (Object.keys(data.doses).length === 0) {
+                console.log('No doses available for this vaccine and child combination');
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No available doses';
+                option.disabled = true;
+                doseSelect.appendChild(option);
+            } else {
+                Object.entries(data.doses).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    doseSelect.appendChild(option);
+                    console.log('Added dose option:', key, value);
+                });
+            }
+        } else {
+            console.error('Invalid response format or no doses available:', data);
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Error loading doses';
+            option.disabled = true;
+            doseSelect.appendChild(option);
+        }
+    } catch (error) {
+        console.error('Error loading doses:', error);
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Error loading doses';
+        option.disabled = true;
+        doseSelect.appendChild(option);
+    }
+}
+
 // Form validation before submission
 document.getElementById('immunizationForm').addEventListener('submit', function(e) {
-    const vaccineSelect = document.getElementById('vaccine_id');
-    const selectedOption = vaccineSelect.options[vaccineSelect.selectedIndex];
-    
-    if (vaccineSelect.value && selectedOption.dataset.stock === '0') {
-        e.preventDefault();
-        alert('Cannot schedule immunization: Selected vaccine is out of stock.');
-        vaccineSelect.focus();
-        return false;
-    }
+    // No stock validation needed since vaccines are not stored at barangay health center
+    console.log('Immunization form submitted');
 });
 </script>

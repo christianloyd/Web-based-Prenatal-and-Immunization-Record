@@ -38,6 +38,18 @@
             @csrf
             @method('PUT')
 
+            <!-- Show server-side validation errors -->
+            @if ($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <div class="font-medium">Please correct the following errors:</div>
+                    <ul class="list-disc list-inside mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Vaccine Information -->
                 <div class="section-divider">
@@ -63,10 +75,23 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Dosage *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dosage (ml) *</label>
                             <input type="text" name="dosage" id="edit-dosage" required
                                 class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary"
-                                placeholder="e.g., 0.5ml, 1ml">
+                                placeholder="e.g., 0.5, 1.0">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Total Doses Required *</label>
+                            <select name="dose_count" id="edit-dose-count" required
+                                class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary">
+                                <option value="">Select Number of Doses</option>
+                                <option value="1">1 Dose (Single)</option>
+                                <option value="2">2 Doses</option>
+                                <option value="3">3 Doses</option>
+                                <option value="4">4 Doses</option>
+                                <option value="5">5 Doses</option>
+                            </select>
                         </div>
 
                         <div>
@@ -83,14 +108,8 @@
 
                 <!-- Stock & Expiry Information -->
                 <div class="section-divider">
-                    <h4 class="text-lg font-medium mb-4 text-gray-800">STOCK & EXPIRY</h4>
+                    <h4 class="text-lg font-medium mb-4 text-gray-800">EXPIRY INFORMATION</h4>
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Stock Level *</label>
-                            <input type="number" name="min_stock" id="edit-min-stock" min="0" required
-                                class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary"
-                                placeholder="Minimum stock alert level">
-                        </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date *</label>

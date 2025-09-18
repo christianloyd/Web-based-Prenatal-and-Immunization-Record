@@ -5,6 +5,10 @@
 
 @push('styles')
 <style>
+    :root {
+        --primary: #243b55;
+        --secondary: #141e30;
+    }
 
 .btn-action {
         padding: 6px 12px;
@@ -38,31 +42,7 @@
         color: white;
         border-color: #f59e0b;
     }
-    /* Modal Animation Styles */
-    .modal-overlay {
-        transition: opacity 0.3s ease-out;
-    }
-    
-    .modal-overlay.hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-    
-    .modal-overlay.show {
-        opacity: 1;
-        pointer-events: auto;
-    }
-    
-    .modal-content {
-        transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-        transform: translateY(-20px) scale(0.95);
-        opacity: 0;
-    }
-    
-    .modal-overlay.show .modal-content {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
+    /* Modal Animation Styles - Now handled globally in layout */
     
     /* Patient Avatar Styles */
     .patient-avatar {
@@ -113,24 +93,11 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success Message -->
-    @if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('success') }}</span>
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('error') }}</span>
-    </div>
-    @endif
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
          <div> </div>
         <div class="flex space-x-3">
-            @include('components.refresh-data-button', ['id' => 'patient-refresh-btn'])
             <button onclick="openPatientModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-charcoal-700 transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
@@ -229,11 +196,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
-                            <button onclick='openViewPatientModal(@json($patient))' class="btn-action btn-view inline-flex items-center justify-center">
+                            <button data-patient='@json($patient)' onclick='openViewPatientModal(JSON.parse(this.dataset.patient))' class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
                             <span class="hidden sm:inline">View</span>
                             </button>
-                                <button onclick='openEditPatientModal(@json($patient))' class="btn-action btn-edit inline-flex items-center justify-center">
+                                <button data-patient='@json($patient)' onclick='openEditPatientModal(JSON.parse(this.dataset.patient))' class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
                             <span class="hidden sm:inline">Edit</span></button>
                                  
@@ -300,14 +267,17 @@ function closePatientModal(e) {
     if (e && e.target !== e.currentTarget) return;
     const modal = document.getElementById('patient-modal');
     if (!modal) return;
+    
+    // Reset form using the universal reset system
+    const form = modal.querySelector('form');
+    if (form && window.modalFormResetManager) {
+        window.modalFormResetManager.resetForm(form);
+    }
+    
     modal.classList.remove('show');
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-        const form = modal.querySelector('form');
-        if (form && !document.querySelector('.bg-red-100')) {
-            form.reset();
-        }
     }, 300);
 }
 
@@ -329,13 +299,37 @@ function openViewPatientModal(patient) {
     document.getElementById('viewPatientAddress').textContent = patient.address || 'N/A';
     document.getElementById('viewPatientOccupation').textContent = patient.occupation || 'N/A';
     
-    // Set risk status with appropriate styling
+    // Set status from prenatal record with appropriate styling
     const riskStatusElement = document.getElementById('viewPatientRiskStatus');
-    if (patient.is_high_risk_patient) {
-        riskStatusElement.innerHTML = '<span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">High Risk Age</span>';
+    let statusHtml = '';
+
+    if (patient.active_prenatal_record && patient.active_prenatal_record.status) {
+        const status = patient.active_prenatal_record.status;
+
+        switch(status) {
+            case 'normal':
+                statusHtml = '<span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Normal</span>';
+                break;
+            case 'monitor':
+                statusHtml = '<span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Monitor</span>';
+                break;
+            case 'high-risk':
+                statusHtml = '<span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">High Risk</span>';
+                break;
+            case 'due':
+                statusHtml = '<span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Due</span>';
+                break;
+            case 'completed':
+                statusHtml = '<span class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Completed</span>';
+                break;
+            default:
+                statusHtml = '<span class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Unknown</span>';
+        }
     } else {
-        riskStatusElement.innerHTML = '<span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Normal</span>';
+        statusHtml = '<span class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">No Prenatal Record</span>';
     }
+
+    riskStatusElement.innerHTML = statusHtml;
     
     // Set created date if available
     const createdAtElement = document.getElementById('viewPatientCreatedAt');
@@ -502,11 +496,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-{{-- Include Refresh Data Script --}}
-@include('components.refresh-data-script', [
-    'contentId' => 'patient-main-content',
-    'skeletonId' => 'patient-table-skeleton',
-    'refreshBtnId' => 'patient-refresh-btn',
-    'hasStats' => false
-])
 @endpush

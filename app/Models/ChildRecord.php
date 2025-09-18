@@ -66,6 +66,11 @@ class ChildRecord extends Model
         return $this->hasMany(Immunization::class);
     }
 
+    public function childImmunizations()
+    {
+        return $this->hasMany(ChildImmunization::class);
+    }
+
     // Accessor for mother's name with fallback
     public function getMotherNameAttribute($value)
     {

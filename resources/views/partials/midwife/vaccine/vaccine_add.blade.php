@@ -79,11 +79,27 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Dosage *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dosage (ml) *</label>
                             <input type="text" name="dosage" id="add-dosage" required value="{{ old('dosage') }}"
                                 class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('dosage') error-border @enderror"
-                                placeholder="e.g., 0.5ml, 1ml">
+                                placeholder="e.g., 0.5, 1.0">
                             @error('dosage')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Total Doses Required *</label>
+                            <select name="dose_count" id="add-dose-count" required
+                                class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('dose_count') error-border @enderror">
+                                <option value="">Select Number of Doses</option>
+                                <option value="1" {{ old('dose_count') == '1' ? 'selected' : '' }}>1 Dose (Single)</option>
+                                <option value="2" {{ old('dose_count') == '2' ? 'selected' : '' }}>2 Doses</option>
+                                <option value="3" {{ old('dose_count') == '3' ? 'selected' : '' }}>3 Doses</option>
+                                <option value="4" {{ old('dose_count') == '4' ? 'selected' : '' }}>4 Doses</option>
+                                <option value="5" {{ old('dose_count') == '5' ? 'selected' : '' }}>5 Doses</option>
+                            </select>
+                            @error('dose_count')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -105,27 +121,8 @@
 
                 <!-- Stock & Expiry Information -->
                 <div class="section-divider">
-                    <h4 class="text-lg font-medium mb-4 text-gray-800">STOCK & EXPIRY</h4>
+                    <h4 class="text-lg font-medium mb-4 text-gray-800">EXPIRY INFORMATION</h4>
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Initial Stock *</label>
-                            <input type="number" name="initial_stock" id="add-initial-stock" min="0" required value="{{ old('initial_stock') }}"
-                                class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('initial_stock') error-border @enderror"
-                                placeholder="Enter initial stock quantity">
-                            @error('initial_stock')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Stock Level *</label>
-                            <input type="number" name="min_stock" id="add-min-stock" min="0" required value="{{ old('min_stock') }}"
-                                class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('min_stock') error-border @enderror"
-                                placeholder="Minimum stock alert level">
-                            @error('min_stock')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date *</label>

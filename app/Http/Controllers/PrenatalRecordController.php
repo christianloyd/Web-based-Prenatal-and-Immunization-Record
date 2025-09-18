@@ -22,7 +22,7 @@ class PrenatalRecordController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $query = PrenatalRecord::with(['patient'])->orderBy('created_at', 'desc');
+        $query = PrenatalRecord::with(['patient', 'latestCheckup'])->orderBy('created_at', 'desc');
 
         // Search functionality
         if ($request->filled('search')) {

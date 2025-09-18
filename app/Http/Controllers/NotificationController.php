@@ -195,9 +195,36 @@ class NotificationController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Failed to run notification checks: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get new notifications since a specific timestamp for real-time polling
+     */
+    public function getNewNotifications(Request $request)
+    {
+        $lastCheck = $request->query('last_check');
+        $user = Auth::user();
+
+        $query = $user->notifications()->orderBy('created_at', 'desc');
+
+        if ($lastCheck) {
+            $query->where('created_at', '>', $lastCheck);
+        } else {
+            // If no last_check, get notifications from the last minute
+            $query->where('created_at', '>', now()->subMinute());
+        }
+
+        $newNotifications = $query->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
+        return response()->json([
+            'notifications' => $newNotifications,
+            'unread_count' => $unreadCount,
+            'timestamp' => now()->toISOString()
+        ]);
     }
 }

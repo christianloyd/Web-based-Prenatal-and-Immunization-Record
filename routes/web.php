@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PrenatalController;
 use App\Http\Controllers\PrenatalRecordController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PrenatalCheckupController;
+use App\Http\Controllers\AppointmentController;
 // Redirect root to login
 Route::get('/', fn () => redirect()->route('login'));
 
@@ -34,7 +36,13 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard routes by role
     Route::get('/dashboard', function () {
-        return match (auth()->user()->role) {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        return match ($user->role) {
             'midwife' => redirect()->route('midwife.dashboard'),
             'bhw'     => redirect()->route('bhw.dashboard'),
             default   => abort(403, 'Unauthorized role'),
@@ -46,6 +54,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
         Route::get('/unread-count', [NotificationController::class, 'getUnreadCount'])->name('unread-count');
         Route::get('/recent', [NotificationController::class, 'getRecent'])->name('recent');
+        Route::get('/new', [NotificationController::class, 'getNewNotifications'])->name('new');
         Route::post('/mark-as-read/{id}', [NotificationController::class, 'markAsRead'])->name('mark-as-read');
         Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-as-read');
         Route::delete('/{id}', [NotificationController::class, 'delete'])->name('delete');
@@ -71,10 +80,22 @@ Route::middleware('auth')->group(function () {
 
             //Prenatal Checkup Routes
             Route::resource('prenatalcheckup', PrenatalCheckupController::class);
+            Route::get('prenatalcheckup/{id}/data', [PrenatalCheckupController::class, 'getData'])->name('prenatalcheckup.data');
+            Route::post('prenatalcheckup/{id}/complete', [PrenatalCheckupController::class, 'markCompleted'])->name('prenatalcheckup.complete');
+            Route::put('prenatalcheckup/{id}/schedule', [PrenatalCheckupController::class, 'updateSchedule'])->name('prenatalcheckup.schedule');
+
+            //Appointment Routes
+            Route::resource('appointments', AppointmentController::class);
+            Route::post('appointments/{id}/complete', [AppointmentController::class, 'markCompleted'])->name('appointments.complete');
+            Route::post('appointments/{id}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+            Route::post('appointments/{id}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
+            Route::get('appointments-data/upcoming', [AppointmentController::class, 'getUpcoming'])->name('appointments.upcoming');
+            Route::get('appointments-data/today', [AppointmentController::class, 'getToday'])->name('appointments.today');
 
             //Child Record Routes
             Route::resource('childrecord', ChildRecordController::class);
             Route::put('childrecord/{id}', [ChildRecordController::class, 'update'])->name('childrecord.update');
+            Route::get('childrecord-search', [ChildRecordController::class, 'search'])->name('childrecord.search');
             
             //Child Immunization Routes
             Route::post('childrecord/{childRecord}/immunizations', [App\Http\Controllers\ChildImmunizationController::class, 'store'])->name('childrecord.immunizations.store');
@@ -99,6 +120,9 @@ Route::middleware('auth')->group(function () {
 
             //Immunization Routes
             Route::resource('immunization', ImmunizationController::class);
+            Route::post('immunization/{id}/quick-status', [ImmunizationController::class, 'quickUpdateStatus'])->name('immunization.quick-status');
+            Route::get('immunization/child/{childId}/vaccines', [ImmunizationController::class, 'getAvailableVaccinesForChild'])->name('immunization.child-vaccines');
+            Route::get('immunization/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunization.child-doses');
 
             //Vaccine Routes
             Route::resource('vaccines', VaccineController::class);
@@ -125,10 +149,34 @@ Route::middleware('auth')->group(function () {
             // Dashboard route
             Route::get('/dashboard', [DashboardController::class, 'bhwIndex'])->name('dashboard');
             
+            //Patient Routes for BHW
             Route::resource('patients', PatientController::class);
+
+            //Prenatal Record Routes for BHW
             Route::resource('prenatalrecord', PrenatalRecordController::class);
+
+            //Prenatal Checkup Routes for BHW
+            Route::resource('prenatalcheckup', PrenatalCheckupController::class);
+            Route::get('prenatalcheckup/{id}/data', [PrenatalCheckupController::class, 'getData'])->name('prenatalcheckup.data');
+            Route::post('prenatalcheckup/{id}/complete', [PrenatalCheckupController::class, 'markCompleted'])->name('prenatalcheckup.complete');
+            Route::put('prenatalcheckup/{id}/schedule', [PrenatalCheckupController::class, 'updateSchedule'])->name('prenatalcheckup.schedule');
+
+            //Child Record Routes for BHW
             Route::resource('childrecord', ChildRecordController::class);
+
+            //Immunization Routes for BHW
             Route::resource('immunizations', ImmunizationController::class);
+            Route::post('immunizations/{id}/quick-status', [ImmunizationController::class, 'quickUpdateStatus'])->name('immunizations.quick-status');
+
+            //Appointment Routes for BHW
+            Route::resource('appointments', AppointmentController::class);
+            Route::post('appointments/{id}/complete', [AppointmentController::class, 'markCompleted'])->name('appointments.complete');
+            Route::post('appointments/{id}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+            Route::post('appointments/{id}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
+            Route::get('appointments-data/upcoming', [AppointmentController::class, 'getUpcoming'])->name('appointments.upcoming');
+            Route::get('appointments-data/today', [AppointmentController::class, 'getToday'])->name('appointments.today');
+            Route::get('immunizations/child/{childId}/vaccines', [ImmunizationController::class, 'getAvailableVaccinesForChild'])->name('immunizations.child-vaccines');
+            Route::get('immunizations/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunizations.child-doses');
             
             //Child Immunization Routes for BHW
             Route::post('childrecord/{childRecord}/immunizations', [App\Http\Controllers\ChildImmunizationController::class, 'store'])->name('childrecord.immunizations.store');

@@ -118,7 +118,7 @@
             <div class="flex gap-4 pt-6 border-t">
                 <button type="submit"
                         id="stock-submit-btn"
-                        class="btn-primary flex-1 bg-secondary text-white py-2.5 rounded-lg font-semibold hover:bg-charcoal-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="btn-primary flex-1 bg-secondary text-white py-2.5 rounded-lg font-semibold hover:bg-charcoal disabled:opacity-50 disabled:cursor-not-allowed">
                     Process Transaction
                 </button>
                 <button type="button"

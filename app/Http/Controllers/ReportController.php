@@ -38,9 +38,18 @@ class ReportController extends Controller
         $reportType = $request->get('report_type', 'monthly');
         $month = $request->get('month'); // No default - null means show all data
         $department = $request->get('department', 'all');
-        
+
         // Parse the month filter (null means show all data)
-        $filterDate = $month ? Carbon::createFromFormat('Y-m', $month) : null;
+        $filterDate = null;
+        if ($month && !empty($month)) {
+            try {
+                $filterDate = Carbon::createFromFormat('Y-m', $month);
+            } catch (\Exception $e) {
+                // If month format is invalid, log error and use null (show all data)
+                \Log::warning('Invalid month format in BHW report filter: ' . $month);
+                $filterDate = null;
+            }
+        }
         
         $stats = [
             'totalPatients' => Patient::count(),
@@ -57,14 +66,14 @@ class ReportController extends Controller
                                   ->count()
                 : ChildImmunization::count(),
             'totalImmunizedGirls' => ChildRecord::where('gender', 'Female')
-                                               ->whereHas('immunizations', function($query) use ($filterDate) {
+                                               ->whereHas('childImmunizations', function($query) use ($filterDate) {
                                                    if ($filterDate) {
                                                        $query->whereMonth('vaccination_date', $filterDate->month)
                                                              ->whereYear('vaccination_date', $filterDate->year);
                                                    }
                                                })->distinct()->count(),
             'totalImmunizedBoys' => ChildRecord::where('gender', 'Male')
-                                              ->whereHas('immunizations', function($query) use ($filterDate) {
+                                              ->whereHas('childImmunizations', function($query) use ($filterDate) {
                                                   if ($filterDate) {
                                                       $query->whereMonth('vaccination_date', $filterDate->month)
                                                             ->whereYear('vaccination_date', $filterDate->year);
@@ -101,40 +110,64 @@ class ReportController extends Controller
     private function getMidwifeStatistics($request)
     {
         $currentDate = Carbon::now();
-        
+
         // Get filter parameters
         $reportFormat = $request->get('report_format', 'dynamic');
         $reportType = $request->get('report_type', 'monthly');
         $month = $request->get('month'); // No default - null means show all data
         $department = $request->get('department', 'all');
-        
+
         // Parse the month filter (null means show all data)
-        $filterDate = $month ? Carbon::createFromFormat('Y-m', $month) : null;
+        $filterDate = null;
+        if ($month && !empty($month) && $month !== '') {
+            try {
+                $filterDate = Carbon::createFromFormat('Y-m', $month);
+                // Debug log to verify filtering is working
+                \Log::info('Midwife report filter - Month: ' . $month . ', FilterDate: ' . ($filterDate ? $filterDate->toDateString() : 'null'));
+            } catch (\Exception $e) {
+                // If month format is invalid, log error and use null (show all data)
+                \Log::warning('Invalid month format in Midwife report filter: ' . $month . ', Error: ' . $e->getMessage());
+                $filterDate = null;
+            }
+        } else {
+            \Log::info('Midwife report filter - No month filter applied (showing all data)');
+        }
         
         // Base statistics
+        $totalPatients = Patient::count();
+
+        // Build checkups query with debugging
+        $checkupsQuery = PrenatalRecord::query();
+        if ($filterDate) {
+            $checkupsQuery->whereMonth('created_at', $filterDate->month)
+                         ->whereYear('created_at', $filterDate->year);
+            \Log::info('Midwife report - Filtering checkups for month: ' . $filterDate->month . ', year: ' . $filterDate->year);
+        }
+        $totalCheckups = $checkupsQuery->count();
+
+        // Build vaccinations query with debugging
+        $vaccinationsQuery = Immunization::where('status', 'Done');
+        if ($filterDate) {
+            $vaccinationsQuery->whereMonth('schedule_date', $filterDate->month)
+                             ->whereYear('schedule_date', $filterDate->year);
+            \Log::info('Midwife report - Filtering vaccinations for month: ' . $filterDate->month . ', year: ' . $filterDate->year);
+        }
+        $totalVaccinations = $vaccinationsQuery->count();
+
         $stats = [
-            'totalPatients' => Patient::count(),
-            'totalCheckups' => $filterDate 
-                ? PrenatalRecord::whereMonth('created_at', $filterDate->month)
-                                ->whereYear('created_at', $filterDate->year)
-                                ->count()
-                : PrenatalRecord::count(),
-            'totalVaccinations' => $filterDate 
-                ? Immunization::whereMonth('schedule_date', $filterDate->month)
-                              ->whereYear('schedule_date', $filterDate->year)
-                              ->where('status', 'Done')
-                              ->count()
-                : Immunization::where('status', 'Done')->count(),
+            'totalPatients' => $totalPatients,
+            'totalCheckups' => $totalCheckups,
+            'totalVaccinations' => $totalVaccinations,
             'totalChildren' => ChildRecord::count(),
             'totalImmunizedGirls' => ChildRecord::where('gender', 'Female')
-                                               ->whereHas('immunizations', function($query) use ($filterDate) {
+                                               ->whereHas('childImmunizations', function($query) use ($filterDate) {
                                                    if ($filterDate) {
                                                        $query->whereMonth('vaccination_date', $filterDate->month)
                                                              ->whereYear('vaccination_date', $filterDate->year);
                                                    }
                                                })->distinct()->count(),
             'totalImmunizedBoys' => ChildRecord::where('gender', 'Male')
-                                              ->whereHas('immunizations', function($query) use ($filterDate) {
+                                              ->whereHas('childImmunizations', function($query) use ($filterDate) {
                                                   if ($filterDate) {
                                                       $query->whereMonth('vaccination_date', $filterDate->month)
                                                             ->whereYear('vaccination_date', $filterDate->year);
@@ -372,7 +405,7 @@ class ReportController extends Controller
             $childMaxDate = now()->subYears($group['min'])->format('Y-m-d');
             
             $immunizedCount = ChildRecord::whereRaw('DATE(birthdate) BETWEEN ? AND ?', [$childMinDate, $childMaxDate])
-                                        ->whereHas('immunizations', function($query) use ($filterDate) {
+                                        ->whereHas('childImmunizations', function($query) use ($filterDate) {
                                             if ($filterDate) {
                                                 $query->whereMonth('vaccination_date', $filterDate->month)
                                                       ->whereYear('vaccination_date', $filterDate->year);
@@ -781,12 +814,12 @@ class ReportController extends Controller
                                           ->whereYear('vaccination_date', $filterDate->year)
                                           ->count()
                         : ChildImmunization::count(),
-                    'children_immunized' => $filterDate 
-                        ? ChildRecord::whereHas('immunizations', function($query) use ($filterDate) {
+                    'children_immunized' => $filterDate
+                        ? ChildRecord::whereHas('childImmunizations', function($query) use ($filterDate) {
                             $query->whereMonth('vaccination_date', $filterDate->month)
                                   ->whereYear('vaccination_date', $filterDate->year);
                         })->distinct()->count()
-                        : ChildRecord::whereHas('immunizations')->distinct()->count(),
+                        : ChildRecord::whereHas('childImmunizations')->distinct()->count(),
                     'growth_monitoring' => ChildRecord::count(),
                     'nutrition_counseling' => intval(ChildRecord::count() * 0.8)
                 ]

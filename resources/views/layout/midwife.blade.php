@@ -6,7 +6,51 @@
     <title>@yield('title', 'Midwife Dashboard')</title> 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
+
+    <!-- Dynamic Favicon -->
+    @php
+        $favicon = 'images/healthcare.png'; // default
+        $faviconType = 'image/png';
+
+        // Get current route to determine appropriate favicon
+        $routeName = Route::currentRouteName();
+
+        if (str_contains($routeName, 'dashboard')) {
+            $favicon = 'images/dash.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'prenatal') || str_contains($routeName, 'maternal')) {
+            $favicon = 'images/maternalhealth.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'patient')) {
+            $favicon = 'images/medical.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'vaccine') || str_contains($routeName, 'immunization')) {
+            $favicon = 'images/vaccine.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'child')) {
+            $favicon = 'images/childrecord.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'user')) {
+            $favicon = 'images/usermanagement.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'report')) {
+            $favicon = 'images/report.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'cloudbackup')) {
+            $favicon = 'images/cloudbackup.png';
+            $faviconType = 'image/png';
+        } elseif (str_contains($routeName, 'clinic') || str_contains($routeName, 'hospital')) {
+            $favicon = 'images/clinic.png';
+            $faviconType = 'image/png';
+        }
+    @endphp
+
+    <link rel="icon" type="{{ $faviconType }}" href="{{ asset($favicon) }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset($favicon) }}">
+    <link rel="icon" type="{{ $faviconType }}" sizes="32x32" href="{{ asset($favicon) }}">
+    <link rel="icon" type="{{ $faviconType }}" sizes="16x16" href="{{ asset($favicon) }}">
+    <link rel="shortcut icon" href="{{ asset($favicon) }}">
+
     <!-- Add Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Flowbite CSS -->
@@ -33,27 +77,27 @@
             overflow-x: hidden; /* Prevent horizontal scroll */
         }
         
-        /* Custom scrollbar styling */
+        /* Custom scrollbar styling - matches layout background colors */
         .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: #d1d5db #f3f4f6;
+            scrollbar-color: #f9fafb #f9fafb; /* thumb and track same as layout background */
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f3f4f6;
+            background: #f9fafb; /* matches bg-gray-50 layout background */
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d1d5db;
+            background: #f3f4f6; /* slightly darker gray for subtle visibility */
             border-radius: 4px;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
+            background: #e5e7eb; /* slightly more visible on hover */
         }
         
         /* Ensure layout stability */
@@ -63,6 +107,41 @@
         }
         
         /* Prevent content jumping during navigation */
+
+        /* Navigation Group Styles */
+        .nav-group-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .nav-submenu {
+            border-left: 2px solid #e5e7eb;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .nav-submenu .nav-link {
+            font-size: 0.875rem;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-submenu .nav-link.bg-primary {
+            background-color: var(--primary) !important;
+            color: white !important;
+            border-left: 3px solid #ffffff;
+        }
+
+        /* Smooth transition for chevron rotation */
+        .nav-group-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        /* Active group styling */
+        .nav-group:has(.nav-submenu .nav-link.bg-primary) .nav-group-toggle {
+            background-color: rgba(36, 59, 85, 0.1);
+            color: var(--primary);
+            font-weight: 500;
+        }
         .content-wrapper {
             min-height: calc(100vh - 120px); /* Adjust based on header height */
         }
@@ -128,6 +207,22 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* Ensure sidebar appears instantly on desktop without animation */
+        @media (min-width: 1024px) {
+            .sidebar-nav {
+                position: static !important;
+                transform: translateX(0) !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                display: flex !important;
+            }
+        }
+
+        /* Prevent initial animation flash */
+        .sidebar-nav:not(.transition-transform) {
+            transition: none !important;
+        }
         
         /* Force navigation text visibility */
         .sidebar-nav a,
@@ -144,12 +239,43 @@
         .bg-secondary a {
             color: rgba(255, 255, 255, 1) !important;
         }
-        
+
+        /* ====================================
+           Global Modal Background Fix
+           ==================================== */
+        .modal-overlay {
+            transition: opacity 0.3s ease-out;
+            background-color: rgba(17, 24, 39, 0) !important; /* Override any background */
+        }
+
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            background-color: rgba(17, 24, 39, 0) !important;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+            background-color: rgba(17, 24, 39, 0.5) !important; /* Semi-transparent dark overlay */
+        }
+
+        .modal-content {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(-20px) scale(0.95);
+            opacity: 0;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
     </style>
     
     @stack('styles')
 </head>
-<body class="bg-gray-50" x-data="{ sidebarOpen: false }">
+<body class="bg-gray-50" x-data="{ sidebarOpen: window.innerWidth >= 1024, sidebarInitialized: false }">
     <div class="flex h-screen overflow-hidden">
         <!-- Mobile Overlay -->
         <div x-show="sidebarOpen" 
@@ -164,9 +290,10 @@
               ></div>
 
         <!-- Left Sidebar Navigation -->
-        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-secondary text-white flex flex-col transform lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out"
-             :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
-             x-show="sidebarOpen || window.innerWidth >= 1024"
+        <div class="sidebar-nav fixed inset-y-0 left-0 z-50 w-64 bg-secondary text-white flex flex-col lg:static lg:inset-0"
+             :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen, 'transition-transform duration-300 ease-in-out': sidebarInitialized}"
+             x-show="sidebarOpen"
+             x-init="setTimeout(() => sidebarInitialized = true, 100); window.addEventListener('resize', () => { sidebarOpen = window.innerWidth >= 1024; })"
               >
             
             <div class="p-4 sm:p-6 border-b border-primary">
@@ -181,7 +308,7 @@
                         </div>
                     </div>
                     <!-- Close button for mobile -->
-                    <button @click="sidebarOpen = false" 
+                    <button @click="sidebarInitialized = true; sidebarOpen = false"
                             class="lg:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-primary transition-colors">
                         <i class="fas fa-times w-5 h-5"></i>
                     </button>
@@ -190,120 +317,151 @@
             
             <nav class="flex-1 p-3 sm:p-4 overflow-y-auto">
                 <ul class="space-y-1 sm:space-y-2">
+                    <!-- Dashboard -->
                     <li>
-                        <a href="{{ route('dashboard') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('dashboard') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="dashboard">
+                        <a href="{{ route('dashboard') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('dashboard') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           data-section="dashboard"
+                           onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-tachometer-alt w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             Dashboard
                         </a>
                     </li>
 
-                    <!-- Patient Registration -->
+                    <!-- Patient Management -->
                     <li>
-                        <a href="{{ route('midwife.patients.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.patients.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="patients">
+                        <a href="{{ route('midwife.patients.index') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.patients.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           data-section="patients"
+                           onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-user-plus w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             Patient Registration
                         </a>
                     </li>
 
-                    <!-- Prenatal Records -->
+                    <!-- Prenatal Care Group -->
                     <li>
-                        <a href="{{ route('midwife.prenatalrecord.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.prenatalrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="prenatal">
-                            <i class="fas fa-file-medical w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            <span class="hidden sm:inline">Prenatal Records</span>
-                            <span class="sm:hidden">Prenatal</span>
-                        </a>
+                        <div class="nav-group">
+                            <button class="nav-group-toggle w-full flex items-center justify-between p-2 sm:p-3 rounded-lg text-sm sm:text-base hover:bg-primary transition-colors"
+                                    onclick="toggleNavGroup('prenatal-group')"
+                                    data-group="prenatal-group">
+                                <div class="flex items-center">
+                                    <i class="fas fa-baby w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
+                                    <span>Prenatal Care</span>
+                                </div>
+                                <i class="fas fa-chevron-down w-3 h-3 transition-transform duration-200" id="prenatal-group-icon"></i>
+                            </button>
+                            <ul class="nav-submenu ml-6 sm:ml-8 mt-1 space-y-1 {{ request()->routeIs('midwife.prenatalrecord.*', 'midwife.prenatalcheckup.*') ? '' : 'hidden' }}"
+                                id="prenatal-group-menu">
+                                <li>
+                                    <a href="{{ route('midwife.prenatalrecord.index') }}"
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.prenatalrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                                       data-section="prenatal"
+                                       onclick="showNavigationLoading(event, this)">
+                                        <i class="fas fa-file-medical w-4 h-4 mr-2"></i>
+                                        Prenatal Records
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('midwife.prenatalcheckup.index') }}"
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.prenatalcheckup.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                                       data-section="prenatal-checkups"
+                                       onclick="showNavigationLoading(event, this)">
+                                        <i class="fas fa-stethoscope w-4 h-4 mr-2"></i>
+                                        Prenatal Check-up
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
 
-                    <!-- Prenatal Check-ups -->
+                    <!-- Child Health Group -->
                     <li>
-                        <a href="{{ route('midwife.prenatalcheckup.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.prenatalcheckup.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="prenatal-checkups">
-                            <i class="fas fa-stethoscope w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            <span class="hidden sm:inline">Prenatal Check-ups</span>
-                            <span class="sm:hidden">Checkups</span>
-                        </a>
-                    </li>
-
-                    <!-- Child Records -->
-                    <li>
-                        <a href="{{ route('midwife.childrecord.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.childrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="child-records">
-                            <i class="fas fa-child w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            <span class="hidden sm:inline">Child Records</span>
-                            <span class="sm:hidden">Children</span>
-                        </a>
-                    </li>
-
-                    <!-- Immunization -->
-                    <li>
-                        <a href="{{ route('midwife.immunization.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.immunizations.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="immunizations">
-                            <i class="fas fa-syringe w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            <span class="hidden sm:inline">Immunization</span>
-                            <span class="sm:hidden">Vaccines</span>
-                        </a>
-                    </li>
-
-                    <!-- Vaccine Management -->
-                    <li>
-                        <a href="{{ route('midwife.vaccines.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.vaccines.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="vaccines">
-                            <i class="fas fa-vial w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            <span class="hidden sm:inline">Vaccine Management</span>
-                            <span class="sm:hidden">Vaccines</span>
-                        </a>
+                        <div class="nav-group">
+                            <button class="nav-group-toggle w-full flex items-center justify-between p-2 sm:p-3 rounded-lg text-sm sm:text-base hover:bg-primary transition-colors"
+                                    onclick="toggleNavGroup('child-group')"
+                                    data-group="child-group">
+                                <div class="flex items-center">
+                                    <i class="fas fa-child w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
+                                    <span>Immunization Tracking</span>
+                                </div>
+                                <i class="fas fa-chevron-down w-3 h-3 transition-transform duration-200" id="child-group-icon"></i>
+                            </button>
+                            <ul class="nav-submenu ml-6 sm:ml-8 mt-1 space-y-1 {{ request()->routeIs('midwife.childrecord.*', 'midwife.immunizations.*', 'midwife.vaccines.*') ? '' : 'hidden' }}"
+                                id="child-group-menu">
+                                <li>
+                                    <a href="{{ route('midwife.childrecord.index') }}"
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.childrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                                       data-section="child-records"
+                                       onclick="showNavigationLoading(event, this)">
+                                        <i class="fas fa-clipboard-list w-4 h-4 mr-2"></i>
+                                        Child Records
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('midwife.immunization.index') }}"
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.immunizations.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                                       data-section="immunizations"
+                                       onclick="showNavigationLoading(event, this)">
+                                        <i class="fas fa-syringe w-4 h-4 mr-2"></i>
+                                        Immunization Schedule
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('midwife.vaccines.index') }}"
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.vaccines.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                                       data-section="vaccines"
+                                       onclick="showNavigationLoading(event, this)">
+                                        <i class="fas fa-vial w-4 h-4 mr-2"></i>
+                                        Vaccine
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
 
                     <!-- User Management -->
                     <li>
-                        <a href="{{ route('midwife.user.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.user.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="user-management">
+                        <a href="{{ route('midwife.user.index') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.user.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           data-section="user-management"
+                           onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-users-cog w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             User Management
                         </a>
-                    </li> 
-                    
-                    <!-- Cloud Backup Section -->
+                    </li>
+
+                    <!-- Cloud Backup -->
                     <li>
-                        <a href="{{ route('midwife.cloudbackup.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.cloudbackup.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="cloud-backup">
+                        <a href="{{ route('midwife.cloudbackup.index') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.cloudbackup.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           data-section="cloud-backup"
+                           onclick="showNavigationLoading(event, this)">
                            <i class="fas fa-cloud-upload-alt w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             Cloud Backup
                         </a>
-                    </li> 
-                    
+                    </li>
+
                     <!-- Reports -->
                     <li>
-                        <a href="{{ route('midwife.report') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.report*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
-                           data-section="reports">
+                        <a href="{{ route('midwife.report') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.report*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           data-section="reports"
+                           onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-chart-bar w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             Reports
                         </a>
                     </li>
 
-                    <!-- Notifications -->
+                    <!-- Notifications 
                     <li>
-                        <a href="{{ route('notifications.index') }}" 
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('notifications.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}" 
+                        <a href="{{ route('notifications.index') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('notifications.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
                            data-section="notifications">
-                            <i class="fas fa-bell w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            <span class="hidden sm:inline">Notifications</span>
-                            <span class="sm:hidden">Alerts</span>
+                            <i class="fas fa-bell w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3"></i>
+                            Notifications
                         </a>
-                    </li>
+                    </li>-->
                 </ul>
             </nav>
             
@@ -335,7 +493,7 @@
                 <div class="flex justify-between items-center">
                     <div class="flex items-center min-w-0">
                         <!-- Mobile menu button -->
-                        <button @click="sidebarOpen = !sidebarOpen" 
+                        <button @click="sidebarInitialized = true; sidebarOpen = !sidebarOpen"
                                 class="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary mr-2 sm:mr-3">
                             <i class="fas fa-bars w-5 h-5"></i>
                         </button>
@@ -354,7 +512,7 @@
                         <!-- Notifications -->
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="p-2 text-gray-400 hover:text-gray-600 relative">
-                                <i class="fas fa-bell w-5 h-5 sm:w-6 sm:h-6"></i>
+                                <i class="fas fa-bell w-6 h-6 sm:w-8 sm:h-8"></i>
                                 <!-- Notification Badge -->
                                 <span id="notification-badge" class="notification-badge-count absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center hidden">0</span>
                             </button>
@@ -419,7 +577,10 @@
     
     <!-- Notification System -->
     <script>
-        // Notification system functions
+        // Enhanced notification system with toast integration
+        let lastNotificationCount = 0;
+        let lastCheckedTime = new Date();
+
         function loadNotificationCount() {
             fetch('/notifications/unread-count')
                 .then(response => response.json())
@@ -433,8 +594,91 @@
                             badge.classList.add('hidden');
                         }
                     }
+
+                    // Check for new notifications and show toast
+                    if (data.count > lastNotificationCount && lastNotificationCount !== 0) {
+                        checkForNewNotifications();
+                    }
+                    lastNotificationCount = data.count;
                 })
                 .catch(error => console.error('Error loading notification count:', error));
+        }
+
+        function checkForNewNotifications() {
+            fetch('/notifications/recent')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.notifications && data.notifications.length > 0) {
+                        // Find the newest notification
+                        const newestNotification = data.notifications[0];
+                        const notificationTime = new Date(newestNotification.created_at);
+
+                        // Only show toast if notification is newer than last check
+                        if (notificationTime > lastCheckedTime) {
+                            showNotificationToast(newestNotification);
+                        }
+                    }
+                    lastCheckedTime = new Date();
+                })
+                .catch(error => console.error('Error checking new notifications:', error));
+        }
+
+        function showNotificationToast(notification) {
+            if (window.flowbiteToast) {
+                const notificationData = notification.data || {};
+                const type = notificationData.type || 'info';
+                const title = notificationData.title || 'New Notification';
+                const message = notificationData.message || '';
+                const user = notificationData.notified_by || 'System';
+                const notifiedByRole = notificationData.notified_by_role || '';
+                const notificationCategory = notificationData.notification_category || 'normal';
+                const priority = notificationData.toast_priority || 'normal';
+
+                // Map notification types to toast types
+                const toastType = type === 'error' ? 'error' :
+                                type === 'success' ? 'success' :
+                                type === 'warning' ? 'warning' : 'info';
+
+                // Determine duration based on priority and category
+                let duration = 8000; // Default duration
+                if (notificationCategory === 'bhw_to_midwife_priority') {
+                    duration = 12000; // Show longer for BHW notifications to midwives
+                } else if (priority === 'urgent') {
+                    duration = 10000; // Show longer for urgent notifications
+                }
+
+                // Enhanced toast for BHW-to-Midwife notifications
+                if (notificationCategory.includes('bhw_to_midwife')) {
+                    window.flowbiteToast.show({
+                        type: toastType,
+                        title: title,
+                        message: message,
+                        user: user + ' (BHW)',
+                        time: 'just now',
+                        duration: duration,
+                        priority: 'urgent'
+                    });
+
+                    // Also show a system sound notification (if supported)
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('🏥 BHW Data Entry Alert', {
+                            body: `${user} has ${message}`,
+                            icon: '/favicon.ico',
+                            tag: 'bhw-notification'
+                        });
+                    }
+                } else {
+                    // Regular toast notification
+                    window.flowbiteToast.show({
+                        type: toastType,
+                        title: title,
+                        message: message,
+                        user: user + (notifiedByRole ? ` (${notifiedByRole.toUpperCase()})` : ''),
+                        time: 'just now',
+                        duration: duration
+                    });
+                }
+            }
         }
 
         function loadRecentNotifications() {
@@ -499,6 +743,42 @@
             .catch(error => console.error('Error:', error));
         }
 
+        // Real-time notification checking
+        let lastNotificationCheck = new Date().toISOString();
+
+        function checkForNewNotifications() {
+            fetch(`/notifications/new?last_check=${lastNotificationCheck}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.notifications && data.notifications.length > 0) {
+                        // Update the last check timestamp
+                        lastNotificationCheck = data.timestamp;
+
+                        // Show toast for each new notification
+                        data.notifications.forEach(notification => {
+                            showNotificationToast(notification);
+                        });
+
+                        // Update notification count and recent notifications
+                        loadNotificationCount();
+                        loadRecentNotifications();
+
+                        // Play notification sound if available
+                        try {
+                            const audio = new Audio('data:audio/wav;base64,UklGRnQDAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+                            audio.volume = 0.3;
+                            audio.play().catch(() => {}); // Ignore errors if audio can't play
+                        } catch (e) {
+                            // Ignore audio errors
+                        }
+                    } else {
+                        // Update timestamp even if no new notifications
+                        lastNotificationCheck = data.timestamp;
+                    }
+                })
+                .catch(error => console.error('Error checking for new notifications:', error));
+        }
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             const now = new Date();
@@ -514,19 +794,244 @@
         }
         
 
+        // Navigation Loading Function
+        function showNavigationLoading(event, linkElement) {
+            // Don't show loading if navigating to the same page
+            const currentPath = window.location.pathname;
+            const linkPath = new URL(linkElement.href).pathname;
+
+            if (currentPath === linkPath) {
+                return; // Allow normal navigation to same page
+            }
+
+            // Show loading state immediately
+            try {
+                // Try to call page-specific skeleton functions if they exist
+                if (typeof showSkeletonLoaders === 'function') {
+                    showSkeletonLoaders();
+                }
+
+                // Generic loading indicator for all pages
+                showGenericPageLoading();
+
+                // Add loading indicator to navigation link
+                const icon = linkElement.querySelector('i');
+                const originalText = linkElement.textContent.trim();
+
+                if (icon) {
+                    icon.className = 'fas fa-spinner fa-spin w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3';
+                }
+
+                // Add loading state to the link
+                linkElement.style.opacity = '0.7';
+                linkElement.style.pointerEvents = 'none';
+
+                // Reset after a delay in case navigation is slow
+                setTimeout(() => {
+                    if (icon) {
+                        // Restore original icon based on data-section
+                        const section = linkElement.getAttribute('data-section');
+                        const iconMap = {
+                            'dashboard': 'fa-tachometer-alt',
+                            'patients': 'fa-user-plus',
+                            'prenatal': 'fa-file-medical',
+                            'prenatal-checkups': 'fa-stethoscope',
+                            'child-records': 'fa-child',
+                            'immunizations': 'fa-syringe',
+                            'vaccines': 'fa-vial',
+                            'user-management': 'fa-users-cog',
+                            'cloud-backup': 'fa-cloud-upload-alt',
+                            'reports': 'fa-chart-bar'
+                        };
+
+                        icon.className = `fas ${iconMap[section] || 'fa-circle'} w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3`;
+                    }
+                    linkElement.style.opacity = '';
+                    linkElement.style.pointerEvents = '';
+                }, 3000);
+
+            } catch (error) {
+                console.log('Loading indicator error:', error);
+            }
+
+            // Allow normal navigation to proceed
+            return true;
+        }
+
+        // Generic page loading function that works on all pages
+        function showGenericPageLoading() {
+            // Target only the main content area, not the entire page
+            const mainContent = document.querySelector('main .content-wrapper');
+            if (mainContent) {
+                // Create or show loading skeleton in main content area only
+                let contentLoading = document.getElementById('main-content-loading');
+                if (!contentLoading) {
+                    contentLoading = document.createElement('div');
+                    contentLoading.id = 'main-content-loading';
+                    contentLoading.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-8';
+                    contentLoading.innerHTML = `
+                        <div class="animate-pulse space-y-6">
+                            <!-- Header skeleton -->
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+                                    <div class="h-4 bg-gray-200 rounded w-64"></div>
+                                </div>
+                                <div class="flex space-x-3">
+                                    <div class="h-10 bg-gray-200 rounded w-24"></div>
+                                    <div class="h-10 bg-gray-200 rounded w-24"></div>
+                                </div>
+                            </div>
+
+                            <!-- Search/Filter skeleton -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex gap-4">
+                                    <div class="flex-1 h-10 bg-gray-200 rounded"></div>
+                                    <div class="h-10 bg-gray-200 rounded w-32"></div>
+                                    <div class="h-10 bg-gray-200 rounded w-32"></div>
+                                    <div class="h-10 bg-gray-200 rounded w-20"></div>
+                                </div>
+                            </div>
+
+                            <!-- Table skeleton -->
+                            <div class="space-y-3">
+                                <div class="h-12 bg-gray-200 rounded"></div>
+                                <div class="h-12 bg-gray-200 rounded"></div>
+                                <div class="h-12 bg-gray-200 rounded"></div>
+                                <div class="h-12 bg-gray-200 rounded"></div>
+                                <div class="h-12 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Hide original content and show skeleton
+                    mainContent.style.display = 'none';
+                    mainContent.parentNode.insertBefore(contentLoading, mainContent);
+                } else {
+                    contentLoading.classList.remove('hidden');
+                    mainContent.style.display = 'none';
+                }
+            }
+        }
+
+        // Navigation Group Toggle Functionality
+        function toggleNavGroup(groupId) {
+            const menu = document.getElementById(groupId + '-menu');
+            const icon = document.getElementById(groupId + '-icon');
+
+            if (menu && icon) {
+                if (menu.classList.contains('hidden')) {
+                    // Show menu
+                    menu.classList.remove('hidden');
+                    icon.style.transform = 'rotate(180deg)';
+
+                    // Store state in localStorage
+                    localStorage.setItem('nav-group-' + groupId, 'open');
+                } else {
+                    // Hide menu
+                    menu.classList.add('hidden');
+                    icon.style.transform = 'rotate(0deg)';
+
+                    // Store state in localStorage
+                    localStorage.setItem('nav-group-' + groupId, 'closed');
+                }
+            }
+        }
+
+        // Initialize navigation groups state on page load
+        function initializeNavGroups() {
+            const groups = ['prenatal-group', 'child-group'];
+
+            groups.forEach(groupId => {
+                const menu = document.getElementById(groupId + '-menu');
+                const icon = document.getElementById(groupId + '-icon');
+                const savedState = localStorage.getItem('nav-group-' + groupId);
+
+                if (menu && icon) {
+                    // Check if any submenu item is currently active
+                    const hasActiveChild = menu.querySelector('.nav-link.bg-primary');
+
+                    if (hasActiveChild || savedState === 'open') {
+                        // Keep menu open if it has active children or was previously open
+                        menu.classList.remove('hidden');
+                        icon.style.transform = 'rotate(180deg)';
+                    } else if (savedState === 'closed') {
+                        // Keep menu closed if it was previously closed
+                        menu.classList.add('hidden');
+                        icon.style.transform = 'rotate(0deg)';
+                    }
+                    // If no saved state and no active children, use the default from the template
+                }
+            });
+        }
+
         // Load notifications on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navigation groups
+            initializeNavGroups();
             loadNotificationCount();
-            
+
             // Load recent notifications when dropdown opens
             const notificationButton = document.querySelector('[x-data*="open"]');
             if (notificationButton) {
                 notificationButton.addEventListener('click', loadRecentNotifications);
             }
-            
-            // Refresh notifications every 2 minutes
-            setInterval(loadNotificationCount, 120000);
+
+            // Initialize last notification count on page load
+            setTimeout(() => {
+                fetch('/notifications/unread-count')
+                    .then(response => response.json())
+                    .then(data => {
+                        lastNotificationCount = data.count;
+                        lastCheckedTime = new Date();
+                    });
+            }, 1000);
+
+            // Request notification permissions for BHW alerts
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(function (permission) {
+                    if (permission === 'granted') {
+                        console.log('Browser notifications enabled for BHW alerts');
+                    }
+                });
+            }
+
+            // Check for new notifications more frequently (every 5 seconds for real-time)
+            setInterval(checkForNewNotifications, 5000);
+            setInterval(loadNotificationCount, 30000);
+
+            // Show initial toast for existing unread notifications (optional)
+            setTimeout(() => {
+                const badge = document.getElementById('notification-badge');
+                if (badge && !badge.classList.contains('hidden')) {
+                    const count = parseInt(badge.textContent);
+                    if (count > 0 && window.flowbiteToast) {
+                        window.flowbiteToast.info(`You have ${count} unread notification${count > 1 ? 's' : ''}`, {
+                            title: 'Unread Notifications',
+                            user: 'System',
+                            time: 'now',
+                            duration: 6000
+                        });
+                    }
+                }
+            }, 2000);
+
+            // Hide loading skeleton when page is fully loaded
+            const contentLoading = document.getElementById('main-content-loading');
+            if (contentLoading) {
+                contentLoading.remove();
+            }
+
+            // Restore main content display
+            const mainContent = document.querySelector('main .content-wrapper');
+            if (mainContent) {
+                mainContent.style.display = '';
+                mainContent.style.opacity = '';
+            }
         });
+
+        
+        
     </script>
     
     <!-- Custom Scripts -->
@@ -534,5 +1039,11 @@
     
     {{-- Include Global Confirmation Modal --}}
     @include('components.confirmation-modal')
+
+    {{-- Include Toast Notification System --}}
+    @include('components.toast-notification')
+    
+    {{-- Include Modal Form Reset System --}}
+    @include('components.modal-form-reset')
 </body>
 </html>

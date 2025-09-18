@@ -82,11 +82,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
                             <div class="flex space-x-6">
                                 <label class="flex items-center">
-                                    <input type="radio" id="edit-gender-male" name="gender" value="Male" class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Male' ? 'checked' : '' }}>
+                                    <input type="radio" id="edit-gender-male" name="gender" value="Male" required class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Male' ? 'checked' : '' }}>
                                     <span class="ml-2 text-gray-700">Male</span>
                                 </label>
                                 <label class="flex items-center">
-                                    <input type="radio" id="edit-gender-female" name="gender" value="Female" class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Female' ? 'checked' : '' }}>
+                                    <input type="radio" id="edit-gender-female" name="gender" value="Female" required class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Female' ? 'checked' : '' }}>
                                     <span class="ml-2 text-gray-700">Female</span>
                                 </label>
                             </div>
@@ -156,19 +156,19 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Mother's Name *</label>
-                            <input type="text" id="edit-mother-name" name="mother_name" required
-                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('mother_name') error-border @enderror"
+                            <input type="text" id="edit-mother-name" name="mother_name" required readonly
+                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg bg-gray-100 @error('mother_name') error-border @enderror"
                                    placeholder="Enter mother's full name"
                                    value="{{ old('mother_name') }}">
                             @error('mother_name')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Father's Name</label>
-                            <input type="text" id="edit-father-name" name="father_name"
-                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('father_name') error-border @enderror"
+                            <input type="text" id="edit-father-name" name="father_name" readonly
+                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg bg-gray-100 @error('father_name') error-border @enderror"
                                    placeholder="Enter father's full name"
                                    value="{{ old('father_name') }}">
                             @error('father_name')
@@ -186,25 +186,20 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                            <div class="relative">
-                                <span class="phone-prefix">+63</span>
-                                <input type="tel" id="edit-phone-number" name="phone_number" required
-                                       class="form-input input-clean phone-input w-full px-4 py-2.5 rounded-lg @error('phone_number') error-border @enderror"
-                                       placeholder="9123456789"
-                                       pattern="[9]\d{9}"
-                                       maxlength="10"
-                                       value="{{ old('phone_number') }}">
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">Format: 9123456789 (Philippine mobile number)</div>
+                            <input type="tel" id="edit-phone-number" name="phone_number" required readonly
+                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg bg-gray-100 @error('phone_number') error-border @enderror"
+                                   placeholder="09123456789"
+                                   value="{{ old('phone_number') }}">
+                            <div class="text-xs text-gray-500 mt-1">Format: 09123456789 (Philippine mobile number)</div>
                             @error('phone_number')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                            <textarea id="edit-address" name="address" rows="3"
-                                      class="form-input input-clean w-full px-4 py-2.5 rounded-lg resize-none @error('address') error-border @enderror"
+                            <textarea id="edit-address" name="address" rows="3" readonly
+                                      class="form-input input-clean w-full px-4 py-2.5 rounded-lg resize-none bg-gray-100 @error('address') error-border @enderror"
                                       placeholder="Enter complete address">{{ old('address') }}</textarea>
                             @error('address')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

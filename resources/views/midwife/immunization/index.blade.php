@@ -200,29 +200,28 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success Message -->
-    @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-pulse" role="alert">
-            <span class="block sm:inline">{{ session('success') }}</span>
-        </div>
-    @endif
 
-    <!-- Error Message -->
-    @if(session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
-    @endif
+    <!-- Disabled Toast Notifications - Using Alert Components instead -->
+    {{-- @include('components.toast-notification') --}}
 
     <!-- Header Stats -->
     <div class="flex justify-between items-center mb-6">
          <div> </div>
         <div class="flex space-x-3">
-            <button onclick="openAddModal()" 
+            <button onclick="openAddModal()"
                 class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <i class="fas fa-plus text-sm"></i>
-                <span>Schedule Immunization</span>
+                <span> Add Schedule</span>
             </button>
+
+            <!-- Test Toast Button (Remove in production) -->
+            
+
+            <!-- Test Notification Integration Button (Remove in production) -->
+            
+
+            <!-- Test BHW-to-Midwife Notifications (Remove in production) -->
+             
         </div>
     </div>
 
@@ -239,10 +238,10 @@
                                class="input-clean w-full pl-10 pr-4 py-2.5 rounded-lg">
                     </div>
                     <select name="status" class="input-clean px-3 py-2.5 rounded-lg">
-                        <option value="">All Status</option>
-                        <option value="Upcoming" {{ request('status') == 'Upcoming' ? 'selected' : '' }}>Upcoming</option>
-                        <option value="Done" {{ request('status') == 'Done' ? 'selected' : '' }}>Done</option>
-                        <option value="Missed" {{ request('status') == 'Missed' ? 'selected' : '' }}>Missed</option>
+                        <option value="all" {{ $currentStatus == 'all' ? 'selected' : '' }}>All Status</option>
+                        <option value="Upcoming" {{ $currentStatus == 'Upcoming' ? 'selected' : '' }}>Upcoming</option>
+                        <option value="Done" {{ $currentStatus == 'Done' ? 'selected' : '' }}>Done</option>
+                        <option value="Missed" {{ $currentStatus == 'Missed' ? 'selected' : '' }}>Missed</option>
                     </select>
                     <select name="vaccine" class="input-clean px-3 py-2.5 rounded-lg">
                         <option value="">All Vaccines</option>
@@ -334,11 +333,11 @@
                             <div class="flex items-center justify-center gap-2">
                             <button onclick="openViewModal({{ json_encode($immunization->toArray()) }})" class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
-                            <span class="hidden sm:inline">View</span>
+                            <span class="hidden sm:inline"><!--View--></span>
                             </button>
                             <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})" class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
-                            <span class="hidden sm:inline">Edit</span>
+                            <span class="hidden sm:inline"><!--Edit --></span>
                             </button>
                             </div>
                         </td>
@@ -524,38 +523,53 @@ function closeViewModal(event) {
  * Opens the Edit Immunization modal
  */
 function openEditModal(immunization) {
+    console.log('Opening edit modal for immunization:', immunization);
+
     if (!immunization) {
         console.error('No immunization record provided');
+        alert('Error: No immunization data provided');
         return;
     }
 
     const modal = document.getElementById('editImmunizationModal');
     const form = document.getElementById('editImmunizationForm');
-    
+
     if (!modal || !form) {
         console.error('Edit modal elements not found');
+        alert('Error: Modal elements not found');
         return;
     }
 
-    // Set form action
-    form.action = `/midwife/immunization/${immunization.id}`;
+    try {
+        // Set form action
+        const userRole = '{{ auth()->user()->role }}';
+        const routeName = userRole === 'bhw' ? 'immunizations' : 'immunization';
+        form.action = `/${userRole}/${routeName}/${immunization.id}`;
+        console.log('Form action set to:', form.action);
 
-    // Populate form fields
-    populateEditForm(immunization);
-    
-    // Clear validation states
-    clearValidationStates(form);
+        // Populate form fields
+        populateEditForm(immunization);
 
-    // Show modal
-    modal.classList.remove('hidden');
-    requestAnimationFrame(() => modal.classList.add('show'));
-    document.body.style.overflow = 'hidden';
+        // Clear validation states
+        clearValidationStates(form);
 
-    // Focus first input
-    setTimeout(() => {
-        const firstInput = document.getElementById('editChildRecordId');
-        if (firstInput) firstInput.focus();
-    }, 300);
+        // Show modal
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => modal.classList.add('show'));
+        document.body.style.overflow = 'hidden';
+
+        // Focus first input (but only if not readonly)
+        setTimeout(() => {
+            const firstInput = document.getElementById('editChildRecordId');
+            if (firstInput && !firstInput.disabled) {
+                firstInput.focus();
+            }
+        }, 300);
+
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        alert('Error opening edit modal. Please try again.');
+    }
 }
 
 /**
@@ -598,10 +612,28 @@ function updateElementText(elementId, value) {
  * Populates the edit form with immunization data
  */
 function populateEditForm(immunization) {
+    console.log('Populating edit form with:', immunization);
+
+    // Handle vaccine ID - fallback to finding by name if vaccine_id is missing
+    let vaccineId = immunization.vaccine_id;
+    if (!vaccineId && immunization.vaccine_name) {
+        // Try to find vaccine ID by name from the dropdown options
+        const vaccineSelect = document.getElementById('editVaccineId');
+        if (vaccineSelect) {
+            for (let option of vaccineSelect.options) {
+                if (option.textContent.includes(immunization.vaccine_name)) {
+                    vaccineId = option.value;
+                    console.log(`Found vaccine ID ${vaccineId} for vaccine name "${immunization.vaccine_name}"`);
+                    break;
+                }
+            }
+        }
+    }
+
     const fieldMappings = [
         { id: 'editImmunizationId', value: immunization.id },
         { id: 'editChildRecordId', value: immunization.child_record_id },
-        { id: 'editVaccineName', value: immunization.vaccine_name },
+        { id: 'editVaccineId', value: vaccineId },
         { id: 'editDose', value: immunization.dose },
         { id: 'editScheduleDate', value: formatDateForInput(immunization.schedule_date) },
         { id: 'editScheduleTime', value: formatTimeForInput(immunization.schedule_time) },
@@ -614,8 +646,39 @@ function populateEditForm(immunization) {
         if (element) {
             element.value = field.value || '';
             element.classList.remove('error-border', 'success-border');
+            console.log(`Set ${field.id} to: ${field.value}`);
+        } else {
+            console.warn(`Element not found: ${field.id}`);
         }
     });
+
+    // Trigger vaccine info update after setting vaccine
+    setTimeout(() => {
+        try {
+            if (typeof updateEditVaccineInfo === 'function') {
+                console.log('Calling updateEditVaccineInfo');
+                updateEditVaccineInfo();
+            } else {
+                console.warn('updateEditVaccineInfo function not found');
+            }
+        } catch (error) {
+            console.error('Error calling updateEditVaccineInfo:', error);
+        }
+    }, 50);
+
+    // Toggle field states based on status after populating the form
+    setTimeout(() => {
+        try {
+            if (typeof toggleFieldsBasedOnStatus === 'function') {
+                console.log('Calling toggleFieldsBasedOnStatus for status:', immunization.status);
+                toggleFieldsBasedOnStatus();
+            } else {
+                console.warn('toggleFieldsBasedOnStatus function not found');
+            }
+        } catch (error) {
+            console.error('Error calling toggleFieldsBasedOnStatus:', error);
+        }
+    }, 100);
 }
 
 /**
@@ -787,14 +850,169 @@ document.addEventListener('DOMContentLoaded', function() {
     @if($errors->any())
         openAddModal();
     @endif
+
+    // Handle Laravel session messages and show as alerts
+    @if(session('success'))
+        window.immunizationAlert.showAlert('success', 'Success!', '{{ session("success") }}');
+    @endif
+
+    @if(session('error'))
+        window.immunizationAlert.showAlert('error', 'Error!', '{{ session("error") }}');
+    @endif
+
+    @if(session('warning'))
+        window.immunizationAlert.showAlert('warning', 'Warning!', '{{ session("warning") }}');
+    @endif
+
+    @if(session('info'))
+        window.immunizationAlert.showAlert('info', 'Information', '{{ session("info") }}');
+    @endif
+
+    // Enhanced form submission with toast notifications
+    const immunizationForm = document.getElementById('immunizationForm');
+    const editImmunizationForm = document.getElementById('editImmunizationForm');
+
+    // Add form submission handlers for alert notifications
+    if (immunizationForm) {
+        immunizationForm.addEventListener('submit', function(e) {
+            // Show pending alert
+            setTimeout(() => {
+                window.immunizationAlert.showAlert('info', 'Processing', 'Scheduling immunization...');
+            }, 100);
+        });
+    }
+
+    if (editImmunizationForm) {
+        editImmunizationForm.addEventListener('submit', function(e) {
+            // Show pending alert
+            setTimeout(() => {
+                window.immunizationAlert.showAlert('info', 'Processing', 'Updating immunization record...');
+            }, 100);
+        });
+    }
 });
-const alerts = document.querySelectorAll('.bg-green-100[role="alert"], .bg-red-100[role="alert"]');
-    alerts.forEach(alert => {
+
+// Custom alert functions for immunization operations using Flowbite alerts
+window.immunizationAlert = {
+    scheduled: function(childName, vaccineName) {
+        this.showAlert('success', 'Scheduled Successfully!', `Immunization scheduled for ${childName} - ${vaccineName} vaccination`);
+    },
+    updated: function(childName, status) {
+        this.showAlert('success', 'Updated Successfully!', `Record updated for ${childName} - Status changed to ${status}`);
+    },
+    error: function(message) {
+        this.showAlert('error', 'Operation Failed', message);
+    },
+    lowStock: function(vaccineName, stock) {
+        this.showAlert('warning', 'Low Stock Warning', `Only ${stock} units left for ${vaccineName}`);
+    },
+    showAlert: function(type, title, message) {
+        // Remove any existing alerts first
+        this.removeExistingAlerts();
+
+        // Create alert HTML based on type
+        const alertHtml = this.createAlertHtml(type, title, message);
+
+        // Create temporary container
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = alertHtml;
+        const alertElement = tempDiv.firstElementChild;
+
+        // Style for slide-in from top
+        alertElement.style.cssText = `
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            min-width: 400px;
+            max-width: 600px;
+            transition: all 0.4s ease-out;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        `;
+
+        // Add to body
+        document.body.appendChild(alertElement);
+
+        // Trigger slide-in animation
         setTimeout(() => {
-            alert.style.opacity = '0';
-            alert.style.transform = 'translateY(-10px)';
-            setTimeout(() => alert.remove(), 300);
-        }, 2000);
-    });
+            alertElement.style.top = '20px';
+        }, 10);
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            this.hideAlert(alertElement);
+        }, 5000);
+    },
+    createAlertHtml: function(type, title, message) {
+        const alertConfigs = {
+            success: {
+                bgClass: 'bg-green-50',
+                textClass: 'text-green-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            },
+            error: {
+                bgClass: 'bg-red-50',
+                textClass: 'text-red-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            },
+            warning: {
+                bgClass: 'bg-yellow-50',
+                textClass: 'text-yellow-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            },
+            info: {
+                bgClass: 'bg-blue-50',
+                textClass: 'text-blue-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            }
+        };
+
+        const config = alertConfigs[type] || alertConfigs.info;
+
+        return `
+            <div class="flex items-center p-4 mb-4 text-sm ${config.textClass} rounded-lg ${config.bgClass} border border-current/20" role="alert" data-dynamic-alert="true">
+                <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="${config.iconPath}"/>
+                </svg>
+                <span class="sr-only">Alert</span>
+                <div>
+                    <span class="font-medium">${title}</span> ${message}
+                </div>
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 ${config.textClass} rounded-lg focus:ring-2 focus:ring-current p-1.5 hover:bg-current/10 inline-flex items-center justify-center h-8 w-8" onclick="immunizationAlert.hideAlert(this.parentElement)">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+    },
+    hideAlert: function(alertElement) {
+        if (alertElement) {
+            alertElement.style.opacity = '0';
+            alertElement.style.transform = 'translateX(-50%) translateY(-20px)';
+            setTimeout(() => {
+                if (alertElement.parentNode) {
+                    alertElement.parentNode.removeChild(alertElement);
+                }
+            }, 400);
+        }
+    },
+    removeExistingAlerts: function() {
+        const existingAlerts = document.querySelectorAll('[data-dynamic-alert="true"]');
+        existingAlerts.forEach(alert => {
+            this.hideAlert(alert);
+        });
+    }
+};
+
+// Test function to demonstrate the new alert system (remove in production)
+window.testAlerts = function() {
+    setTimeout(() => window.immunizationAlert.showAlert('success', 'Success!', 'This is a success alert sliding from the top'), 500);
+    setTimeout(() => window.immunizationAlert.showAlert('error', 'Error!', 'This is an error alert sliding from the top'), 1000);
+    setTimeout(() => window.immunizationAlert.showAlert('warning', 'Warning!', 'This is a warning alert sliding from the top'), 1500);
+    setTimeout(() => window.immunizationAlert.showAlert('info', 'Info!', 'This is an info alert sliding from the top'), 2000);
+};
 </script>
 @endpush

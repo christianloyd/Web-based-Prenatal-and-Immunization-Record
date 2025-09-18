@@ -1,7 +1,7 @@
 @extends('layout.midwife')
 @section('title', 'Dashboard')
 @section('page-title', 'Dashboard')
-@section('page-subtitle', 'Overview of your midwife practice')
+@section('page-subtitle', '')
 
 <link rel="icon" type="image/png" sizes="40x40" href="{{ asset('images/dash1.png') }}">
 
@@ -79,6 +79,12 @@
         gap: 1.5rem;
     }
 
+    /* Custom large stat numbers */
+    .stat-number {
+        font-size: 2rem !important;
+        line-height: 1 !important;
+    }
+
     @media (min-width: 768px) {
         .dashboard-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
         .dashboard-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
@@ -93,17 +99,7 @@
 @section('content')
 <div class="space-y-6">
     <!-- Success/Error Messages -->
-    @if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative fade-in" role="alert">
-        <span class="block sm:inline">{{ session('success') }}</span>
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative fade-in" role="alert">
-        <span class="block sm:inline">{{ session('error') }}</span>
-    </div>
-    @endif
+    @include('components.flowbite-alert')
 
     <!-- Statistics Cards -->
     <div class="dashboard-grid cols-4">
@@ -111,11 +107,9 @@
         <div class="stat-card p-6 fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600">Total Registered Mothers</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['total_patients']) }}</p>
-                    <p class="text-sm text-green-600 mt-1">
-                        <i class="fas fa-arrow-up mr-1"></i>+{{ $stats['patients_change'] }} this month
-                    </p>
+                    <p class="text-sm font-big text-gray-600">Total Registered Mothers</p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['total_patients']) }}</p>
+                   
                 </div>
                 <div class="primary-bg text-white p-3 rounded-lg">
                     <i class="fas fa-female text-2xl"></i>
@@ -128,10 +122,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Active Prenatal Records</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['active_prenatal_records']) }}</p>
-                    <p class="text-sm text-blue-600 mt-1">
-                        <i class="fas fa-heartbeat mr-1"></i>Currently monitoring
-                    </p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['active_prenatal_records']) }}</p>
+                     
                 </div>
                 <div class="bg-blue-500 text-white p-3 rounded-lg">
                     <i class="fas fa-baby text-2xl"></i>
@@ -144,11 +136,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Checkups This Month</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['checkups_this_month']) }}</p>
-                    <p class="text-sm {{ $stats['checkups_change'] >= 0 ? 'text-green-600' : 'text-red-600' }} mt-1">
-                        <i class="fas fa-arrow-{{ $stats['checkups_change'] >= 0 ? 'up' : 'down' }} mr-1"></i>
-                        {{ $stats['checkups_change'] >= 0 ? '+' : '' }}{{ $stats['checkups_change'] }} vs last month
-                    </p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['checkups_this_month']) }}</p>
+                     
                 </div>
                 <div class="bg-green-500 text-white p-3 rounded-lg">
                     <i class="fas fa-stethoscope text-2xl"></i>
@@ -161,10 +150,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Total Children Records</p>
-                    <p class="text-3xl font-bold primary-text">{{ number_format($stats['total_children']) }}</p>
-                    <p class="text-sm text-purple-600 mt-1">
-                        <i class="fas fa-arrow-up mr-1"></i>+{{ $stats['children_change'] }} this month
-                    </p>
+                    <p class="stat-number font-bold primary-text">{{ number_format($stats['total_children']) }}</p>
+                    
                 </div>
                 <div class="bg-purple-500 text-white p-3 rounded-lg">
                     <i class="fas fa-child text-2xl"></i>
@@ -565,7 +552,7 @@
 
     // Responsive chart handling
     window.addEventListener('resize', function() {
-        Chart.helpers.each(Chart.instances, function(instance) {
+        Object.values(Chart.instances).forEach(function(instance) {
             instance.resize();
         });
     });

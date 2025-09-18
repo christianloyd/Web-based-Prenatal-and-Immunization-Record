@@ -67,7 +67,7 @@ class PrenatalCheckupSeeder extends Seeder
                     'next_visit_date' => null,
                     'next_visit_time' => null,
                     'next_visit_notes' => null,
-                    'status' => 'completed',
+                    'status' => 'done',
                     'created_at' => $checkupDate,
                     'updated_at' => $checkupDate
                 ];

@@ -115,7 +115,8 @@
             <div class="flex gap-4 pt-4 border-t">
                 <button type="submit"
                         id="edit-submit-btn"
-                        class="btn-primary flex-1 bg-primary text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="btn-primary flex-1 bg-primary text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" style="background-color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                        <i class="fas fa-save mr-2"></i>
                     Update Patient
                 </button>
                 <button type="button"

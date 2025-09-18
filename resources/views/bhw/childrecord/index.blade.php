@@ -189,32 +189,14 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success Message -->
-    @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-pulse" role="alert">
-            <span class="block sm:inline">{{ session('success') }}</span>
-        </div>
-    @endif
-
-    <!-- Error Message -->
-    @if(session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
-    @endif
+    
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
         <div>
-            <div id="bhw-child-stats-container" class="flex space-x-4">
-                <div class="bg-white p-4 rounded-lg shadow-sm border">
-                    <div class="text-2xl font-bold text-primary">{{ $childRecords->total() ?? 0 }}</div>
-                    <div class="text-sm text-gray-600">Total Children</div>
-                </div>
-            </div>
+            
         </div>
         <div class="flex space-x-3">
-            @include('components.refresh-data-button', ['id' => 'bhw-child-refresh-btn'])
             <button onclick="openAddModal()" 
                 class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <i class="fas fa-plus text-sm"></i>
@@ -297,9 +279,7 @@
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ ($record->gender ?? '') === 'Male' ? 'gender-badge-male' : 'gender-badge-female' }}">
-                                    <i class="fas {{ ($record->gender ?? '') === 'Male' ? 'fa-mars' : 'fa-venus' }} mr-1"></i>
-                                    <span class="hidden sm:inline">{{ $record->gender ?? 'N/A' }}</span>
-                                    <span class="sm:hidden">{{ substr($record->gender ?? 'N', 0, 1) }}</span>
+                                    {{ $record->gender ?? 'N/A' }}
                                 </span>
                             </td>
                             <td class="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">
@@ -399,34 +379,56 @@ function closeEditChildModal(event) {
 
 // Phone number validation and formatting
 function formatPhoneNumber(input) {
-    // Remove all non-digits
-    let value = input.value.replace(/\D/g, '');
-    
-    // Handle different input formats
-    if (value.startsWith('63')) {
-        value = value.substring(2); // Remove country code
-    } else if (value.startsWith('0')) {
-        value = value.substring(1); // Remove leading zero
+    // Skip formatting if field is readonly (pre-filled from mother data)
+    if (input.readOnly) {
+        return true;
     }
-    
-    // Ensure it starts with 9 for Philippine mobile
-    if (value.length > 0 && !value.startsWith('9')) {
-        // If it doesn't start with 9, try to correct common patterns
-        if (value.length >= 10) {
-            value = '9' + value.substring(1);
-        }
+
+    // Get the original value without changing it first
+    let originalValue = input.value;
+
+    // Remove all non-digits and special characters
+    let digitsOnly = originalValue.replace(/\D/g, '');
+
+    // Handle different input formats and validate
+    let isValid = false;
+    let formattedValue = originalValue;
+
+    if (digitsOnly.startsWith('63') && digitsOnly.length === 12) {
+        // 639xxxxxxxxx format - convert to +639xxxxxxxxx
+        formattedValue = '+' + digitsOnly;
+        isValid = /^\+639\d{9}$/.test(formattedValue);
+    } else if (digitsOnly.startsWith('09') && digitsOnly.length === 11) {
+        // 09xxxxxxxxx format - keep as is
+        formattedValue = digitsOnly;
+        isValid = /^09\d{9}$/.test(formattedValue);
+    } else if (digitsOnly.startsWith('9') && digitsOnly.length === 10) {
+        // 9xxxxxxxxx format - convert to 09xxxxxxxxx
+        formattedValue = '0' + digitsOnly;
+        isValid = /^09\d{9}$/.test(formattedValue);
+    } else if (originalValue.startsWith('+63') && /^\+639\d{9}$/.test(originalValue)) {
+        // Already in +639xxxxxxxxx format
+        formattedValue = originalValue;
+        isValid = true;
+    } else if (digitsOnly.length === 0) {
+        // Empty field
+        formattedValue = '';
+        isValid = false;
+    } else {
+        // Invalid format - keep original value but mark as invalid
+        formattedValue = originalValue;
+        isValid = false;
     }
-    
-    // Limit to 10 digits
-    value = value.substring(0, 10);
-    
-    input.value = value;
-    
-    // Validate format
-    const isValid = /^9\d{9}$/.test(value);
-    input.classList.toggle('error-border', !isValid && value.length === 10);
+
+    // Only update the input value if it changed
+    if (formattedValue !== originalValue) {
+        input.value = formattedValue;
+    }
+
+    // Apply validation styling
+    input.classList.toggle('error-border', !isValid && input.value.length > 0);
     input.classList.toggle('success-border', isValid);
-    
+
     return isValid;
 }
 
@@ -584,38 +586,57 @@ function showMotherForm(motherExists) {
     const existingMotherSection = document.getElementById('existingMotherSection');
     const newMotherSection = document.getElementById('newMotherSection');
     const motherExistsInput = document.getElementById('motherExists');
-    const contactDetailsSection = document.querySelector('.contact-details-section');
-    const contactSectionNote = document.getElementById('contactSectionNote');
-    const phoneLabel = document.getElementById('phoneLabel');
-    const addressLabel = document.getElementById('addressLabel');
+    const contactDetailsSection = document.getElementById('contactDetailsSection');
+    const motherAddressField = document.getElementById('motherAddressField');
     
     // Hide confirmation step and show form
     confirmationStep.classList.add('hidden');
     childRecordForm.classList.remove('hidden');
-    
+
+    // Store the choice
+    isExistingMother = motherExists;
+    if (motherExistsInput) {
+        motherExistsInput.value = motherExists ? 'yes' : 'no';
+    }
+
+    // Handle Contact Details section visibility
+    if (contactDetailsSection) {
+        if (motherExists) {
+            // Show contact details section for existing mother (auto-fill)
+            contactDetailsSection.style.display = 'block';
+        } else {
+            // Hide contact details section for new mother (manual input only)
+            contactDetailsSection.style.display = 'none';
+        }
+    }
+
+    // Handle Mother Address field visibility (in Birth Details section)
+    if (motherAddressField) {
+        if (motherExists) {
+            // Hide mother address field for existing mother
+            motherAddressField.classList.add('hidden');
+        } else {
+            // Show mother address field for new mother
+            motherAddressField.classList.remove('hidden');
+        }
+    }
+
     if (motherExists) {
         // Show existing mother selection
         existingMotherSection.classList.remove('hidden');
         newMotherSection.classList.add('hidden');
-        motherExistsInput.value = 'yes';
-        
-        // Show contact details section for child
-        contactDetailsSection.classList.remove('hidden');
-        contactSectionNote.textContent = 'Child\'s contact information (may use mother\'s details)';
-        phoneLabel.innerHTML = 'Phone Number *';
-        addressLabel.innerHTML = 'Address';
-        
-        // Make fields not required initially
-        document.getElementById('phone_number').required = false;
-        
+        updateRequiredFields(true);
+
+        // Clear new mother fields
+        clearNewMotherFields();
     } else {
         // Show new mother input
         existingMotherSection.classList.add('hidden');
         newMotherSection.classList.remove('hidden');
-        motherExistsInput.value = 'no';
-        
-        // Hide contact details section (will use mother's contact info)
-        contactDetailsSection.classList.add('hidden');
+        updateRequiredFields(false);
+
+        // Clear existing mother selection
+        clearExistingMotherSelection();
         
         // Clear the child contact fields since we'll use mother's
         document.getElementById('phone_number').value = '';
@@ -657,9 +678,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Auto-fill child's contact with mother's contact if child's fields are empty
                 const phoneInput = document.getElementById('phone_number');
                 const addressInput = document.getElementById('address');
-                
+
                 if (!phoneInput.value && selectedOption.dataset.contact) {
-                    phoneInput.value = selectedOption.dataset.contact.replace(/^\+63/, '').replace(/^63/, '').replace(/^0/, '');
+                    let contact = selectedOption.dataset.contact;
+                    // Safely format phone number
+                    if (contact.startsWith('+639')) {
+                        contact = '0' + contact.substring(3);
+                    } else if (contact.startsWith('639')) {
+                        contact = '0' + contact.substring(2);
+                    } else if (contact.startsWith('+63')) {
+                        contact = '0' + contact.substring(3);
+                    } else if (contact.startsWith('63')) {
+                        contact = '0' + contact.substring(2);
+                    }
+                    phoneInput.value = contact;
                 }
                 if (!addressInput.value && selectedOption.dataset.address) {
                     addressInput.value = selectedOption.dataset.address;
@@ -683,10 +715,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 const motherContact = document.getElementById('mother_contact').value;
                 const motherAddress = document.getElementById('mother_address').value;
                 
-                // Clean phone number (remove +63, 63, or 0 prefix)
+                // Clean phone number (safely format)
                 let cleanContact = motherContact;
                 if (cleanContact) {
-                    cleanContact = cleanContact.replace(/^\+63/, '').replace(/^63/, '').replace(/^0/, '');
+                    if (cleanContact.startsWith('+639')) {
+                        cleanContact = cleanContact.substring(3);
+                    } else if (cleanContact.startsWith('639')) {
+                        cleanContact = cleanContact.substring(2);
+                    } else if (cleanContact.startsWith('+63')) {
+                        cleanContact = cleanContact.substring(3);
+                    } else if (cleanContact.startsWith('63')) {
+                        cleanContact = cleanContact.substring(2);
+                    } else if (cleanContact.startsWith('09')) {
+                        cleanContact = cleanContact.substring(1);
+                    }
                 }
                 
                 document.getElementById('phone_number').value = cleanContact;
@@ -756,14 +798,17 @@ function setupMotherSelection() {
             
             if (phoneInput && selectedOption.dataset.contact) {
                 let contact = selectedOption.dataset.contact;
-                // Format for phone input (remove +63 if present)
-                if (contact.startsWith('+63')) {
-                    contact = contact.substring(3);
+                // Format for phone input (convert +63 to 09 format)
+                if (contact.startsWith('+639')) {
+                    contact = '0' + contact.substring(3);
+                } else if (contact.startsWith('639')) {
+                    contact = '0' + contact.substring(2);
+                } else if (contact.startsWith('+63')) {
+                    contact = '0' + contact.substring(3);
                 } else if (contact.startsWith('63')) {
-                    contact = contact.substring(2);
-                } else if (contact.startsWith('0')) {
-                    contact = contact.substring(1);
+                    contact = '0' + contact.substring(2);
                 }
+                // Keep 09 format as is, don't remove leading zero
                 phoneInput.value = contact;
                 phoneInput.readOnly = true;
                 phoneInput.classList.add('bg-gray-100');

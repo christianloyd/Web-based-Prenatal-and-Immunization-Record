@@ -1,8 +1,8 @@
 <!-- Edit Prenatal Record Modal -->
-<div id="edit-prenatal-modal" class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-2 sm:p-4 pt-4 sm:pt-8" 
+<div id="edit-prenatal-modal" class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-4 pt-8"
      role="dialog" aria-modal="true" onclick="closeEditPrenatalModal(event)">
     
-    <div class="modal-content relative w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl bg-white rounded-lg sm:rounded-xl shadow-2xl p-3 sm:p-4 md:p-6 my-2 sm:my-4 md:my-8" onclick="event.stopPropagation()">
+    <div class="modal-content relative w-full max-w-2xl md:max-w-4xl lg:max-w-6xl bg-white rounded-lg sm:rounded-xl shadow-2xl p-4 sm:p-6 my-4 sm:my-8" onclick="event.stopPropagation()">
         
         <!-- Header -->
         <div class="flex justify-between items-center mb-4 sm:mb-6">
@@ -19,9 +19,21 @@
 
         <!-- Form -->
         <form action="" method="POST" id="edit-prenatal-form" 
-              data-update-url="{{ route('bhw.prenatalrecord.update', ':id') }}" class="space-y-4 sm:space-y-6">
+              data-update-url="{{ route('bhw.prenatalrecord.update', ':id') }}" class="space-y-4 sm:space-y-6" novalidate>
             @csrf
             @method('PUT')
+
+            <!-- Show server-side validation errors -->
+            @if ($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <div class="font-medium">Please correct the following errors:</div>
+                    <ul class="list-disc list-inside mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <!-- Patient Information Section (Read-only) -->
             <div class="border-b pb-3 sm:pb-4 mb-4 sm:mb-6">
@@ -152,7 +164,7 @@
                     Cancel
                 </button>
                 <button type="submit" 
-                    class="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 font-medium transition-colors flex items-center justify-center">
+                    class="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-primary text-white rounded-md sm:rounded-lg hover:bg-blue-700 font-medium transition-colors flex items-center justify-center">
                 <i class="fas fa-save mr-2"></i>
                 Update Record
             </button>

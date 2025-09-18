@@ -75,6 +75,23 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
+                    <div class="flex space-x-6">
+                        <label class="flex items-center">
+                            <input type="radio" name="gender" id="edit-gender-male" value="Male" required class="text-primary focus:ring-primary" {{ old('gender') == 'Male' ? 'checked' : '' }}>
+                            <span class="ml-2 text-gray-700">Male</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="gender" id="edit-gender-female" value="Female" required class="text-primary focus:ring-primary" {{ old('gender') == 'Female' ? 'checked' : '' }}>
+                            <span class="ml-2 text-gray-700">Female</span>
+                        </label>
+                    </div>
+                    @error('gender')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
                     <input type="text" name="occupation" id="edit-occupation" value="{{ old('occupation') }}"
                         class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('occupation') error-border @enderror">
@@ -115,7 +132,8 @@
             <div class="flex gap-4 pt-4 border-t">
                 <button type="submit"
                         id="edit-submit-btn"
-                        class="btn-primary flex-1 bg-primary text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="btn-primary flex-1 bg-primary text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" style="background-color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                    <i class="fas fa-save mr-2"></i>
                     Update Patient
                 </button>
                 <button type="button"

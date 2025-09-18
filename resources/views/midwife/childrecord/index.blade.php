@@ -189,19 +189,6 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success Message -->
-    @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-pulse" role="alert">
-            <span class="block sm:inline">{{ session('success') }}</span>
-        </div>
-    @endif
-
-    <!-- Error Message -->
-    @if(session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
-    @endif
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
@@ -209,8 +196,7 @@
              
         </div>
         <div class="flex space-x-3">
-            @include('components.refresh-data-button', ['id' => 'child-refresh-btn'])
-            <button onclick="openAddModal()" 
+            <button onclick="openAddModal()"
                 class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <i class="fas fa-plus text-sm"></i>
                 <span>Add Record</span>
@@ -257,101 +243,25 @@
 
     <!-- Records Table -->
     <div id="child-main-content" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        @if($childRecords->count() > 0)
-            <div class="table-wrapper">
-                <table class="w-full table-container">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Child ID</th>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'child_name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
-                                    Child Name <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                </a>
-                            </th>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Gender</th>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'birthdate', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
-                                    Birth Date <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                </a>
-                            </th>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap hide-mobile">Mother's Name</th>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap hide-mobile">Phone Number</th>
-                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @foreach($childRecords as $record)
-                        <tr class="table-row-hover">
-                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <div class="font-medium text-blue-600">{{ $record->formatted_child_id ?? 'CH-001' }}</div>
-                            </td>
-                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $record->child_name ?? 'N/A' }}</div>
-                                <div class="text-sm text-gray-500 sm:hidden">{{ $record->mother_name ?? 'N/A' }}</div>
-                            </td>
-                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ ($record->gender ?? '') === 'Male' ? 'gender-badge-male' : 'gender-badge-female' }}">
-                                    <i class="fas {{ ($record->gender ?? '') === 'Male' ? 'fa-mars' : 'fa-venus' }} mr-1"></i>
-                                    <span class="hidden sm:inline">{{ $record->gender ?? 'N/A' }}</span>
-                                    <span class="sm:hidden">{{ substr($record->gender ?? 'N', 0, 1) }}</span>
-                                </span>
-                            </td>
-                            <td class="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">
-                                <div class="text-sm sm:text-base">{{ $record->birthdate ? $record->birthdate->format('M j, Y') : 'N/A' }}</div>
-                                <div class="text-xs text-gray-500 sm:hidden">{{ $record->phone_number ?? 'N/A' }}</div>
-                            </td>
-                            <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
-                                {{ $record->mother_name ?? 'N/A' }}
-                            </td>
-                            <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
-                                {{ $record->phone_number ?? 'N/A' }}
-                            </td>
-                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <div class="action-buttons flex flex-col sm:flex-row sm:justify-center space-y-2 sm:space-y-0 sm:space-x-2">
-                                    <a href="{{ route('midwife.childrecord.show', $record->id) }}" class="btn-action btn-view inline-flex items-center justify-center">
-                                        <i class="fas fa-eye mr-1"></i><span class="hidden sm:inline">View</span>
-                                    </a>
-                                    <a href="#" onclick='openEditRecordModal(@json($record->toArray()))' class="btn-action btn-edit inline-flex items-center justify-center">
-                                        <i class="fas fa-edit mr-1"></i><span class="hidden sm:inline">Edit</span>
-                                    </a>
-                                    <!--<form method="POST" action="{{ route('midwife.childrecord.destroy', $record->id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this child record? This action cannot be undone.')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-action btn-delete inline-flex items-center justify-center">
-                                            <i class="fas fa-trash mr-1"></i><span class="hidden sm:inline">Delete</span>
-                                        </button>
-                                    </form>-->
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <!-- Loading indicator -->
+        <div id="search-loading" class="hidden">
+            <div class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#68727A]"></div>
+                <span class="ml-3 text-gray-600">Searching...</span>
             </div>
-            
-            <!-- Pagination -->
-            <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 overflow-x-auto">
+        </div>
+
+        <!-- Table content -->
+        <div id="table-content">
+            @include('midwife.childrecord.table', ['childRecords' => $childRecords])
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination-content" class="px-4 py-3 bg-gray-50 border-t border-gray-200 overflow-x-auto">
+            @if($childRecords->hasPages())
                 {{ $childRecords->links() }}
-            </div>
-        @else
-            <!-- Empty State -->
-            <div class="text-center py-16 px-4">
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-baby text-gray-400 text-xl"></i>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No child records found</h3>
-                <p class="text-gray-500 mb-6 max-w-sm mx-auto">
-                    @if(request()->hasAny(['search', 'gender']))
-                        No records match your search criteria. Try adjusting your filters.
-                    @else
-                        Get started by adding your first child record.
-                    @endif
-                </p>
-                <button onclick="openAddModal()" class="btn-minimal btn-primary-clean px-6 py-3 rounded-lg font-medium inline-flex items-center">
-                    <i class="fas fa-plus mr-2"></i>Add Child Record
-                </button>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 </div>
 
@@ -399,34 +309,56 @@ function closeEditChildModal(event) {
 
 // Phone number validation and formatting
 function formatPhoneNumber(input) {
-    // Remove all non-digits
-    let value = input.value.replace(/\D/g, '');
-    
-    // Handle different input formats
-    if (value.startsWith('63')) {
-        value = value.substring(2); // Remove country code
-    } else if (value.startsWith('0')) {
-        value = value.substring(1); // Remove leading zero
+    // Skip formatting if field is readonly (pre-filled from mother data)
+    if (input.readOnly) {
+        return true;
     }
-    
-    // Ensure it starts with 9 for Philippine mobile
-    if (value.length > 0 && !value.startsWith('9')) {
-        // If it doesn't start with 9, try to correct common patterns
-        if (value.length >= 10) {
-            value = '9' + value.substring(1);
-        }
+
+    // Get the original value without changing it first
+    let originalValue = input.value;
+
+    // Remove all non-digits and special characters
+    let digitsOnly = originalValue.replace(/\D/g, '');
+
+    // Handle different input formats and validate
+    let isValid = false;
+    let formattedValue = originalValue;
+
+    if (digitsOnly.startsWith('63') && digitsOnly.length === 12) {
+        // 639xxxxxxxxx format - convert to +639xxxxxxxxx
+        formattedValue = '+' + digitsOnly;
+        isValid = /^\+639\d{9}$/.test(formattedValue);
+    } else if (digitsOnly.startsWith('09') && digitsOnly.length === 11) {
+        // 09xxxxxxxxx format - keep as is
+        formattedValue = digitsOnly;
+        isValid = /^09\d{9}$/.test(formattedValue);
+    } else if (digitsOnly.startsWith('9') && digitsOnly.length === 10) {
+        // 9xxxxxxxxx format - convert to 09xxxxxxxxx
+        formattedValue = '0' + digitsOnly;
+        isValid = /^09\d{9}$/.test(formattedValue);
+    } else if (originalValue.startsWith('+63') && /^\+639\d{9}$/.test(originalValue)) {
+        // Already in +639xxxxxxxxx format
+        formattedValue = originalValue;
+        isValid = true;
+    } else if (digitsOnly.length === 0) {
+        // Empty field
+        formattedValue = '';
+        isValid = false;
+    } else {
+        // Invalid format - keep original value but mark as invalid
+        formattedValue = originalValue;
+        isValid = false;
     }
-    
-    // Limit to 10 digits
-    value = value.substring(0, 10);
-    
-    input.value = value;
-    
-    // Validate format
-    const isValid = /^9\d{9}$/.test(value);
-    input.classList.toggle('error-border', !isValid && value.length === 10);
+
+    // Only update the input value if it changed
+    if (formattedValue !== originalValue) {
+        input.value = formattedValue;
+    }
+
+    // Apply validation styling
+    input.classList.toggle('error-border', !isValid && input.value.length > 0);
     input.classList.toggle('success-border', isValid);
-    
+
     return isValid;
 }
 
@@ -583,40 +515,59 @@ function showMotherForm(exists) {
     const childRecordForm = document.getElementById('childRecordForm');
     const existingMotherSection = document.getElementById('existingMotherSection');
     const newMotherSection = document.getElementById('newMotherSection');
+    const contactDetailsSection = document.getElementById('contactDetailsSection');
+    const motherAddressField = document.getElementById('motherAddressField');
     const motherExistsInput = document.getElementById('motherExists');
-    
+
     if (!motherConfirmationStep || !childRecordForm) {
         console.error('Mother selection elements not found');
         return;
     }
-    
+
     // Store the choice
     isExistingMother = exists;
     if (motherExistsInput) {
         motherExistsInput.value = exists ? 'yes' : 'no';
     }
-    
+
     // Hide confirmation step, show form
     motherConfirmationStep.classList.add('hidden');
     childRecordForm.classList.remove('hidden');
-    
+
+    // Handle Contact Details section visibility
+    if (contactDetailsSection) {
+        // Always show contact details section for child's contact information
+        contactDetailsSection.style.display = 'block';
+    }
+
+    // Handle Mother Address field visibility (in Birth Details section)
+    if (motherAddressField) {
+        if (exists) {
+            // Hide mother address field for existing mother
+            motherAddressField.classList.add('hidden');
+        } else {
+            // Show mother address field for new mother
+            motherAddressField.classList.remove('hidden');
+        }
+    }
+
     // Show appropriate section
     if (exists) {
         if (existingMotherSection) existingMotherSection.classList.remove('hidden');
         if (newMotherSection) newMotherSection.classList.add('hidden');
         updateRequiredFields(true);
-        
+
         // Clear new mother fields
         clearNewMotherFields();
     } else {
         if (existingMotherSection) existingMotherSection.classList.add('hidden');
         if (newMotherSection) newMotherSection.classList.remove('hidden');
         updateRequiredFields(false);
-        
+
         // Clear existing mother selection
         clearExistingMotherSelection();
     }
-    
+
     // Focus first input
     setTimeout(() => {
         const firstInput = document.querySelector('#recordForm input[name="child_name"]');
@@ -695,14 +646,17 @@ function setupMotherSelection() {
             
             if (phoneInput && selectedOption.dataset.contact) {
                 let contact = selectedOption.dataset.contact;
-                // Format for phone input (remove +63 if present)
-                if (contact.startsWith('+63')) {
-                    contact = contact.substring(3);
+                // Format for phone input (convert +63 to 09 format)
+                if (contact.startsWith('+639')) {
+                    contact = '0' + contact.substring(3);
+                } else if (contact.startsWith('639')) {
+                    contact = '0' + contact.substring(2);
+                } else if (contact.startsWith('+63')) {
+                    contact = '0' + contact.substring(3);
                 } else if (contact.startsWith('63')) {
-                    contact = contact.substring(2);
-                } else if (contact.startsWith('0')) {
-                    contact = contact.substring(1);
+                    contact = '0' + contact.substring(2);
                 }
+                // Keep 09 format as is, don't remove leading zero
                 phoneInput.value = contact;
                 phoneInput.readOnly = true;
                 phoneInput.classList.add('bg-gray-100');
@@ -1135,22 +1089,182 @@ function setupFormHandling() {
     });
 }
 
+// Check for validation errors and reopen modal if needed
+function checkAndReopenModalOnErrors() {
+    // Check if there are validation errors in the add form
+    const addFormErrors = document.querySelector('#recordModal .bg-red-100');
+    if (addFormErrors) {
+        // Reopen the add modal
+        const modal = document.getElementById('recordModal');
+        const childRecordForm = document.getElementById('childRecordForm');
+        const motherConfirmationStep = document.getElementById('motherConfirmationStep');
 
+        if (modal && childRecordForm) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Skip confirmation step and show form directly
+            if (motherConfirmationStep) motherConfirmationStep.classList.add('hidden');
+            childRecordForm.classList.remove('hidden');
+
+            // Determine if it was existing mother or new mother based on form data
+            const motherExistsValue = document.getElementById('motherExists')?.value;
+            if (motherExistsValue === 'yes') {
+                showMotherForm(true);
+            } else if (motherExistsValue === 'no') {
+                showMotherForm(false);
+            } else {
+                // Default to showing confirmation step if unclear
+                motherConfirmationStep.classList.remove('hidden');
+                childRecordForm.classList.add('hidden');
+            }
+        }
+    }
+
+    // Check if there are validation errors in the edit form
+    const editFormErrors = document.querySelector('#editChildModal .bg-red-100');
+    if (editFormErrors) {
+        // Reopen the edit modal
+        const editModal = document.getElementById('editChildModal');
+        if (editModal) {
+            editModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+}
+
+
+
+// Real-time search functionality
+let searchTimeout = null;
+let isSearching = false;
+
+function setupRealTimeSearch() {
+    const searchInput = document.querySelector('input[name="search"]');
+    const genderSelect = document.querySelector('select[name="gender"]');
+    const searchForm = document.querySelector('.search-form');
+
+    if (!searchInput || !searchForm) return;
+
+    // Debounced search function
+    function performSearch() {
+        if (isSearching) return;
+
+        isSearching = true;
+        const formData = new FormData(searchForm);
+
+        // Show loading indicator
+        const loadingEl = document.getElementById('search-loading');
+        const tableContent = document.getElementById('table-content');
+        const paginationContent = document.getElementById('pagination-content');
+
+        if (loadingEl && tableContent) {
+            loadingEl.classList.remove('hidden');
+            tableContent.style.opacity = '0.5';
+        }
+
+        // Get search parameters
+        const params = new URLSearchParams();
+        for (let [key, value] of formData.entries()) {
+            if (value.trim()) {
+                params.append(key, value);
+            }
+        }
+
+        // Make AJAX request
+        fetch(`{{ route('midwife.childrecord.search') }}?${params.toString()}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update table content
+                if (tableContent) {
+                    tableContent.innerHTML = data.html;
+                    tableContent.style.opacity = '1';
+                }
+
+                // Update pagination
+                if (paginationContent) {
+                    paginationContent.innerHTML = data.pagination || '';
+                }
+            } else {
+                console.error('Search failed:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+        })
+        .finally(() => {
+            // Hide loading indicator
+            if (loadingEl) {
+                loadingEl.classList.add('hidden');
+            }
+            if (tableContent) {
+                tableContent.style.opacity = '1';
+            }
+            isSearching = false;
+        });
+    }
+
+    // Debounced input handler
+    function handleSearchInput() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 500); // 500ms delay
+    }
+
+    // Search on input (real-time)
+    searchInput.addEventListener('input', handleSearchInput);
+
+    // Search on Enter key
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            performSearch();
+        }
+    });
+
+    // Search when gender filter changes
+    if (genderSelect) {
+        genderSelect.addEventListener('change', function() {
+            clearTimeout(searchTimeout);
+            performSearch();
+        });
+    }
+
+    // Prevent normal form submission
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearTimeout(searchTimeout);
+        performSearch();
+    });
+}
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Make closeEditChildModal globally available
     window.closeEditChildModal = closeEditChildModal;
-    
+
     // Setup form handling
     setupFormHandling();
-    
+
     // Set date constraints
     setDateConstraints();
-    
+
     // Setup mother selection if available
     setupMotherSelection();
-    
+
+    // Setup real-time search
+    setupRealTimeSearch();
+
+    // Check for validation errors and reopen modal if needed
+    checkAndReopenModalOnErrors();
+
     // Close modals on Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {

@@ -3,92 +3,127 @@
 @section('page-title', 'Cloud Backup System')
 @section('page-subtitle', 'Secure backup and restore for your medical records')
 
+@push('styles')
+<style>
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+    }
+
+    .btn-view {
+        background-color: #f8fafc;
+        color: #475569;
+        border-color: #e2e8f0;
+    }
+
+    .btn-view:hover {
+        background-color: #68727A;
+        color: white;
+        border-color: #68727A;
+    }
+
+    .btn-edit {
+        background-color: #dcfce7;
+        color: #166534;
+        border-color: #bbf7d0;
+    }
+
+    .btn-edit:hover {
+        background-color: #16a34a;
+        color: white;
+        border-color: #16a34a;
+    }
+
+    .btn-delete {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .btn-delete:hover {
+        background-color: #dc2626;
+        color: white;
+        border-color: #dc2626;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="max-w-7xl mx-auto">
     <!-- Success/Error Messages -->
-    @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-            <div class="flex items-center">
-                <i class="fas fa-check-circle mr-2"></i>
-                {{ session('success') }}
-            </div>
-        </div>
-    @endif
-    
-    @if(session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle mr-2"></i>
-                {{ session('error') }}
-            </div>
-        </div>
-    @endif
+    @include('components.flowbite-alert')
     <!-- Page Header -->
-    <div class="mb-8">
+    <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900">Cloud Backup Management</h2>
-                <p class="mt-1 text-sm text-gray-600">Secure backup and restore your healthcare data</p>
+            <div class="min-w-0">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">Cloud Backup Management</h2>
+                <p class="mt-1 text-sm text-gray-600 truncate">Secure backup and restore your healthcare data</p>
             </div>
-            <div class="mt-4 sm:mt-0 flex space-x-3">
-                <button onclick="openBackupModal()" class="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <span>Create Backup</span>
+            <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">
+                <button onclick="openBackupModal()" class="bg-secondary hover:bg-secondary/90 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
+                    <i class="fas fa-cloud-upload-alt w-4 h-4"></i>
+                    <span class="hidden sm:inline">Create Backup</span>
+                    <span class="sm:hidden">Backup</span>
                 </button>
-                <button onclick="openRestoreModal()" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
-                    <i class="fas fa-cloud-download-alt"></i>
-                    <span>Restore Data</span>
+                <button onclick="openRestoreModal()" class="bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
+                    <i class="fas fa-cloud-download-alt w-4 h-4"></i>
+                    <span class="hidden sm:inline">Restore Data</span>
+                    <span class="sm:hidden">Restore</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-blue-100">
-                    <i class="fas fa-database text-xl text-blue-600"></i>
+                <div class="p-2 sm:p-3 rounded-lg bg-blue-100">
+                    <i class="fas fa-database text-lg sm:text-xl text-blue-600"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Backups</p>
-                    <p id="totalBackups" class="text-2xl font-bold text-gray-900">{{ $stats['total_backups'] ?? 0 }}</p>
+                <div class="ml-3 sm:ml-4 min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Backups</p>
+                    <p id="totalBackups" class="text-xl sm:text-2xl font-bold text-gray-900">{{ $stats['total_backups'] ?? 0 }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-green-100">
-                    <i class="fas fa-check-circle text-xl text-green-600"></i>
+                <div class="p-2 sm:p-3 rounded-lg bg-green-100">
+                    <i class="fas fa-check-circle text-lg sm:text-xl text-green-600"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Successful</p>
-                    <p id="successfulBackups" class="text-2xl font-bold text-gray-900">{{ $stats['successful_backups'] ?? 0 }}</p>
+                <div class="ml-3 sm:ml-4 min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Successful</p>
+                    <p id="successfulBackups" class="text-xl sm:text-2xl font-bold text-gray-900">{{ $stats['successful_backups'] ?? 0 }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-yellow-100">
-                    <i class="fas fa-clock text-xl text-yellow-600"></i>
+                <div class="p-2 sm:p-3 rounded-lg bg-yellow-100">
+                    <i class="fas fa-clock text-lg sm:text-xl text-yellow-600"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Last Backup</p>
-                    <p id="lastBackup" class="text-2xl font-bold text-gray-900">{{ $stats['last_backup'] ?? 'Never' }}</p>
+                <div class="ml-3 sm:ml-4 min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Last Backup</p>
+                    <p id="lastBackup" class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ $stats['last_backup'] ?? 'Never' }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-purple-100">
-                    <i class="fas fa-hdd text-xl text-purple-600"></i>
+                <div class="p-2 sm:p-3 rounded-lg bg-purple-100">
+                    <i class="fas fa-hdd text-lg sm:text-xl text-purple-600"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Storage Used</p>
-                    <p id="storageUsed" class="text-2xl font-bold text-gray-900">{{ $stats['storage_used'] ?? '0 MB' }}</p>
+                <div class="ml-3 sm:ml-4 min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Storage Used</p>
+                    <p id="storageUsed" class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ $stats['storage_used'] ?? '0 MB' }}</p>
                 </div>
             </div>
         </div>
@@ -110,70 +145,71 @@
     </div>
 
     <!-- Connection Status -->
-    <div class="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+    <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div class="flex items-start sm:items-center space-x-3 min-w-0">
                 @if($isOAuth && $isAuthenticated)
-                    <div class="p-2 rounded-lg bg-green-100">
+                    <div class="p-2 rounded-lg bg-green-100 flex-shrink-0">
                         <i class="fab fa-google-drive text-green-600"></i>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Google Drive Connected</h3>
-                        <p class="text-sm text-gray-600">Connected to your Google Drive - Ready for cloud backups</p>
+                    <div class="min-w-0">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Google Drive Connected</h3>
+                        <p class="text-xs sm:text-sm text-gray-600">Connected to your Google Drive - Ready for cloud backups</p>
                     </div>
                 @elseif($isOAuth && !$isAuthenticated)
-                    <div class="p-2 rounded-lg bg-yellow-100">
+                    <div class="p-2 rounded-lg bg-yellow-100 flex-shrink-0">
                         <i class="fab fa-google-drive text-yellow-600"></i>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Google Drive Authentication Required</h3>
-                        <p class="text-sm text-gray-600">Please authenticate with Google Drive to enable cloud backups</p>
+                    <div class="min-w-0">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Google Drive Authentication Required</h3>
+                        <p class="text-xs sm:text-sm text-gray-600">Please authenticate with Google Drive to enable cloud backups</p>
                     </div>
                 @elseif($googleDriveConnected)
-                    <div class="p-2 rounded-lg bg-green-100">
+                    <div class="p-2 rounded-lg bg-green-100 flex-shrink-0">
                         <i class="fab fa-google-drive text-green-600"></i>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Cloud Storage Status</h3>
-                        <p class="text-sm text-gray-600">Connected to Google Drive - Service Account Mode</p>
+                    <div class="min-w-0">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Cloud Storage Status</h3>
+                        <p class="text-xs sm:text-sm text-gray-600">Connected to Google Drive - Service Account Mode</p>
                     </div>
                 @else
-                    <div class="p-2 rounded-lg bg-red-100">
+                    <div class="p-2 rounded-lg bg-red-100 flex-shrink-0">
                         <i class="fab fa-google-drive text-red-600"></i>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Google Drive Disconnected</h3>
-                        <p class="text-sm text-gray-600">No connection to Google Drive - Local backups only</p>
+                    <div class="min-w-0">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Google Drive Disconnected</h3>
+                        <p class="text-xs sm:text-sm text-gray-600">No connection to Google Drive - Local backups only</p>
                     </div>
                 @endif
             </div>
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 flex-shrink-0">
                 @if($isOAuth && $isAuthenticated)
                     <div class="flex items-center space-x-2">
                         <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm text-green-600 font-medium">Connected</span>
+                        <span class="text-xs sm:text-sm text-green-600 font-medium">Connected</span>
                     </div>
                     <form method="POST" action="{{ route('google.disconnect') }}" class="inline">
                         @csrf
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
                             <i class="fas fa-unlink mr-1"></i>
-                            Disconnect
+                            <span class="hidden sm:inline">Disconnect</span>
                         </button>
                     </form>
                 @elseif($isOAuth && !$isAuthenticated)
-                    <a href="{{ route('google.auth') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+                    <a href="{{ route('google.auth') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors text-xs sm:text-sm">
                         <i class="fab fa-google"></i>
-                        <span>Connect Google Drive</span>
+                        <span class="hidden sm:inline">Connect Google Drive</span>
+                        <span class="sm:hidden">Connect</span>
                     </a>
                 @elseif($googleDriveConnected)
                     <div class="flex items-center space-x-2">
                         <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm text-green-600 font-medium">Online</span>
+                        <span class="text-xs sm:text-sm text-green-600 font-medium">Online</span>
                     </div>
                 @else
                     <div class="flex items-center space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span class="text-sm text-red-600 font-medium">Offline</span>
+                        <span class="text-xs sm:text-sm text-red-600 font-medium">Offline</span>
                     </div>
                 @endif
             </div>
@@ -207,16 +243,16 @@
 
     <!-- Backup History -->
     <div class="bg-white rounded-lg border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
+        <div class="p-4 sm:p-6 border-b border-gray-200">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Backup History</h3>
-                <div class="mt-4 sm:mt-0 flex items-center space-x-3">
-                    <select id="filterType" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Backup History</h3>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                    <select id="filterType" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
                         <option value="">All Types</option>
                         <option value="full">Full Backup</option>
                         <option value="selective">Selective Backup</option>
                     </select>
-                    <select id="filterStatus" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
+                    <select id="filterStatus" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
                         <option value="">All Status</option>
                         <option value="completed">Completed</option>
                         <option value="failed">Failed</option>
@@ -230,12 +266,12 @@
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Backup Details</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Backup Details</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Type</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Size</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date</th>
+                        <th class="px-3 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="backupTableBody" class="bg-white divide-y divide-gray-200">
@@ -256,70 +292,71 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <div class="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center space-x-3">
-                <div class="p-3 rounded-lg bg-blue-100">
-                    <i class="fas fa-calendar-plus text-blue-600"></i>
+                <div class="p-2 sm:p-3 rounded-lg bg-blue-100 flex-shrink-0">
+                    <i class="fas fa-calendar-plus text-blue-600 text-sm sm:text-base"></i>
                 </div>
-                <div>
-                    <h4 class="font-semibold text-gray-900">Schedule Backup</h4>
-                    <p class="text-sm text-gray-600">Set up automatic backups</p>
+                <div class="min-w-0">
+                    <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">Schedule Backup</h4>
+                    <p class="text-xs sm:text-sm text-gray-600">Set up automatic backups</p>
                 </div>
             </div>
-            <button class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors">
+            <button class="mt-3 sm:mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium">
                 Configure Schedule
             </button>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center space-x-3">
-                <div class="p-3 rounded-lg bg-green-100">
-                    <i class="fas fa-shield-alt text-green-600"></i>
+                <div class="p-2 sm:p-3 rounded-lg bg-green-100 flex-shrink-0">
+                    <i class="fas fa-shield-alt text-green-600 text-sm sm:text-base"></i>
                 </div>
-                <div>
-                    <h4 class="font-semibold text-gray-900">Security Settings</h4>
-                    <p class="text-sm text-gray-600">Manage encryption and access</p>
+                <div class="min-w-0">
+                    <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">Security Settings</h4>
+                    <p class="text-xs sm:text-sm text-gray-600">Manage encryption and access</p>
                 </div>
             </div>
-            <button class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors">
+            <button class="mt-3 sm:mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium">
                 Manage Security
             </button>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
             <div class="flex items-center space-x-3">
-                <div class="p-3 rounded-lg bg-purple-100">
-                    <i class="fas fa-chart-line text-purple-600"></i>
+                <div class="p-2 sm:p-3 rounded-lg bg-purple-100 flex-shrink-0">
+                    <i class="fas fa-chart-line text-purple-600 text-sm sm:text-base"></i>
                 </div>
-                <div>
-                    <h4 class="font-semibold text-gray-900">Storage Analytics</h4>
-                    <p class="text-sm text-gray-600">View usage and trends</p>
+                <div class="min-w-0">
+                    <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">Storage Analytics</h4>
+                    <p class="text-xs sm:text-sm text-gray-600">View usage and trends</p>
                 </div>
             </div>
-            <button class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors">
+            <button class="mt-3 sm:mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium">
                 View Analytics
             </button>
         </div>
     </div>
 
     <!-- Create Backup Modal -->
-    <div id="backupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b px-6 py-4 rounded-t-xl border-gray-200">
+    <div id="backupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 rounded-t-lg sm:rounded-t-xl border-gray-200">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-cloud-upload-alt mr-2 text-secondary"></i>
-                        Create Backup
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-cloud-upload-alt mr-2 text-secondary text-sm sm:text-base"></i>
+                        <span class="hidden sm:inline">Create Backup</span>
+                        <span class="sm:hidden">Backup</span>
                     </h2>
-                    <button onclick="closeBackupModal()" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-xl"></i>
+                    <button onclick="closeBackupModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                        <i class="fas fa-times text-lg sm:text-xl"></i>
                     </button>
                 </div>
             </div>
 
-            <form id="backupForm" class="p-6" onsubmit="createBackup(event)">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <form id="backupForm" class="p-4 sm:p-6" onsubmit="createBackup(event)">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                     <!-- Data Selection -->
                     <div>
                         <h3 class="text-lg font-semibold mb-4 text-gray-900">Select Data to Backup</h3>
@@ -521,62 +558,8 @@
 
 @push('scripts')
 <script>
-    // Sample backup data
-    let backups = [
-        {
-            id: 1,
-            name: "Full System Backup",
-            type: "full",
-            format: "sql_dump",
-            modules: ["patient_records", "prenatal_monitoring", "child_records", "immunization_records", "vaccine_management"],
-            size: "196.8 MB",
-            status: "completed",
-            created_at: "2024-01-15T14:30:00Z",
-            storage_location: "google_drive",
-            encrypted: true,
-            compressed: true
-        },
-        {
-            id: 2,
-            name: "Patient Data Backup",
-            type: "selective",
-            format: "sql_dump",
-            modules: ["patient_records", "child_records"],
-            size: "77.3 MB",
-            status: "completed",
-            created_at: "2024-01-14T09:15:00Z",
-            storage_location: "google_drive",
-            encrypted: true,
-            compressed: true
-        },
-        {
-            id: 3,
-            name: "Immunization Records",
-            type: "selective",
-            format: "sql_dump",
-            modules: ["immunization_records", "vaccine_management"],
-            size: "41.0 MB",
-            status: "completed",
-            created_at: "2024-01-13T16:45:00Z",
-            storage_location: "google_drive",
-            encrypted: false,
-            compressed: true
-        },
-        {
-            id: 4,
-            name: "Emergency Backup",
-            type: "full",
-            format: "sql_dump",
-            modules: ["patient_records", "prenatal_monitoring", "child_records", "immunization_records", "vaccine_management"],
-            size: "0 MB",
-            status: "failed",
-            created_at: "2024-01-12T11:20:00Z",
-            storage_location: "google_drive",
-            encrypted: true,
-            compressed: true,
-            error: "Connection timeout to Google Drive"
-        }
-    ];
+    // Initialize with empty array - will be populated from server
+    let backups = [];
 
     let filteredBackups = [...backups];
     let currentBackupProgress = null;
@@ -587,10 +570,13 @@
 
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
+        // Clear any existing messages on page load
+        hideAllMessages();
+
         loadRealDataCounts();
         loadBackupData();
         updateEstimatedSize();
-        
+
         // Add event listeners for module selection
         const moduleCheckboxes = document.querySelectorAll('input[name="modules"]');
         moduleCheckboxes.forEach(checkbox => {
@@ -600,22 +586,24 @@
 
     // Load backup data from server
     function loadBackupData() {
-        fetch('{{ route("midwife.cloudbackup.data") }}')
+        return fetch('{{ route("midwife.cloudbackup.data") }}')
             .then(response => response.json())
             .then(data => {
                 backups = data.backups;
                 filteredBackups = [...backups];
                 renderBackups();
-                populateRestoreBackups();
-                
+
                 // Update stats
                 if (data.stats) {
                     updateStatsFromServer(data.stats);
                 }
+
+                return data; // Return data for chaining
             })
             .catch(error => {
                 console.error('Error loading backup data:', error);
                 showError('Failed to load backup data');
+                throw error; // Re-throw for proper error handling
             });
     }
 
@@ -637,36 +625,39 @@
             
             return `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">
-                        <div class="font-medium text-gray-900">${backup.name}</div>
-                        <div class="text-sm text-gray-500">${moduleNames}</div>
+                    <td class="px-3 sm:px-6 py-4">
+                        <div class="font-medium text-gray-900 text-sm sm:text-base">${backup.name}</div>
+                        <div class="text-xs sm:text-sm text-gray-500">${moduleNames}</div>
+                        <div class="sm:hidden text-xs text-gray-500 mt-1">${backup.type === 'full' ? 'Full' : 'Selective'} • ${backup.size}</div>
+                        <div class="lg:hidden text-xs text-gray-500 mt-1">${formatDate(backup.created_at)}</div>
                         ${backup.encrypted ? '<div class="text-xs text-green-600 mt-1"><i class="fas fa-lock mr-1"></i>Encrypted</div>' : ''}
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-3 sm:px-6 py-4 hidden sm:table-cell">
                         <div class="text-sm text-gray-900">${backup.type === 'full' ? 'Full Backup' : 'Selective'}</div>
                         <div class="text-xs text-gray-500">SQL DUMP</div>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${backup.size}</td>
-                    <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text}">
+                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden md:table-cell">${backup.size}</td>
+                    <td class="px-3 sm:px-6 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text}">
                             <i class="fas ${statusColor.icon} mr-1"></i>
-                            ${backup.status.charAt(0).toUpperCase() + backup.status.slice(1)}
+                            <span class="hidden sm:inline">${backup.status.charAt(0).toUpperCase() + backup.status.slice(1)}</span>
+                            <span class="sm:hidden">${backup.status.charAt(0).toUpperCase()}</span>
                         </span>
                         ${backup.error ? `<div class="text-xs text-red-600 mt-1">${backup.error}</div>` : ''}
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${formatDate(backup.created_at)}</td>
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-2">
+                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">${formatDate(backup.created_at)}</td>
+                    <td class="px-3 sm:px-6 py-4 text-center">
+                        <div class="flex flex-col sm:flex-row justify-center items-center space-y-1 sm:space-y-0 sm:space-x-1">
                             ${backup.status === 'completed' ? `
-                                <button onclick="downloadBackup(${backup.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                    <i class="fas fa-download mr-1"></i>Download
+                                <button onclick="downloadBackup(${backup.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition-colors w-full sm:w-auto">
+                                    <i class="fas fa-cloud-download-alt mr-1"></i><span class="hidden sm:inline">Download</span>
                                 </button>
-                                <button onclick="restoreFromBackup(${backup.id})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                    <i class="fas fa-undo mr-1"></i>Restore
+                                <button onclick="restoreFromBackup(${backup.id})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors w-full sm:w-auto">
+                                    <i class="fas fa-history mr-1"></i><span class="hidden sm:inline">Restore</span>
                                 </button>
                             ` : ''}
-                            <button onclick="deleteBackup(${backup.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                <i class="fas fa-trash mr-1"></i>Delete
+                            <button onclick="deleteBackup(${backup.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors w-full sm:w-auto">
+                                <i class="fas fa-trash-alt mr-1"></i><span class="hidden sm:inline">Delete</span>
                             </button>
                         </div>
                     </td>
@@ -733,7 +724,14 @@
     function openRestoreModal() {
         document.getElementById('restoreModal').classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
-        populateRestoreBackups();
+
+        // Refresh backup data before populating restore options to ensure latest status
+        loadBackupData().then(() => {
+            populateRestoreBackups();
+        }).catch(() => {
+            // If loading fails, still populate with existing data
+            populateRestoreBackups();
+        });
     }
 
     function closeRestoreModal() {
@@ -787,38 +785,52 @@
             options: Array.from(document.querySelectorAll('input[name="options"]:checked')).map(cb => cb.value)
         };
         
-        closeBackupModal();
+        // Get backup name for confirmation
+        const backupName = backupData.backup_name || generateBackupName(selectedModules);
+        const moduleNames = selectedModules.map(m => formatModuleName(m)).join(', ');
         
-        // Show progress immediately
-        const progressContainer = document.getElementById('backupProgress');
-        progressContainer.classList.remove('hidden');
-        document.getElementById('progressStatus').textContent = 'Starting backup...';
-        document.getElementById('progressBar').style.width = '0%';
-        document.getElementById('progressText').textContent = '0%';
-        
-        // Send request to server
-        fetch('{{ route("midwife.cloudbackup.store") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(backupData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Simulate progress updates (in real app, you'd poll the progress endpoint)
-                simulateBackupProgress(data.backup_id);
-            } else {
-                progressContainer.classList.add('hidden');
-                showError(data.message || 'Failed to create backup');
+        // Use confirmation modal for backup creation
+        showConfirmationModal({
+            title: `Are you sure you want to create a backup named "${backupName}" for the following modules: ${moduleNames}? This process may take several minutes.`,
+            type: 'info',
+            confirmText: 'Yes, create backup',
+            cancelText: 'Cancel',
+            onConfirm: function() {
+                // Close the backup modal and start the backup process
+                closeBackupModal();
+                
+                // Show progress immediately
+                const progressContainer = document.getElementById('backupProgress');
+                progressContainer.classList.remove('hidden');
+                document.getElementById('progressStatus').textContent = 'Starting backup...';
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('progressText').textContent = '0%';
+                
+                // Send request to server
+                fetch('{{ route("midwife.cloudbackup.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(backupData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Simulate progress updates (in real app, you'd poll the progress endpoint)
+                        simulateBackupProgress(data.backup_id);
+                    } else {
+                        progressContainer.classList.add('hidden');
+                        showError(data.message || 'Failed to create backup');
+                    }
+                })
+                .catch(error => {
+                    progressContainer.classList.add('hidden');
+                    console.error('Error:', error);
+                    showError('Failed to create backup');
+                });
             }
-        })
-        .catch(error => {
-            progressContainer.classList.add('hidden');
-            console.error('Error:', error);
-            showError('Failed to create backup');
         });
     }
 
@@ -873,73 +885,94 @@
     }
 
     function checkBackupCompletion(backupId) {
+        // Check if we already completed this backup to prevent multiple success messages
+        if (!currentBackupProgress) {
+            return; // Already completed or cancelled
+        }
+
         setTimeout(() => {
             const progressContainer = document.getElementById('backupProgress');
             progressContainer.classList.add('hidden');
-            
-            // Reload backup data
+
+            // Clear the backup progress tracker
+            currentBackupProgress = null;
+
+            // Reload backup data from server to get the real backup entry
             loadBackupData();
-            
+
             showSuccess('Backup completed successfully!');
         }, 2000);
     }
 
-    function completeBackup(backupData) {
-        const progressContainer = document.getElementById('backupProgress');
-        progressContainer.classList.add('hidden');
-        
-        // Calculate total size
-        let totalSize = 0;
-        backupData.modules.forEach(module => {
-            totalSize += moduleSizes[module] || 0;
-        });
-        
-        // No compression applied - keeps original size
-        
-        const newBackup = {
-            id: Math.max(...backups.map(b => b.id)) + 1,
-            name: backupData.name,
-            type: backupData.type,
-            format: backupData.format,
-            modules: backupData.modules,
-            size: totalSize.toFixed(1) + ' MB',
-            status: 'completed',
-            created_at: new Date().toISOString(),
-            storage_location: backupData.storage_location
-        };
-        
-        backups.unshift(newBackup);
-        filteredBackups = [...backups];
-        renderBackups();
-        updateStats();
-        
-        showSuccess(`Backup "${backupData.name}" completed successfully!`);
-    }
+    // Removed completeBackup() function to prevent duplicate entries
+    // The server already creates the backup entry, so we just need to reload data
 
     function cancelBackup() {
         if (currentBackupProgress) {
-            clearInterval(currentBackupProgress);
-            currentBackupProgress = null;
-            document.getElementById('backupProgress').classList.add('hidden');
-            showError('Backup cancelled by user.');
+            // Use confirmation modal for canceling backup
+            showConfirmationModal({
+                title: 'Are you sure you want to cancel the current backup process? Any progress will be lost.',
+                type: 'warning',
+                confirmText: 'Yes, cancel backup',
+                cancelText: 'Continue backup',
+                onConfirm: function() {
+                    clearInterval(currentBackupProgress);
+                    currentBackupProgress = null;
+                    document.getElementById('backupProgress').classList.add('hidden');
+                    showError('Backup cancelled by user.');
+                }
+            });
         }
     }
 
     function populateRestoreBackups() {
         const backupList = document.getElementById('backupList');
-        const completedBackups = backups.filter(b => b.status === 'completed');
-        
-        backupList.innerHTML = completedBackups.map(backup => `
+        // Filter backups to show only:
+        // 1. Completed backups
+        // 2. With valid size (not '0 B')
+        // 3. Available locally OR downloadable from Google Drive
+        const restorableBackups = backups.filter(b => {
+            const isCompleted = b.status === 'completed';
+            const hasValidSize = b.size && b.size !== '0 B';
+            // A backup is restorable if it has either a local file path OR a Google Drive file ID
+            const isRestorable = (b.storage_location === 'local') ||
+                                (b.storage_location === 'google_drive' && b.google_drive_file_id);
+
+            return isCompleted && hasValidSize && isRestorable;
+        });
+
+        if (restorableBackups.length === 0) {
+            backupList.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-circle text-gray-400 text-2xl mb-2"></i>
+                    <p class="text-gray-600">No restorable backups available.</p>
+                    <p class="text-sm text-gray-500 mt-1">Create a backup or ensure Google Drive connection for cloud backups.</p>
+                </div>
+            `;
+            return;
+        }
+
+        backupList.innerHTML = restorableBackups.map(backup => `
             <label class="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 border-gray-200">
                 <input type="radio" name="restore_backup" value="${backup.id}" class="mt-1 w-5 h-5 text-primary">
                 <div class="flex-1">
-                    <div class="font-medium text-gray-900">${backup.name}</div>
+                    <div class="font-medium text-gray-900 flex items-center">
+                        ${backup.name}
+                        ${backup.storage_location === 'google_drive' && backup.google_drive_file_id ?
+                            '<i class="fas fa-cloud ml-2 text-blue-500" title="Available from Google Drive"></i>' :
+                            '<i class="fas fa-hdd ml-2 text-green-500" title="Available locally"></i>'
+                        }
+                        <span class="ml-2 px-2 py-0.5 text-xs rounded-full ${backup.storage_location === 'google_drive' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                            ${backup.storage_location === 'google_drive' ? 'Cloud' : 'Local'}
+                        </span>
+                    </div>
                     <div class="text-sm text-gray-600">
                         ${backup.modules.map(m => formatModuleName(m)).join(', ')}
                     </div>
                     <div class="text-xs mt-1 text-gray-500">
                         ${formatDate(backup.created_at)} • ${backup.size} • SQL DUMP
-                        ${backup.encrypted ? ' • Encrypted' : ''}
+                        ${backup.encrypted ? ' • <i class="fas fa-lock text-green-600"></i> Encrypted' : ''}
+                        ${backup.storage_location === 'google_drive' ? ' • Can be downloaded for restore' : ' • Ready for immediate restore'}
                     </div>
                 </div>
             </label>
@@ -966,33 +999,46 @@
         const restoreData = {
             backup_id: backupId,
             restore_options: Array.from(document.querySelectorAll('input[name="restore_options"]:checked')).map(cb => cb.value),
-            confirm_restore: document.querySelector('input[name="confirm_restore"]').checked
+            confirm_restore: document.querySelector('input[name="confirm_restore"]').checked ? 1 : 0
         };
         
-        closeRestoreModal();
+        // Additional confirmation using the global modal for critical restore operation
+        const moduleNames = backup.modules.map(m => formatModuleName(m)).join(', ');
+        const restoreOptions = restoreData.restore_options.length > 0 ? 
+            ' with options: ' + restoreData.restore_options.join(', ') : '';
         
-        showSuccess(`Starting restore from "${backup.name}". This may take several minutes...`);
-        
-        fetch('{{ route("midwife.cloudbackup.restore") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(restoreData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccess(data.message);
-                loadBackupData(); // Reload data
-            } else {
-                showError(data.message || 'Failed to restore backup');
+        showConfirmationModal({
+            title: `⚠️ CRITICAL OPERATION: Are you absolutely sure you want to restore data from "${backup.name}" (${moduleNames})${restoreOptions}? This will overwrite existing data and cannot be undone without another backup.`,
+            type: 'danger',
+            confirmText: 'Yes, restore data',
+            cancelText: 'Cancel restore',
+            onConfirm: function() {
+                closeRestoreModal();
+                
+                showSuccess(`Starting restore from "${backup.name}". This may take several minutes...`);
+                
+                fetch('{{ route("midwife.cloudbackup.restore") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(restoreData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccess(data.message);
+                        loadBackupData(); // Reload data
+                    } else {
+                        showError(data.message || 'Failed to restore backup');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Failed to restore backup');
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showError('Failed to restore backup');
         });
     }
 
@@ -1020,7 +1066,14 @@
 
     function deleteBackup(id) {
         const backup = backups.find(b => b.id === id);
-        if (backup && confirm(`Are you sure you want to delete "${backup.name}"? This action cannot be undone.`)) {
+        if (!backup) {
+            showError('Backup not found.');
+            return;
+        }
+        
+        // Use the global confirmation modal instead of native confirm
+        confirmDelete(backup.name, function() {
+            // This callback is executed when user confirms deletion
             fetch(`{{ route('midwife.cloudbackup.destroy', ':id') }}`.replace(':id', id), {
                 method: 'DELETE',
                 headers: {
@@ -1040,7 +1093,7 @@
                 console.error('Error:', error);
                 showError('Failed to delete backup');
             });
-        }
+        });
     }
 
     function updateStats() {
@@ -1077,63 +1130,130 @@
     }
 
     // Utility functions
+    function formatModuleName(moduleKey) {
+        const moduleNames = {
+            'patient_records': 'Patient Records',
+            'prenatal_monitoring': 'Prenatal Monitoring',
+            'child_records': 'Child Records',
+            'immunization_records': 'Immunization Records',
+            'vaccine_management': 'Vaccine Management'
+        };
+        return moduleNames[moduleKey] || moduleKey;
+    }
+
+    // Global variable to track success message timer
+    let successMessageTimer = null;
+
     function showSuccess(message) {
         const successElement = document.getElementById('successMessage');
         const textElement = document.getElementById('successText');
-        
+
+        // Clear any existing timer to prevent multiple timers
+        if (successMessageTimer) {
+            clearTimeout(successMessageTimer);
+            successMessageTimer = null;
+        }
+
+        // Hide any existing error messages
+        const errorElement = document.getElementById('errorMessage');
+        errorElement.classList.add('hidden');
+
         textElement.textContent = message;
         successElement.classList.remove('hidden');
-        
-        setTimeout(() => {
+
+        // Set new timer to hide message after 5 seconds
+        successMessageTimer = setTimeout(() => {
             successElement.classList.add('hidden');
+            successMessageTimer = null;
         }, 5000);
     }
+
+    // Global variable to track error message timer
+    let errorMessageTimer = null;
 
     function showError(message) {
         const errorElement = document.getElementById('errorMessage');
         const textElement = document.getElementById('errorText');
-        
+
+        // Clear any existing timer to prevent multiple timers
+        if (errorMessageTimer) {
+            clearTimeout(errorMessageTimer);
+            errorMessageTimer = null;
+        }
+
+        // Hide any existing success messages
+        const successElement = document.getElementById('successMessage');
+        successElement.classList.add('hidden');
+
         textElement.textContent = message;
         errorElement.classList.remove('hidden');
-        
-        setTimeout(() => {
+
+        // Set new timer to hide message after 5 seconds
+        errorMessageTimer = setTimeout(() => {
             errorElement.classList.add('hidden');
+            errorMessageTimer = null;
         }, 5000);
+    }
+
+    // Function to hide all messages and clear timers
+    function hideAllMessages() {
+        // Clear success message timer
+        if (successMessageTimer) {
+            clearTimeout(successMessageTimer);
+            successMessageTimer = null;
+        }
+
+        // Clear error message timer
+        if (errorMessageTimer) {
+            clearTimeout(errorMessageTimer);
+            errorMessageTimer = null;
+        }
+
+        // Hide all messages
+        const successElement = document.getElementById('successMessage');
+        const errorElement = document.getElementById('errorMessage');
+
+        if (successElement) {
+            successElement.classList.add('hidden');
+        }
+        if (errorElement) {
+            errorElement.classList.add('hidden');
+        }
     }
 
     // Load real database record counts
     function loadRealDataCounts() {
-        // Set real record counts based on actual database data
-        moduleCounts = {
-            patient_records: 26,
-            prenatal_monitoring: 4, 
-            child_records: 4,
-            immunization_records: 4,
-            vaccine_management: 15
-        };
+        // Use server-side real module information
+        const moduleInfo = @json($moduleInfo ?? []);
 
-        // Estimate sizes based on record counts (approximate KB per record)
-        const avgSizePerRecord = {
-            patient_records: 2, // KB per patient record
-            prenatal_monitoring: 3, // KB per prenatal record  
-            child_records: 2.5, // KB per child record
-            immunization_records: 1.5, // KB per immunization record
-            vaccine_management: 1 // KB per vaccine record
-        };
-
-        // Calculate estimated sizes
+        // Extract counts and sizes from server data
+        moduleCounts = {};
         moduleSizes = {};
-        Object.keys(moduleCounts).forEach(module => {
-            const sizeKB = moduleCounts[module] * avgSizePerRecord[module];
-            moduleSizes[module] = sizeKB / 1024; // Convert to MB
+
+        Object.keys(moduleInfo).forEach(module => {
+            moduleCounts[module] = moduleInfo[module].record_count || 0;
+            moduleSizes[module] = moduleInfo[module].size_mb || 0;
         });
 
         // Update UI with real counts
-        document.getElementById('patient-records-count').textContent = `${moduleCounts.patient_records} records • ${formatSize(moduleSizes.patient_records)}`;
-        document.getElementById('prenatal-records-count').textContent = `${moduleCounts.prenatal_monitoring} records • ${formatSize(moduleSizes.prenatal_monitoring)}`;
-        document.getElementById('child-records-count').textContent = `${moduleCounts.child_records} records • ${formatSize(moduleSizes.child_records)}`;
-        document.getElementById('immunization-records-count').textContent = `${moduleCounts.immunization_records} records • ${formatSize(moduleSizes.immunization_records)}`;
-        document.getElementById('vaccine-records-count').textContent = `${moduleCounts.vaccine_management} records • ${formatSize(moduleSizes.vaccine_management)}`;
+        const updateModuleDisplay = (moduleKey, elementId) => {
+            const info = moduleInfo[moduleKey];
+            if (info && document.getElementById(elementId)) {
+                const count = info.record_count || 0;
+                const size = info.size_formatted || '0 B';
+                document.getElementById(elementId).textContent = `${count} records • ${size}`;
+            }
+        };
+
+        updateModuleDisplay('patient_records', 'patient-records-count');
+        updateModuleDisplay('prenatal_monitoring', 'prenatal-records-count');
+        updateModuleDisplay('child_records', 'child-records-count');
+        updateModuleDisplay('immunization_records', 'immunization-records-count');
+        updateModuleDisplay('vaccine_management', 'vaccine-records-count');
+
+        console.log('Module info loaded:', moduleInfo);
+        console.log('Module counts:', moduleCounts);
+        console.log('Module sizes:', moduleSizes);
     }
 
     // Format size for display

@@ -1,550 +1,343 @@
 @extends('layout.midwife')
-@section('title', 'Child Record Details')
+@section('title', 'Child Record Details - ' . $childRecord->child_name)
 @section('page-title', 'Child Record Details')
-@section('page-subtitle', 'View child information and immunization history')
+@section('page-subtitle', $childRecord->child_name . ' - Complete Child Record & Immunization History')
 
 @push('styles')
 <style>
-    .record-section {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e5e7eb;
-    }
-
-    .section-header {
-        background: linear-gradient(135deg, #68727A 0%, #36535E 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 12px 12px 0 0;
-    }
-
-    .section-content {
-        padding: 1.5rem;
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.25rem;
-    }
-
-    .info-item {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1rem;
-        background: #fafafa;
-    }
-
-    .info-label {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #36535E;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
-    }
-
-    .info-value {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #68727A;
-    }
-
-    .immunization-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1.25rem;
-        background: white;
-        transition: all 0.2s ease;
-    }
-
-    .immunization-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-
-    .vaccine-name {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-
-    .vaccine-date {
-        font-size: 0.875rem;
-        color: #68727A;
-        margin-bottom: 0.75rem;
-    }
-
-    .vaccine-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.75rem;
-        margin-top: 1rem;
-    }
-
-    .vaccine-detail {
-        font-size: 0.875rem;
-    }
-
-    .vaccine-detail-label {
-        font-weight: 600;
-        color: #6b7280;
-    }
-
-    .vaccine-detail-value {
-        color: #374151;
-    }
-
+    /* Compact Button Styles */
     .btn-action {
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
     }
 
-    .btn-primary {
-        background: #68727A;
+    .btn-view {
+        background-color: #f8fafc;
+        color: #475569;
+        border-color: #e2e8f0;
+    }
+
+    .btn-view:hover {
+        background-color: #68727A;
         color: white;
-        border: 1px solid #68727A;
+        border-color: #68727A;
     }
 
-    .btn-primary:hover {
-        background: #36535E;
-        border-color: #36535E;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(104, 114, 122, 0.3);
+    .btn-edit {
+        background-color: #fef3c7;
+        color: #92400e;
+        border-color: #fde68a;
     }
 
-    .btn-secondary {
-        background: white;
-        color: #68727A;
-        border: 1px solid #68727A;
-    }
-
-    .btn-secondary:hover {
-        background: #68727A;
+    .btn-edit:hover {
+        background-color: #f59e0b;
         color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(104, 114, 122, 0.3);
+        border-color: #f59e0b;
     }
 
     .btn-success {
-        background: #10b981;
-        color: white;
-        border: 1px solid #10b981;
+        background-color: #f0fdf4;
+        color: #166534;
+        border-color: #bbf7d0;
     }
 
     .btn-success:hover {
-        background: #059669;
-        border-color: #059669;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        background-color: #10b981;
+        color: white;
+        border-color: #10b981;
     }
 
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        background: #f9fafb;
-        border-radius: 8px;
-        border: 2px dashed #d1d5db;
+    /* Compact Status Badge Styles */
+    .status-done {
+        background-color: #10b981;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 500;
     }
 
-    .breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-        font-size: 0.875rem;
+    .status-upcoming {
+        background-color: #f59e0b;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 500;
     }
 
-    .breadcrumb a {
-        color: #68727A;
-        text-decoration: none;
-        transition: color 0.2s ease;
+    .status-missed {
+        background-color: #ef4444;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 500;
     }
 
-    .breadcrumb a:hover {
-        color: #36535E;
+    /* Compact Cards */
+    .compact-card {
+        padding: 8px 12px;
+        margin-bottom: 8px;
     }
 
-    .breadcrumb-separator {
-        color: #9ca3af;
-    }
-
-    @media (max-width: 768px) {
-        .info-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .vaccine-details {
-            grid-template-columns: 1fr;
-        }
-        
-        .section-content {
-            padding: 1rem;
-        }
+    /* Small Icon Size */
+    .icon-sm {
+        width: 8px;
+        height: 8px;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto">
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb">
-        <a href="{{ route('midwife.childrecord.index') }}">
-            <i class="fas fa-baby"></i> Child Records
+
+@include('components.flowbite-alert')
+
+<div class="space-y-2">
+    <!-- Back Button -->
+    <div class="mb-2">
+        <a href="{{ route('midwife.childrecord.index') }}" class="btn-action btn-view inline-flex items-center">
+            <i class="fas fa-arrow-left mr-1"></i>
+            <span class="hidden sm:inline">Back to Records</span>
         </a>
-        <span class="breadcrumb-separator">/</span>
-        <span class="text-gray-900 font-medium">{{ $childRecord->child_name }}</span>
-    </nav>
-
-    <!-- Header Actions -->
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ $childRecord->child_name }}</h1>
-            <p class="text-gray-600">Child ID: {{ $childRecord->formatted_child_id }}</p>
-        </div>
-        <div class="flex gap-3">
-            <a href="{{ route('midwife.childrecord.edit', $childRecord->id) }}" class="btn-action btn-secondary">
-                <i class="fas fa-edit"></i>
-                Edit Record
-            </a>
-            <a href="{{ route('midwife.childrecord.index') }}" class="btn-action btn-primary">
-                <i class="fas fa-arrow-left"></i>
-                Back to List
-            </a>
-        </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Child Information -->
-        <div class="record-section">
-            <div class="section-header">
-                <h2 class="text-xl font-semibold flex items-center">
-                    <i class="fas fa-baby mr-3"></i>
-                    Child Information
-                </h2>
-            </div>
-            <div class="section-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Full Name</div>
-                        <div class="info-value">{{ $childRecord->child_name }}</div>
+    <!-- Child Header Card -->
+    <div class="bg-white rounded shadow-sm border">
+        <div class="px-4 py-3 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-baby text-pink-600 text-xs"></i>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Gender</div>
-                        <div class="info-value">
-                            <i class="fas {{ $childRecord->gender === 'Male' ? 'fa-mars text-blue-500' : 'fa-venus text-pink-500' }} mr-2"></i>
-                            {{ $childRecord->gender }}
+                    <div>
+                        <h1 class="text-sm font-semibold text-gray-900">{{ $childRecord->child_name }}</h1>
+                        <div class="flex items-center space-x-3 text-xs text-gray-500">
+                            <span><i class="fas fa-id-card mr-1"></i>{{ $childRecord->formatted_child_id ?? 'CH-' . str_pad($childRecord->id, 3, '0', STR_PAD_LEFT) }}</span>
+                            <span><i class="fas fa-birthday-cake mr-1"></i>{{ $childRecord->age ?? 'N/A' }}</span>
+                            <span><i class="fas fa-{{ $childRecord->gender === 'Male' ? 'mars text-blue-500' : 'venus text-pink-500' }} mr-1"></i>{{ $childRecord->gender }}</span>
                         </div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Birth Date</div>
-                        <div class="info-value">{{ $childRecord->birthdate ? $childRecord->birthdate->format('F j, Y') : 'N/A' }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Age</div>
-                        <div class="info-value">{{ $childRecord->age ?? 'N/A' }}</div>
-                    </div>
+                </div>
+                <div class="text-right">
+                    @php
+                        $upcomingImmunizations = $childRecord->immunizations->where('status', 'Upcoming');
+                        $completedImmunizations = $childRecord->immunizations->where('status', 'Done');
+                    @endphp
+                    <span class="status-{{ $upcomingImmunizations->count() > 0 ? 'upcoming' : 'done' }}">
+                        {{ $upcomingImmunizations->count() > 0 ? 'Active' : 'Up to Date' }}
+                    </span>
+                    @if($childRecord->birthdate)
+                        <p class="text-xs text-gray-500 mt-1">Born: {{ $childRecord->birthdate->format('M d, Y') }}</p>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- Birth Details -->
-        <div class="record-section">
-            <div class="section-header">
-                <h2 class="text-xl font-semibold flex items-center">
-                    <i class="fas fa-weight mr-3"></i>
-                    Birth Details
-                </h2>
-            </div>
-            <div class="section-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Birth Weight</div>
-                        <div class="info-value">{{ $childRecord->birth_weight ? number_format($childRecord->birth_weight, 3) . ' kg' : 'N/A' }}</div>
+        <!-- Child Record Details -->
+        <div class="px-4 py-3">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                <div class="bg-gray-50 rounded p-2 text-center">
+                    <div class="text-xs text-gray-600 mb-1">
+                        <i class="fas fa-syringe mr-1"></i>Immunizations
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Birth Height</div>
-                        <div class="info-value">{{ $childRecord->birth_height ? number_format($childRecord->birth_height, 1) . ' cm' : 'N/A' }}</div>
+                    <p class="text-sm font-semibold text-gray-900">{{ $childRecord->immunizations->count() }}</p>
+                </div>
+                <div class="bg-gray-50 rounded p-2 text-center">
+                    <div class="text-xs text-gray-600 mb-1">
+                        <i class="fas fa-check-circle mr-1"></i>Completed
                     </div>
-                    <div class="info-item lg:col-span-2">
-                        <div class="info-label">Birth Place</div>
-                        <div class="info-value">{{ $childRecord->birthplace ?? 'N/A' }}</div>
+                    @php
+                        $totalRequiredImmunizations = 12; // Standard childhood immunization schedule
+                        $completedCount = $completedImmunizations->count();
+                        $progressPercentage = $totalRequiredImmunizations > 0 ? round(($completedCount / $totalRequiredImmunizations) * 100) : 0;
+                    @endphp
+                    <p class="text-sm font-semibold text-gray-900">
+                        {{ $completedCount }}/{{ $totalRequiredImmunizations }}
+                    </p>
+                    <div class="text-xs text-gray-500 mt-1">
+                        {{ $progressPercentage }}% complete
+                    </div>
+                    <!-- Mini progress bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
+                        <div class="bg-green-600 h-1 rounded-full transition-all duration-300" style="width: {{ $progressPercentage }}%"></div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Parent Information -->
-        <div class="record-section">
-            <div class="section-header">
-                <h2 class="text-xl font-semibold flex items-center">
-                    <i class="fas fa-users mr-3"></i>
-                    Parent Information
-                </h2>
-            </div>
-            <div class="section-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Mother's Name</div>
-                        <div class="info-value">{{ $childRecord->mother_name ?? 'N/A' }}</div>
+                <div class="bg-gray-50 rounded p-2 text-center">
+                    <div class="text-xs text-gray-600 mb-1">
+                        <i class="fas fa-clock mr-1"></i>Upcoming
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Father's Name</div>
-                        <div class="info-value">{{ $childRecord->father_name ?? 'N/A' }}</div>
+                    <p class="text-sm font-semibold text-gray-900">{{ $upcomingImmunizations->count() }}</p>
+                </div>
+                <div class="bg-gray-50 rounded p-2 text-center">
+                    <div class="text-xs text-gray-600 mb-1">
+                        <i class="fas fa-calendar-check mr-1"></i>Last Done
                     </div>
+                    <p class="text-sm font-semibold text-gray-900">
+                        @php
+                            $lastDone = $completedImmunizations->sortByDesc('schedule_date')->first();
+                        @endphp
+                        {{ $lastDone ? $lastDone->schedule_date->format('M d') : 'None' }}
+                    </p>
                 </div>
             </div>
-        </div>
 
-        <!-- Contact Information -->
-        <div class="record-section">
-            <div class="section-header">
-                <h2 class="text-xl font-semibold flex items-center">
-                    <i class="fas fa-phone mr-3"></i>
-                    Contact Information
-                </h2>
-            </div>
-            <div class="section-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Phone Number</div>
-                        <div class="info-value">
-                            @if($childRecord->phone_number)
-                                @php
-                                    $phone = $childRecord->phone_number;
-                                    if (strlen($phone) === 10 && str_starts_with($phone, '9')) {
-                                        $phone = '+63' . $phone;
-                                    }
-                                @endphp
-                                {{ $phone }}
-                            @else
-                                N/A
-                            @endif
+            <!-- Record Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                <div>
+                    <h4 class="text-xs font-medium text-gray-700 mb-2">Birth Details</h4>
+                    <div class="space-y-1 text-xs text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Birth Date:</span>
+                            <span>{{ $childRecord->birthdate ? $childRecord->birthdate->format('M d, Y') : 'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Birth Weight:</span>
+                            <span>{{ $childRecord->birth_weight ? number_format($childRecord->birth_weight, 3) . 'kg' : 'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Birth Height:</span>
+                            <span>{{ $childRecord->birth_height ? number_format($childRecord->birth_height, 1) . 'cm' : 'N/A' }}</span>
                         </div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Address</div>
-                        <div class="info-value">{{ $childRecord->address ?? 'N/A' }}</div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-medium text-gray-700 mb-2">Parent Information</h4>
+                    <div class="space-y-1 text-xs text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Mother:</span>
+                            <span>{{ $childRecord->mother_name ?? 'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Father:</span>
+                            <span>{{ $childRecord->father_name ?? 'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Contact:</span>
+                            <span>{{ $childRecord->phone_number ?? 'N/A' }}</span>
+                        </div>
                     </div>
                 </div>
+                <div>
+                    <h4 class="text-xs font-medium text-gray-700 mb-2">Location</h4>
+                    <div class="text-xs text-gray-600">
+                        <div class="space-y-1">
+                            <div class="flex justify-between">
+                                <span>Birth Place:</span>
+                                <span>{{ $childRecord->birthplace ?? 'N/A' }}</span>
+                            </div>
+                            <div>
+                                <span>Address:</span>
+                                <p class="mt-1 text-xs">{{ $childRecord->address ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-1">
+                <a href="{{ route('midwife.immunization.index') }}" class="btn-action btn-success inline-flex items-center">
+                    <i class="fas fa-syringe mr-1"></i>
+                    <span class="hidden sm:inline">Schedule</span>
+                </a>
+                <a href="{{ route('midwife.childrecord.edit', $childRecord->id) }}" class="btn-action btn-edit inline-flex items-center">
+                    <i class="fas fa-edit mr-1"></i>
+                    <span class="hidden sm:inline">Edit</span>
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Immunization History -->
-    <div class="record-section">
-        <div class="section-header">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold flex items-center">
-                    <i class="fas fa-syringe mr-3"></i>
-                    Immunization History
-                </h2>
-                <button onclick="openAddImmunizationModal()" class="btn-action btn-success">
-                    <i class="fas fa-plus"></i>
-                    Add Immunization
-                </button>
+    <div class="bg-white rounded shadow-sm border">
+        <div class="px-4 py-3 border-b border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-history mr-1 text-gray-600"></i>
+                Immunization History
+            </h3>
+        </div>
+
+        @if($childRecord->immunizations->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccine</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dose</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Due</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($childRecord->immunizations->sortByDesc('schedule_date') as $index => $immunization)
+                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-day text-gray-500 mr-1"></i>
+                                        {{ $immunization->schedule_date->format('M d, Y') }}
+                                        @if($immunization->status === 'Done' && $index === 0)
+                                            <span class="ml-2 px-1 py-0.5 bg-green-100 text-green-800 text-xs rounded">Latest</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
+                                    <i class="fas fa-clock text-gray-500 mr-1"></i>
+                                    {{ $immunization->schedule_time ? \Carbon\Carbon::parse($immunization->schedule_time)->format('h:i A') : 'N/A' }}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
+                                    <span class="font-medium">{{ $immunization->vaccine_name }}</span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                        {{ $immunization->dose }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
+                                    <span class="status-{{ strtolower($immunization->status) }}">{{ $immunization->status }}</span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
+                                    @if($immunization->next_due_date)
+                                        <span class="text-yellow-600">
+                                            <i class="fas fa-calendar-plus mr-1"></i>
+                                            {{ \Carbon\Carbon::parse($immunization->next_due_date)->format('M d, Y') }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400">N/A</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-xs text-gray-900">
+                                    @if($immunization->notes)
+                                        <div class="max-w-xs">
+                                            <p class="truncate" title="{{ $immunization->notes }}">{{ $immunization->notes }}</p>
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400">No notes</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
-        <div class="section-content">
-            @if($childRecord->immunizations->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @foreach($childRecord->immunizations as $immunization)
-                    <div class="immunization-card">
-                        <div class="vaccine-name">{{ $immunization->vaccine_name }}</div>
-                        <div class="vaccine-date">
-                            <i class="fas fa-calendar-alt mr-2"></i>
-                            {{ $immunization->vaccination_date->format('F j, Y') }}
-                        </div>
-                        
-                        @if($immunization->vaccine_description)
-                        <div class="text-gray-600 text-sm mb-3">
-                            {{ $immunization->vaccine_description }}
-                        </div>
-                        @endif
-                        
-                        <div class="vaccine-details">
-                            <div class="vaccine-detail">
-                                <div class="vaccine-detail-label">Administered by:</div>
-                                <div class="vaccine-detail-value">{{ $immunization->administered_by }}</div>
-                            </div>
-                            
-                            @if($immunization->batch_number)
-                            <div class="vaccine-detail">
-                                <div class="vaccine-detail-label">Batch Number:</div>
-                                <div class="vaccine-detail-value">{{ $immunization->batch_number }}</div>
-                            </div>
-                            @endif
-                            
-                            @if($immunization->next_due_date)
-                            <div class="vaccine-detail">
-                                <div class="vaccine-detail-label">Next Due:</div>
-                                <div class="vaccine-detail-value">{{ $immunization->next_due_date }}</div>
-                            </div>
-                            @endif
-                        </div>
-                        
-                        @if($immunization->notes)
-                        <div class="mt-3 p-3 bg-gray-50 rounded-md">
-                            <div class="text-sm font-medium text-gray-700 mb-1">Notes:</div>
-                            <div class="text-sm text-gray-600">{{ $immunization->notes }}</div>
-                        </div>
-                        @endif
-                        
-                        <div class="flex justify-end mt-4 gap-2">
-                            <button onclick="editImmunization({{ $immunization->id }})" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                <i class="fas fa-edit mr-1"></i>Edit
-                            </button>
-                            <button onclick="deleteImmunization({{ $immunization->id }})" class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                <i class="fas fa-trash mr-1"></i>Delete
-                            </button>
-                        </div>
-                    </div>
-                    @endforeach
+        @else
+            <div class="p-6">
+                <div class="text-center py-6 text-gray-500">
+                    <i class="fas fa-syringe text-xl mb-2 text-gray-400"></i>
+                    <p class="text-xs">No immunizations recorded yet.</p>
+                    <p class="text-xs text-gray-400">Schedule the first immunization for this child.</p>
                 </div>
-            @else
-                <div class="empty-state">
-                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-syringe text-gray-400 text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Immunizations Recorded</h3>
-                    <p class="text-gray-500 mb-6">Start tracking this child's immunization history by adding their first vaccination record.</p>
-                    <button onclick="openAddImmunizationModal()" class="btn-action btn-success">
-                        <i class="fas fa-plus mr-2"></i>Add First Immunization
-                    </button>
-                </div>
-            @endif
-        </div>
+            </div>
+        @endif
     </div>
 </div>
 
-<!-- Add Immunization Modal -->
-<div id="addImmunizationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div class="bg-gradient-to-r from-[#68727A] to-[#36535E] text-white p-6 rounded-t-xl">
-            <div class="flex justify-between items-center">
-                <h3 class="text-xl font-semibold flex items-center">
-                    <i class="fas fa-syringe mr-3"></i>
-                    Add Immunization Record
-                </h3>
-                <button onclick="closeAddImmunizationModal()" class="text-white hover:text-gray-300">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-        </div>
-        
-        <form id="addImmunizationForm" action="{{ route('midwife.childrecord.immunizations.store', $childRecord->id) }}" method="POST" class="p-6">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Vaccine Name *</label>
-                    <input type="text" name="vaccine_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#68727A] focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Vaccination Date *</label>
-                    <input type="date" name="vaccination_date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#68727A] focus:border-transparent">
-                </div>
-            </div>
-            
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Vaccine Description</label>
-                <textarea name="vaccine_description" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#68727A] focus:border-transparent"></textarea>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Administered By *</label>
-                    <input type="text" name="administered_by" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#68727A] focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Batch Number</label>
-                    <input type="text" name="batch_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#68727A] focus:border-transparent">
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Next Due Date</label>
-                    <input type="text" name="next_due_date" placeholder="e.g., 6 months, 1 year" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#68727A] focus:border-transparent">
-                </div>
-            </div>
-            
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                <textarea name="notes" rows="3" placeholder="Any additional notes or observations..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#68727A] focus:border-transparent"></textarea>
-            </div>
-            
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeAddImmunizationModal()" class="btn-action btn-secondary">
-                    Cancel
-                </button>
-                <button type="submit" class="btn-action btn-success">
-                    <i class="fas fa-save mr-2"></i>
-                    Save Immunization
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
 @endsection
-
-@push('scripts')
-<script>
-function openAddImmunizationModal() {
-    document.getElementById('addImmunizationModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    
-    // Set max date to today
-    const dateInput = document.querySelector('input[name="vaccination_date"]');
-    if (dateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.setAttribute('max', today);
-    }
-}
-
-function closeAddImmunizationModal() {
-    document.getElementById('addImmunizationModal').classList.add('hidden');
-    document.body.style.overflow = '';
-    
-    // Reset form
-    document.getElementById('addImmunizationForm').reset();
-}
-
-function editImmunization(id) {
-    // TODO: Implement edit functionality
-    console.log('Edit immunization:', id);
-}
-
-function deleteImmunization(id) {
-    if (confirm('Are you sure you want to delete this immunization record?')) {
-        // TODO: Implement delete functionality
-        console.log('Delete immunization:', id);
-    }
-}
-
-// Close modal when clicking outside
-document.addEventListener('click', function(event) {
-    const modal = document.getElementById('addImmunizationModal');
-    if (event.target === modal) {
-        closeAddImmunizationModal();
-    }
-});
-
-// Close modal on Escape key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeAddImmunizationModal();
-    }
-});
-</script>
-@endpush

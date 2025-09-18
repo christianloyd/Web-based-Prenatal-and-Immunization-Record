@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 class PrenatalCheckup extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'prenatal_checkups';
 
@@ -16,7 +17,7 @@ class PrenatalCheckup extends Model
         'formatted_checkup_id',
         'prenatal_record_id',
         'patient_id',
-        'checkup_date',
+        'appointment_id',
         'gestational_age_weeks',
         'weight_kg',
         'blood_pressure_systolic',
@@ -26,10 +27,9 @@ class PrenatalCheckup extends Model
         'presentation',
         'symptoms',
         'notes',
-        'next_visit_date',
-        'conducted_by',
         'status',
-        // Legacy fields from old structure
+        // Legacy fields - kept for backward compatibility during transition
+        'checkup_date',
         'checkup_time',
         'weeks_pregnant',
         'bp_high',
@@ -39,8 +39,10 @@ class PrenatalCheckup extends Model
         'belly_size',
         'baby_movement',
         'swelling',
+        'next_visit_date',
         'next_visit_time',
-        'next_visit_notes'
+        'next_visit_notes',
+        'conducted_by'
     ];
 
     protected $dates = [
@@ -69,49 +71,72 @@ class PrenatalCheckup extends Model
         return $this->belongsTo(Patient::class);
     }
 
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
+    }
+
     public function conductedBy()
     {
         return $this->belongsTo(User::class, 'conducted_by');
     }
 
     // Scopes
-    public function scopeCompleted($query)
+    public function scopeDone($query)
     {
-        return $query->where('status', 'completed');
-    }
-
-    public function scopeScheduled($query)
-    {
-        return $query->where('status', 'scheduled');
+        return $query->where('status', 'done');
     }
 
     public function scopeUpcoming($query)
     {
-        return $query->whereIn('status', ['scheduled', 'upcoming'])
-                     ->where('checkup_date', '>=', now()->toDateString());
+        return $query->where('status', 'upcoming');
     }
 
     public function scopeThisMonth($query)
     {
-        return $query->whereMonth('checkup_date', now()->month)
-                     ->whereYear('checkup_date', now()->year);
+        return $query->whereHas('appointment', function($q) {
+            $q->whereMonth('appointment_date', now()->month)
+              ->whereYear('appointment_date', now()->year);
+        });
     }
 
     public function scopeLastMonth($query)
     {
-        return $query->whereMonth('checkup_date', now()->subMonth()->month)
-                     ->whereYear('checkup_date', now()->subMonth()->year);
+        return $query->whereHas('appointment', function($q) {
+            $q->whereMonth('appointment_date', now()->subMonth()->month)
+              ->whereYear('appointment_date', now()->subMonth()->year);
+        });
     }
 
     // Accessors
     public function getFormattedCheckupDateAttribute()
     {
+        // Get date from appointment if available, otherwise use legacy field
+        if ($this->appointment) {
+            return $this->appointment->formatted_appointment_date;
+        }
         return $this->checkup_date ? $this->checkup_date->format('M d, Y') : null;
     }
 
-    public function getFormattedNextVisitDateAttribute()
+    public function getFormattedCheckupTimeAttribute()
     {
-        return $this->next_visit_date ? $this->next_visit_date->format('M d, Y') : null;
+        // Get time from appointment if available, otherwise use legacy field
+        if ($this->appointment) {
+            return $this->appointment->formatted_appointment_time;
+        }
+        return $this->checkup_time ? Carbon::parse($this->checkup_time)->format('g:i A') : null;
+    }
+
+    public function getFormattedCheckupDateTimeAttribute()
+    {
+        if ($this->appointment) {
+            return $this->appointment->formatted_appointment_date_time;
+        }
+        // Fallback to legacy fields
+        if ($this->checkup_date && $this->checkup_time) {
+            return $this->checkup_date->format('M d, Y') . ' at ' . Carbon::parse($this->checkup_time)->format('g:i A');
+        }
+        return null;
     }
 
     public function getBloodPressureAttribute()
@@ -129,10 +154,8 @@ class PrenatalCheckup extends Model
     public function getStatusColorAttribute()
     {
         return match($this->status) {
-            'completed' => 'success',
-            'scheduled', 'upcoming' => 'info',
-            'cancelled' => 'danger',
-            'rescheduled' => 'warning',
+            'done' => 'success',
+            'upcoming' => 'primary',
             default => 'secondary'
         };
     }
@@ -140,11 +163,8 @@ class PrenatalCheckup extends Model
     public function getStatusTextAttribute()
     {
         return match($this->status) {
-            'completed' => 'Completed',
-            'scheduled' => 'Scheduled',
+            'done' => 'Done',
             'upcoming' => 'Upcoming',
-            'cancelled' => 'Cancelled',
-            'rescheduled' => 'Rescheduled',
             default => ucfirst($this->status)
         };
     }

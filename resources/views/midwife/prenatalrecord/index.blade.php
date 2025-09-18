@@ -5,6 +5,11 @@
 
 @push('styles')
 <style>
+    :root {
+        --primary: #243b55;
+        --secondary: #141e30;
+    }
+
     /* Modal Animation Styles */
     .modal-overlay {
         transition: opacity 0.3s ease-out;
@@ -126,25 +131,10 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success Message -->
-    @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('success') }}</span>
-        </div>
-    @endif
-
-    <!-- Error Message -->
-    @if(session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
-    @endif
-
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
          <div> </div>
         <div class="flex space-x-3">
-            @include('components.refresh-data-button', ['id' => 'prenatal-refresh-btn'])
             <!-- FIXED: Changed from anchor to button that opens modal -->
             <button onclick="openPrenatalModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -161,7 +151,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <div class="relative">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by patient name or ID..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary form-input">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by patient name" class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary form-input">
                         <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
                         </svg>
@@ -216,6 +206,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $record->patient->formatted_patient_id ?? 'N/A' }}
                         </td>
+                         
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {{ $record->patient->name ?? 'N/A' }}
                         </td>
@@ -235,7 +226,7 @@
                             @if($record->expected_due_date)
                                 {{ $record->expected_due_date->format('M d, Y') }}
                                 @if($record->is_overdue)
-                                    <span class="text-red-600 text-xs block">Overdue</span>
+                                    <!--<span class="text-red-600 text-xs block">Overdue</span>-->
                                 @elseif($record->days_until_due <= 14 && $record->days_until_due >= 0)
                                     <span class="text-orange-600 text-xs block">{{ $record->days_until_due }} days left</span>
                                 @endif
@@ -249,7 +240,11 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $record->last_visit ? $record->last_visit->format('M d, Y') : 'No visits' }}
+                            @if($record->latestCheckup && $record->latestCheckup->checkup_date)
+                                {{ $record->latestCheckup->checkup_date->format('M d, Y') }}
+                            @else
+                                <span class="text-gray-500">No checkups</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-4">
@@ -268,7 +263,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                        <td colspan="9" class="px-6 py-8 text-center text-gray-500">
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -339,16 +334,16 @@ function closePrenatalModal(e) {
     const modal = document.getElementById('prenatal-modal');
     if (!modal) return;
     
+    // Reset form using the universal reset system
+    const form = modal.querySelector('form');
+    if (form && window.modalFormResetManager) {
+        window.modalFormResetManager.resetForm(form);
+    }
+    
     modal.classList.remove('show');
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-        
-        // Only reset form if there are no validation errors
-        if (!document.querySelector('.bg-red-100')) {
-            const form = modal.querySelector('form');
-            if (form) form.reset();
-        }
     }, 300);
 }
 
@@ -496,6 +491,12 @@ function closeEditPrenatalModal(e) {
     
     const modal = document.getElementById('edit-prenatal-modal');
     if (!modal) return;
+    
+    // Reset form using the universal reset system
+    const form = modal.querySelector('form');
+    if (form && window.modalFormResetManager) {
+        window.modalFormResetManager.resetForm(form);
+    }
     
     modal.classList.remove('show');
     setTimeout(() => {

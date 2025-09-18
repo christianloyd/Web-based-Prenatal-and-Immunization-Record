@@ -28,16 +28,18 @@ class CloudBackupController extends Controller
         $stats = $this->backupService->getBackupStats();
         $googleDriveConnected = $this->backupService->testGoogleDriveConnection();
         $driveStorage = $this->backupService->getGoogleDriveStorageInfo();
-        
+        $moduleInfo = $this->backupService->getModuleInfo();
+
         // Check if using OAuth2 and if authenticated
         $googleDriveService = app(\App\Services\GoogleDriveService::class);
         $isOAuth = file_exists(storage_path('app/google/oauth_credentials.json'));
         $isAuthenticated = $googleDriveService ? $googleDriveService->isAuthenticated() : false;
-        
+
         return view('midwife.cloudbackup.index', compact(
-            'stats', 
-            'googleDriveConnected', 
+            'stats',
+            'googleDriveConnected',
             'driveStorage',
+            'moduleInfo',
             'isOAuth',
             'isAuthenticated'
         ));
@@ -189,7 +191,7 @@ class CloudBackupController extends Controller
 
         try {
             $backup = CloudBackup::findOrFail($request->backup_id);
-            
+
             if ($backup->status !== 'completed') {
                 return response()->json([
                     'success' => false,
@@ -211,16 +213,36 @@ class CloudBackupController extends Controller
                     'verified' => true,
                     'created_by' => Auth::id()
                 ]);
-                
+
                 $this->backupService->createBackup($preRestoreBackup);
+
+                // Refresh the original backup model to ensure we have the latest status
+                $backup->refresh();
+            }
+
+            // Double-check the backup status before restore (in case it was affected by pre-backup process)
+            if ($backup->status !== 'completed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot restore from incomplete backup'
+                ], 400);
             }
 
             // Perform the restore
             $this->backupService->restoreBackup($backup);
 
+            $restoreMessage = 'Data restored successfully from "' . $backup->name . '"!';
+            if ($backup->type === 'selective') {
+                $modules = is_array($backup->modules) ? $backup->modules : [];
+                $moduleNames = array_map(function($module) {
+                    return str_replace('_', ' ', ucwords($module, '_'));
+                }, $modules);
+                $restoreMessage .= ' Only the following modules were restored: ' . implode(', ', $moduleNames) . '. Other data was preserved.';
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Data restored successfully from "' . $backup->name . '"!'
+                'message' => $restoreMessage
             ]);
 
         } catch (Exception $e) {

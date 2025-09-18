@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Immunization;
 use App\Models\ChildRecord;
 use App\Models\Vaccine;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use App\Notifications\HealthcareNotification;
 
 class ImmunizationController extends Controller
 {
@@ -42,9 +45,10 @@ class ImmunizationController extends Controller
             });
         }
 
-        // Status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        // Status filter - default to 'Upcoming' if no status is specified
+        $status = $request->get('status', 'Upcoming');
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
         }
 
         // Vaccine filter
@@ -95,7 +99,7 @@ class ImmunizationController extends Controller
             ? 'bhw.immunization.index'
             : 'midwife.immunization.index';
 
-        return view($viewPath, compact('immunizations', 'childRecords', 'availableVaccines', 'stats'));
+        return view($viewPath, compact('immunizations', 'childRecords', 'availableVaccines', 'stats'))->with('currentStatus', $status);
     }
 
     /**
@@ -119,7 +123,21 @@ class ImmunizationController extends Controller
             'dose' => 'required|string|max:255',
             'schedule_date' => 'required|date|after_or_equal:today',
             'schedule_time' => 'required|date_format:H:i',
-            'notes' => 'nullable|string|max:1000'
+            'notes' => 'required|string|max:1000'
+        ], [
+            'child_record_id.required' => 'Please select a child.',
+            'child_record_id.exists' => 'The selected child is invalid.',
+            'vaccine_id.required' => 'Please select a vaccine.',
+            'vaccine_id.exists' => 'The selected vaccine is invalid.',
+            'dose.required' => 'Please select a dose.',
+            'dose.max' => 'Dose description cannot exceed 255 characters.',
+            'schedule_date.required' => 'Schedule date is required.',
+            'schedule_date.date' => 'Please enter a valid date.',
+            'schedule_date.after_or_equal' => 'Schedule date must be today or a future date.',
+            'schedule_time.required' => 'Schedule time is required.',
+            'schedule_time.date_format' => 'Please enter a valid time format (HH:MM).',
+            'notes.required' => 'Notes are required.',
+            'notes.max' => 'Notes cannot exceed 1000 characters.'
         ]);
 
         try {
@@ -130,6 +148,16 @@ class ImmunizationController extends Controller
             if ($vaccine->current_stock <= 0) {
                 return back()->withInput()
                            ->withErrors(['vaccine_id' => "The vaccine '{$vaccine->name}' is currently out of stock."]);
+            }
+
+            // Check if child already has an upcoming immunization
+            $existingUpcoming = Immunization::where('child_record_id', $validated['child_record_id'])
+                                          ->where('status', 'Upcoming')
+                                          ->first();
+
+            if ($existingUpcoming) {
+                return back()->withInput()
+                           ->withErrors(['child_record_id' => 'This child already has an upcoming immunization scheduled. Please complete or reschedule the existing one first.']);
             }
 
             // Prepare immunization data
@@ -144,7 +172,19 @@ class ImmunizationController extends Controller
                 $validated['schedule_date']
             );
 
-            Immunization::create($immunizationData);
+            $immunization = Immunization::create($immunizationData);
+
+            // Send notification to all healthcare workers
+            $child = ChildRecord::findOrFail($validated['child_record_id']);
+            $this->notifyHealthcareWorkers(
+                'New Immunization Scheduled',
+                "Immunization for {$vaccine->name} has been scheduled for {$child->child_name} on " . Carbon::parse($validated['schedule_date'])->format('M d, Y'),
+                'info',
+                $user->role === 'midwife'
+                    ? route('midwife.immunization.index')
+                    : route('bhw.immunization.index'),
+                ['immunization_id' => $immunization->id, 'child_id' => $child->id, 'action' => 'immunization_scheduled']
+            );
 
             DB::commit();
 
@@ -194,7 +234,22 @@ class ImmunizationController extends Controller
             'schedule_date' => 'required|date',
             'schedule_time' => 'required|date_format:H:i',
             'status' => ['required', Rule::in(['Upcoming', 'Done', 'Missed'])],
-            'notes' => 'nullable|string|max:1000'
+            'notes' => 'required|string|max:1000'
+        ], [
+            'child_record_id.required' => 'Please select a child.',
+            'child_record_id.exists' => 'The selected child is invalid.',
+            'vaccine_id.required' => 'Please select a vaccine.',
+            'vaccine_id.exists' => 'The selected vaccine is invalid.',
+            'dose.required' => 'Please select a dose.',
+            'dose.max' => 'Dose description cannot exceed 255 characters.',
+            'schedule_date.required' => 'Schedule date is required.',
+            'schedule_date.date' => 'Please enter a valid date.',
+            'schedule_time.required' => 'Schedule time is required.',
+            'schedule_time.date_format' => 'Please enter a valid time format (HH:MM).',
+            'status.required' => 'Status is required.',
+            'status.in' => 'Invalid status selected.',
+            'notes.required' => 'Notes are required.',
+            'notes.max' => 'Notes cannot exceed 1000 characters.'
         ]);
 
         try {
@@ -231,7 +286,22 @@ class ImmunizationController extends Controller
                 $validated['schedule_date']
             );
 
+            $oldStatus = $immunization->status;
             $immunization->update($validated);
+
+            // Send notification if status changed to Done
+            if ($oldStatus !== 'Done' && $validated['status'] === 'Done') {
+                $child = ChildRecord::findOrFail($validated['child_record_id']);
+                $this->notifyHealthcareWorkers(
+                    'Immunization Completed',
+                    "Immunization for {$vaccine->name} has been completed for {$child->child_name}",
+                    'success',
+                    $user->role === 'midwife'
+                        ? route('midwife.immunization.index')
+                        : route('bhw.immunization.index'),
+                    ['immunization_id' => $immunization->id, 'child_id' => $child->id, 'action' => 'immunization_completed']
+                );
+            }
 
             DB::commit();
 
@@ -412,5 +482,202 @@ class ImmunizationController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Get available vaccines for a specific child (AJAX endpoint)
+     */
+    public function getAvailableVaccinesForChild($childId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $user = Auth::user();
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $vaccines = Immunization::getAvailableVaccinesForChild($childId);
+
+            return response()->json([
+                'success' => true,
+                'vaccines' => $vaccines->map(function ($vaccine) {
+                    return [
+                        'id' => $vaccine->id,
+                        'name' => $vaccine->name,
+                        'category' => $vaccine->category
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to load available vaccines'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get available doses for a specific vaccine and child (AJAX endpoint)
+     */
+    public function getAvailableDosesForChild($childId, $vaccineId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $user = Auth::user();
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $vaccine = Vaccine::findOrFail($vaccineId);
+            $availableDoses = Immunization::getAvailableDosesForChild($childId, $vaccine->name);
+
+            \Log::info('Available doses for child', [
+                'child_id' => $childId,
+                'vaccine_id' => $vaccineId,
+                'vaccine_name' => $vaccine->name,
+                'available_doses' => $availableDoses
+            ]);
+
+            // Create dose options array
+            $doseOptions = [];
+            if (!empty($availableDoses)) {
+                $doseOptions = array_combine($availableDoses, $availableDoses);
+            }
+
+            return response()->json([
+                'success' => true,
+                'doses' => $doseOptions
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error loading available doses', [
+                'child_id' => $childId,
+                'vaccine_id' => $vaccineId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to load available doses: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Quick update immunization status via AJAX
+     */
+    public function quickUpdateStatus(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+
+        $user = Auth::user();
+
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access'], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:Done,Missed,Upcoming',
+            'administered_by' => 'nullable|string|max:255',
+            'batch_number' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:500'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $immunization = Immunization::with(['vaccine', 'childRecord'])->findOrFail($id);
+
+            // If marking as Done, consume vaccine stock
+            if ($validated['status'] === 'Done' && $immunization->status !== 'Done') {
+                if (!$immunization->vaccine) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot mark as done - vaccine information is missing.'
+                    ], 400);
+                }
+
+                if ($immunization->vaccine->current_stock <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Cannot mark as done - vaccine '{$immunization->vaccine->name}' is out of stock."
+                    ], 400);
+                }
+
+                // Consume vaccine stock
+                $immunization->vaccine->updateStock(
+                    1,
+                    'out',
+                    "Immunization administered to {$immunization->childRecord->child_name}"
+                );
+
+                // Create child immunization record
+                \App\Models\ChildImmunization::create([
+                    'child_record_id' => $immunization->child_record_id,
+                    'vaccine_name' => $immunization->vaccine->name ?? $immunization->vaccine_name,
+                    'vaccine_description' => $immunization->vaccine->description ?? '',
+                    'vaccination_date' => $immunization->schedule_date,
+                    'administered_by' => $validated['administered_by'] ?? $user->name,
+                    'batch_number' => $validated['batch_number'],
+                    'notes' => $validated['notes'] ?? 'Marked done via quick action'
+                ]);
+            }
+
+            // Update immunization status
+            $immunization->status = $validated['status'];
+            $immunization->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Immunization marked as {$validated['status']} successfully!",
+                'data' => [
+                    'id' => $immunization->id,
+                    'status' => $immunization->status
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating immunization status: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating status. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Send notification to all healthcare workers
+     */
+    private function notifyHealthcareWorkers($title, $message, $type = 'info', $actionUrl = null, $data = [])
+    {
+        // Get all healthcare workers (midwives and BHWs)
+        $healthcareWorkers = User::whereIn('role', ['midwife', 'bhw'])
+            ->where('id', '!=', Auth::id()) // Exclude the current user
+            ->get();
+
+        foreach ($healthcareWorkers as $worker) {
+            $worker->notify(new HealthcareNotification(
+                $title,
+                $message,
+                $type,
+                $actionUrl,
+                array_merge($data, ['notified_by' => Auth::user()->name])
+            ));
+
+            // Clear notification cache for the recipient
+            Cache::forget("unread_notifications_count_{$worker->id}");
+            Cache::forget("recent_notifications_{$worker->id}");
+        }
     }
 }
