@@ -28,8 +28,12 @@ class PatientController extends Controller
         // Search functionality
         if ($request->filled('search')) {
             $term = $request->search;
-            $query->where('name', 'LIKE', "%{$term}%")
+            $query->where(function($q) use ($term) {
+                $q->where('first_name', 'LIKE', "%{$term}%")
+                  ->orWhere('last_name', 'LIKE', "%{$term}%")
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$term}%"])
                   ->orWhere('formatted_patient_id', 'LIKE', "%{$term}%");
+            });
         }
 
         $patients = $query->with('activePrenatalRecord')->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
@@ -61,11 +65,18 @@ class PatientController extends Controller
         try {
             // Define comprehensive validation rules
             $validator = Validator::make($request->all(), [
-                'name' => [
+                'first_name' => [
                     'required',
                     'string',
                     'min:2',
-                    'max:100',
+                    'max:50',
+                    'regex:/^[a-zA-Z\s\.\-\']+$/'
+                ],
+                'last_name' => [
+                    'required',
+                    'string',
+                    'min:2',
+                    'max:50',
                     'regex:/^[a-zA-Z\s\.\-\']+$/'
                 ],
                 'age' => [
@@ -99,10 +110,15 @@ class PatientController extends Controller
                 ]
             ], [
                 // Custom error messages
-                'name.required' => 'Patient name is required.',
-                'name.min' => 'Patient name must be at least 2 characters.',
-                'name.max' => 'Patient name cannot exceed 100 characters.',
-                'name.regex' => 'Patient name should only contain letters, spaces, dots, hyphens, and apostrophes.',
+                'first_name.required' => 'First name is required.',
+                'first_name.min' => 'First name must be at least 2 characters.',
+                'first_name.max' => 'First name cannot exceed 50 characters.',
+                'first_name.regex' => 'First name should only contain letters, spaces, dots, hyphens, and apostrophes.',
+
+                'last_name.required' => 'Last name is required.',
+                'last_name.min' => 'Last name must be at least 2 characters.',
+                'last_name.max' => 'Last name cannot exceed 50 characters.',
+                'last_name.regex' => 'Last name should only contain letters, spaces, dots, hyphens, and apostrophes.',
                 
                 'age.required' => 'Age is required.',
                 'age.integer' => 'Age must be a valid number.',
@@ -144,8 +160,9 @@ class PatientController extends Controller
             // Additional business logic validations
             $validatedData = $validator->validated();
             
-            // Check for duplicate patient (same name and age combination)
-            $existingPatient = Patient::where('name', 'LIKE', $validatedData['name'])
+            // Check for duplicate patient (same first name, last name and age combination)
+            $existingPatient = Patient::where('first_name', 'LIKE', $validatedData['first_name'])
+                ->where('last_name', 'LIKE', $validatedData['last_name'])
                 ->where('age', $validatedData['age'])
                 ->first();
                 
@@ -154,7 +171,7 @@ class PatientController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => 'A patient with the same name and age already exists.',
-                        'errors' => ['name' => ['A patient with the same name and age already exists.']]
+                        'errors' => ['first_name' => ['A patient with the same name and age already exists.']]
                     ], 422);
                 }
 
@@ -171,6 +188,9 @@ class PatientController extends Controller
             if (!empty($validatedData['emergency_contact'])) {
                 $validatedData['emergency_contact'] = $this->formatPhoneNumber($validatedData['emergency_contact']);
             }
+
+            // Combine first_name and last_name to create name field
+            $validatedData['name'] = $validatedData['first_name'] . ' ' . $validatedData['last_name'];
 
             // Create the patient record
             $patient = Patient::create($validatedData);
@@ -240,11 +260,75 @@ class PatientController extends Controller
     public function show($id)
     {
         $patient = Patient::with(['prenatalRecords'])->findOrFail($id);
-        
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.patients.show' 
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.patients.show'
             : 'bhw.patients.show';
-            
+
+        return view($view, compact('patient'));
+    }
+
+    // Show comprehensive patient profile with all related records
+    public function profile($id)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Load patient with all related data
+        $patient = Patient::with([
+            'prenatalRecords' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            },
+            'prenatalCheckups' => function($query) {
+                $query->orderBy('checkup_date', 'desc');
+            },
+            'childRecords' => function($query) {
+                $query->orderBy('birthdate', 'desc');
+            },
+            'childRecords.immunizations' => function($query) {
+                $query->with('vaccine')->orderBy('schedule_date', 'desc');
+            },
+            'activePrenatalRecord',
+            'latestCheckup'
+        ])->findOrFail($id);
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.patients.profile'
+            : 'bhw.patients.profile';
+
+        return view($view, compact('patient'));
+    }
+
+    // Print patient profile with A4 layout
+    public function printProfile($id)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Load patient with all related data (same as profile method)
+        $patient = Patient::with([
+            'prenatalRecords' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            },
+            'prenatalCheckups' => function($query) {
+                $query->orderBy('checkup_date', 'desc');
+            },
+            'childRecords' => function($query) {
+                $query->orderBy('birthdate', 'desc');
+            },
+            'childRecords.immunizations' => function($query) {
+                $query->with('vaccine')->orderBy('schedule_date', 'desc');
+            },
+            'activePrenatalRecord',
+            'latestCheckup'
+        ])->findOrFail($id);
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.patients.print'
+            : 'bhw.patients.print';
+
         return view($view, compact('patient'));
     }
 
@@ -268,11 +352,18 @@ class PatientController extends Controller
 
             // Define comprehensive validation rules (same as store)
             $validator = Validator::make($request->all(), [
-                'name' => [
+                'first_name' => [
                     'required',
                     'string',
                     'min:2',
-                    'max:100',
+                    'max:50',
+                    'regex:/^[a-zA-Z\s\.\-\']+$/'
+                ],
+                'last_name' => [
+                    'required',
+                    'string',
+                    'min:2',
+                    'max:50',
                     'regex:/^[a-zA-Z\s\.\-\']+$/'
                 ],
                 'age' => [
@@ -306,10 +397,15 @@ class PatientController extends Controller
                 ]
             ], [
                 // Same custom error messages as store method
-                'name.required' => 'Patient name is required.',
-                'name.min' => 'Patient name must be at least 2 characters.',
-                'name.max' => 'Patient name cannot exceed 100 characters.',
-                'name.regex' => 'Patient name should only contain letters, spaces, dots, hyphens, and apostrophes.',
+                'first_name.required' => 'First name is required.',
+                'first_name.min' => 'First name must be at least 2 characters.',
+                'first_name.max' => 'First name cannot exceed 50 characters.',
+                'first_name.regex' => 'First name should only contain letters, spaces, dots, hyphens, and apostrophes.',
+
+                'last_name.required' => 'Last name is required.',
+                'last_name.min' => 'Last name must be at least 2 characters.',
+                'last_name.max' => 'Last name cannot exceed 50 characters.',
+                'last_name.regex' => 'Last name should only contain letters, spaces, dots, hyphens, and apostrophes.',
                 
                 'age.required' => 'Age is required.',
                 'age.integer' => 'Age must be a valid number.',
@@ -352,7 +448,8 @@ class PatientController extends Controller
             $validatedData = $validator->validated();
             
             // Check for duplicate patient (excluding current patient)
-            $existingPatient = Patient::where('name', 'LIKE', $validatedData['name'])
+            $existingPatient = Patient::where('first_name', 'LIKE', $validatedData['first_name'])
+                ->where('last_name', 'LIKE', $validatedData['last_name'])
                 ->where('age', $validatedData['age'])
                 ->where('id', '!=', $patient->id)
                 ->first();
@@ -362,7 +459,7 @@ class PatientController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => 'Another patient with the same name and age already exists.',
-                        'errors' => ['name' => ['Another patient with the same name and age already exists.']]
+                        'errors' => ['first_name' => ['Another patient with the same name and age already exists.']]
                     ], 422);
                 }
 
@@ -379,6 +476,9 @@ class PatientController extends Controller
             if (!empty($validatedData['emergency_contact'])) {
                 $validatedData['emergency_contact'] = $this->formatPhoneNumber($validatedData['emergency_contact']);
             }
+
+            // Combine first_name and last_name to create name field
+            $validatedData['name'] = $validatedData['first_name'] . ' ' . $validatedData['last_name'];
 
             // Update the patient record
             $patient->update($validatedData);
@@ -458,18 +558,53 @@ class PatientController extends Controller
         }
     }
 
-    // Search patients for dropdown (AJAX)
-    public function search(Request $request)
-    {
-        $term = $request->get('term', '');
-        $patients = Patient::where('name', 'LIKE', "%{$term}%")
-                           ->orWhere('formatted_patient_id', 'LIKE', "%{$term}%")
-                           ->limit(10)
-                           ->get(['id', 'name', 'formatted_patient_id', 'age']);
-                           
-        return response()->json($patients);
+    /**
+ * Search patients for AJAX requests
+ * Used by prenatal record creation and checkup forms
+ */
+public function search(Request $request)
+{
+    try {
+        $query = Patient::query();
+        
+        // If there's a search term, filter by it
+        if ($request->has('q') && !empty($request->q)) {
+            $searchTerm = $request->q;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('first_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('formatted_patient_id', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('contact', 'LIKE', "%{$searchTerm}%");
+            });
+        }
+        
+        // Get patients ordered by most recent first
+        $patients = $query->orderBy('created_at', 'desc')
+                         ->limit(50)
+                         ->get();
+        
+        // Format the response to match what the JavaScript expects
+        $formattedPatients = $patients->map(function($patient) {
+            return [
+                'id' => $patient->id,
+                'name' => $patient->name ?? ($patient->first_name . ' ' . $patient->last_name),
+                'first_name' => $patient->first_name,
+                'last_name' => $patient->last_name,
+                'formatted_patient_id' => $patient->formatted_patient_id ?? 'P-' . str_pad($patient->id, 3, '0', STR_PAD_LEFT),
+                'contact' => $patient->contact,
+                'age' => $patient->age,
+                'date_of_birth' => $patient->date_of_birth,
+            ];
+        });
+        
+        return response()->json($formattedPatients);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error in patient search: ' . $e->getMessage());
+        return response()->json([], 500);
     }
-
+}
     /**
      * Format phone number to consistent format
      */

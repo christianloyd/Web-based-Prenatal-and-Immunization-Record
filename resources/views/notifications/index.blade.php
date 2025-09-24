@@ -4,6 +4,8 @@
 @section('page-subtitle', 'Manage your healthcare system notifications')
 
 @section('content')
+@include('components.flowbite-alert')
+
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     

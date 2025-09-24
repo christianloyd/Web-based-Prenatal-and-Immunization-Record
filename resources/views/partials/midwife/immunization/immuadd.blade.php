@@ -51,7 +51,7 @@
                                 <option value="">Choose a child...</option>
                                 @foreach($childRecords as $child)
                                     <option value="{{ $child->id }}" {{ old('child_record_id') == $child->id ? 'selected' : '' }}>
-                                        {{ $child->formatted_child_id ?? 'CH-' . str_pad($child->id, 3, '0', STR_PAD_LEFT) }} - {{ $child->child_name }}
+                                        {{ $child->formatted_child_id ?? 'CH-' . str_pad($child->id, 3, '0', STR_PAD_LEFT) }} - {{ $child->full_name }}
                                     </option>
                                 @endforeach
                             </select>

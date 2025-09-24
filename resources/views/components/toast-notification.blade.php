@@ -232,22 +232,8 @@ class FlowbiteToast {
 // Initialize global toast manager
 window.flowbiteToast = new FlowbiteToast();
 
-// Auto-show toasts for Laravel session messages
-document.addEventListener('DOMContentLoaded', function() {
-    @if(session('success'))
-        window.flowbiteToast.success('{{ addslashes(session('success')) }}');
-    @endif
-
-    @if(session('error'))
-        window.flowbiteToast.error('{{ addslashes(session('error')) }}');
-    @endif
-
-    @if($errors->any())
-        @foreach($errors->all() as $error)
-            window.flowbiteToast.error('{{ addslashes($error) }}');
-        @endforeach
-    @endif
-});
+// Toast notifications are now reserved for REAL-TIME notifications only
+// Form success/error messages should use the flowbite-alert component instead
 
 // Development helper functions (remove in production)
 window.testFlowbiteToast = {

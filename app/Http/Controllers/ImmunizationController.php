@@ -38,7 +38,9 @@ class ImmunizationController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->whereHas('childRecord', function ($childQuery) use ($request) {
-                    $childQuery->where('child_name', 'like', "%{$request->search}%");
+                    $childQuery->where('first_name', 'like', "%{$request->search}%")
+                               ->orWhere('middle_name', 'like', "%{$request->search}%")
+                               ->orWhere('last_name', 'like', "%{$request->search}%");
                 })->orWhereHas('vaccine', function ($vaccineQuery) use ($request) {
                     $vaccineQuery->where('name', 'like', "%{$request->search}%");
                 })->orWhere('vaccine_name', 'like', "%{$request->search}%"); // Fallback for old records
@@ -72,8 +74,14 @@ class ImmunizationController extends Controller
         $sortField = $request->get('sort', 'schedule_date');
         $sortDirection = $request->get('direction', 'asc');
 
-        if (in_array($sortField, ['schedule_date', 'created_at'])) {
+        if (in_array($sortField, ['schedule_date', 'created_at', 'vaccine_name'])) {
             $query->orderBy($sortField, $sortDirection);
+        } elseif ($sortField === 'child_name') {
+            // Sort by child's first name, then last name
+            $query->join('child_records', 'immunizations.child_record_id', '=', 'child_records.id')
+                  ->orderBy('child_records.first_name', $sortDirection)
+                  ->orderBy('child_records.last_name', $sortDirection)
+                  ->select('immunizations.*'); // Select only immunizations columns to avoid conflicts
         } else {
             // Default sorting
             $query->orderBy('schedule_date', $sortDirection);
@@ -83,7 +91,7 @@ class ImmunizationController extends Controller
         $immunizations = $query->paginate(10)->appends($request->query());
 
         // Get child records and available vaccines for dropdowns
-        $childRecords = ChildRecord::orderBy('child_name')->get();
+        $childRecords = ChildRecord::orderBy('first_name')->orderBy('last_name')->get();
         $availableVaccines = Vaccine::orderBy('name')->get();
 
         // Statistics
@@ -178,7 +186,7 @@ class ImmunizationController extends Controller
             $child = ChildRecord::findOrFail($validated['child_record_id']);
             $this->notifyHealthcareWorkers(
                 'New Immunization Scheduled',
-                "Immunization for {$vaccine->name} has been scheduled for {$child->child_name} on " . Carbon::parse($validated['schedule_date'])->format('M d, Y'),
+                "Immunization for {$vaccine->name} has been scheduled for {$child->full_name} on " . Carbon::parse($validated['schedule_date'])->format('M d, Y'),
                 'info',
                 $user->role === 'midwife'
                     ? route('midwife.immunization.index')
@@ -265,7 +273,7 @@ class ImmunizationController extends Controller
                 }
 
                 // Consume vaccine stock
-                $vaccine->updateStock(1, 'out', "Immunization administered to {$immunization->childRecord->child_name}");
+                $vaccine->updateStock(1, 'out', "Immunization administered to {$immunization->childRecord->full_name}");
             }
 
             // If changing vaccine, check availability
@@ -294,7 +302,7 @@ class ImmunizationController extends Controller
                 $child = ChildRecord::findOrFail($validated['child_record_id']);
                 $this->notifyHealthcareWorkers(
                     'Immunization Completed',
-                    "Immunization for {$vaccine->name} has been completed for {$child->child_name}",
+                    "Immunization for {$vaccine->name} has been completed for {$child->full_name}",
                     'success',
                     $user->role === 'midwife'
                         ? route('midwife.immunization.index')
@@ -360,7 +368,7 @@ class ImmunizationController extends Controller
                 $immunization->vaccine->updateStock(
                     1, 
                     'out', 
-                    "Immunization administered to {$immunization->childRecord->child_name}"
+                    "Immunization administered to {$immunization->childRecord->full_name}"
                 );
             }
 
@@ -394,7 +402,7 @@ class ImmunizationController extends Controller
         }
 
         try {
-            $childName = $immunization->childRecord->child_name ?? 'Unknown';
+            $childName = $immunization->childRecord->full_name ?? 'Unknown';
             $vaccineName = $immunization->vaccine_name;
 
             $immunization->delete();
@@ -615,7 +623,7 @@ class ImmunizationController extends Controller
                 $immunization->vaccine->updateStock(
                     1,
                     'out',
-                    "Immunization administered to {$immunization->childRecord->child_name}"
+                    "Immunization administered to {$immunization->childRecord->full_name}"
                 );
 
                 // Create child immunization record

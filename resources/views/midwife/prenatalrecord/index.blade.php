@@ -6,8 +6,9 @@
 @push('styles')
 <style>
     :root {
-        --primary: #243b55;
-        --secondary: #141e30;
+        --primary: #D4A373; /* Warm brown for primary elements */
+        --secondary: #ecb99e; /* Peach for buttons and accents */
+        --neutral: #FFFFFF; /* White for content backgrounds */
     }
 
     /* Modal Animation Styles */
@@ -131,17 +132,20 @@
 
 @section('content')
 <div class="space-y-6">
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
+
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
          <div> </div>
         <div class="flex space-x-3">
-            <!-- FIXED: Changed from anchor to button that opens modal -->
-            <button onclick="openPrenatalModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center btn-primary">
+            <!-- Changed from modal button to direct link to create page -->
+            <a href="{{ route('midwife.prenatalrecord.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                 </svg>
                 Add Prenatal Record
-            </button>
+            </a>
         </div>
     </div>
 
@@ -186,8 +190,7 @@
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Record ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient ID</th>
+                        <!--<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Record ID</th>-->
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gestational Age</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trimester</th>
@@ -200,13 +203,9 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($prenatalRecords as $record)
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                        <!--<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                             {{ $record->formatted_prenatal_id ?? 'PR-001' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $record->patient->formatted_patient_id ?? 'N/A' }}
-                        </td>
-                         
+                        </td>-->
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {{ $record->patient->name ?? 'N/A' }}
                         </td>
@@ -228,7 +227,7 @@
                                 @if($record->is_overdue)
                                     <!--<span class="text-red-600 text-xs block">Overdue</span>-->
                                 @elseif($record->days_until_due <= 14 && $record->days_until_due >= 0)
-                                    <span class="text-orange-600 text-xs block">{{ $record->days_until_due }} days left</span>
+                                    <!--<span class="text-orange-600 text-xs block">{{ $record->days_until_due }} days left</span>-->
                                 @endif
                             @else
                                 N/A
@@ -263,16 +262,16 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+                        <td colspan="8" class="px-6 py-8 text-center text-gray-500">
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                                 <p class="text-lg font-medium text-gray-900 mb-2">No prenatal records found</p>
                                 <p class="text-gray-600 mb-4">Get started by creating your first prenatal record</p>
-                                <button onclick="openPrenatalModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors btn-primary">
+                                <a href="{{ route('midwife.prenatalrecord.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors btn-primary">
                                     Create First Record
-                                </button>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -290,11 +289,6 @@
     </div>
 </div>
 
-<!-- Add Prenatal Record Modal -->
-@include('partials.midwife.prenatalrecord.prenataladd')
-
-<!-- View Prenatal Record Modal --> 
-
 <!-- Edit Prenatal Record Modal -->
 @include('partials.midwife.prenatalrecord.prenataledit')
 
@@ -304,48 +298,6 @@
 
 @push('scripts')
 <script>
-// --------------------
-// Add Prenatal Record Modal
-// --------------------
-function openPrenatalModal() {
-    const modal = document.getElementById('prenatal-modal');
-    if (!modal) {
-        console.error('Prenatal modal not found');
-        return;
-    }
-    
-    // Reset form if no validation errors
-    if (!document.querySelector('.bg-red-100')) {
-        const form = modal.querySelector('form');
-        if (form) form.reset();
-    }
-    
-    modal.classList.remove('hidden');
-    requestAnimationFrame(() => {
-        modal.classList.add('show');
-    });
-    document.body.style.overflow = 'hidden';
-}
-
-function closePrenatalModal(e) {
-    // Don't close if click is inside modal content
-    if (e && e.target !== e.currentTarget) return;
-    
-    const modal = document.getElementById('prenatal-modal');
-    if (!modal) return;
-    
-    // Reset form using the universal reset system
-    const form = modal.querySelector('form');
-    if (form && window.modalFormResetManager) {
-        window.modalFormResetManager.resetForm(form);
-    }
-    
-    modal.classList.remove('show');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }, 300);
-}
 
 // --------------------
 // View Prenatal Record Modal
@@ -607,7 +559,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Close modals on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closePrenatalModal();
         closeViewPrenatalModal();
         closeEditPrenatalModal();
     }
@@ -618,9 +569,6 @@ document.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-overlay')) {
         const modalId = e.target.id;
         switch (modalId) {
-            case 'prenatal-modal':
-                closePrenatalModal(e);
-                break;
             case 'view-prenatal-modal':
                 closeViewPrenatalModal(e);
                 break;

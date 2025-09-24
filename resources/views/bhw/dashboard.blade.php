@@ -7,21 +7,22 @@
 
 @push('styles')
 <style>
-    .primary-bg { background-color: #243b55; }
-    .secondary-bg { background-color: #141e30; }
-    .primary-text { color: #243b55; }
-    .secondary-text { color: #141e30; }
-    
+    .primary-bg { background-color: #D4A373; } /* Warm brown for sidebar and primary elements */
+    .secondary-bg { background-color: #ecb99e; } /* Peach for buttons and accents */
+    .primary-text { color: #D4A373; } /* Warm brown for text */
+    .secondary-text { color: #B8956A; } /* Darker brown for better text readability */
+    .neutral-bg { background-color: #FFFFFF; } /* White for view content */
+
     .stat-card {
         transition: all 0.3s ease;
         border: 1px solid #e5e7eb;
-        background: white;
+        background: #FFFFFF; /* White background for view content */
         border-radius: 0.5rem;
     }
-    
+
     .stat-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(36, 59, 85, 0.1);
+        box-shadow: 0 10px 25px rgba(212, 163, 115, 0.15); /* Warm brown shadow */
     }
     
     .chart-container {
@@ -44,7 +45,7 @@
     
     .chart-card {
         min-height: 400px;
-        background: white;
+        background: #FFFFFF; /* White background for view content */
         border-radius: 0.5rem;
         border: 1px solid #e5e7eb;
         padding: 1.5rem;
@@ -141,33 +142,10 @@
         </div>
     </div>
 
-    <!-- Charts Section -->
+    <!-- Lists Section - MOVED TO TOP -->
     <div class="dashboard-grid cols-2">
-        <!-- Prenatal Status Chart -->
-        <div class="chart-card fade-in">
-            <h3 class="text-lg font-semibold primary-text mb-4">
-                <i class="fas fa-chart-pie mr-2"></i>Prenatal Records Status
-            </h3>
-            <div class="chart-container">
-                <canvas id="prenatalChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Monthly Patient Registrations Chart -->
-        <div class="chart-card fade-in">
-            <h3 class="text-lg font-semibold primary-text mb-4">
-                <i class="fas fa-chart-line mr-2"></i>Monthly Patient Registrations
-            </h3>
-            <div class="chart-container">
-                <canvas id="registrationsChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lists Section -->
-    <div class="dashboard-grid cols-1">
         <!-- Recent Patient Registrations -->
-        <div class="bg-white rounded-lg border fade-in">
+        <div class="rounded-lg border fade-in" style="background-color: #FFFFFF;">
             <div class="border-b px-6 py-4">
                 <h3 class="text-lg font-semibold primary-text">
                     <i class="fas fa-user-plus mr-2"></i>Recent Patient Registrations
@@ -199,12 +177,83 @@
                         <p class="text-gray-500">No recent registrations</p>
                     </div>
                 @endif
-                
+
                 <div class="mt-4 pt-4 border-t">
                     <a href="{{ route('bhw.patients.index') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                         View all patients <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
+            </div>
+        </div>
+
+        <!-- Recent Child Records -->
+        <div class="rounded-lg border fade-in" style="background-color: #FFFFFF;">
+            <div class="border-b px-6 py-4">
+                <h3 class="text-lg font-semibold primary-text">
+                    <i class="fas fa-child mr-2"></i>Recent Child Records
+                </h3>
+            </div>
+            <div class="p-6">
+                @if(isset($recentChildRecords) && $recentChildRecords->count() > 0)
+                    <div class="space-y-4">
+                        @foreach($recentChildRecords as $child)
+                            <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="bg-purple-500 text-white p-2 rounded-full">
+                                        <i class="fas fa-child text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $child['child_name'] ?? 'Child Name' }}</p>
+                                        <p class="text-sm text-gray-600">Born: {{ isset($child['date_of_birth']) ? $child['date_of_birth']->format('M j, Y') : 'N/A' }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                        {{ $child['gender'] ?? 'N/A' }}
+                                    </span>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Age: {{ $child['age'] ?? 'N/A' }}
+                                    </p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-8">
+                        <i class="fas fa-child text-4xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-500">No recent child records</p>
+                        <p class="text-sm text-gray-400 mt-1">No new children registered</p>
+                    </div>
+                @endif
+
+                <div class="mt-4 pt-4 border-t">
+                    <a href="{{ route('bhw.childrecord.index') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        View child records <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section - MOVED TO BOTTOM -->
+    <div class="dashboard-grid cols-2">
+        <!-- Prenatal Status Chart -->
+        <div class="chart-card fade-in">
+            <h3 class="text-lg font-semibold primary-text mb-4">
+                <i class="fas fa-chart-pie mr-2"></i>Prenatal Records Status
+            </h3>
+            <div class="chart-container">
+                <canvas id="prenatalChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Monthly Patient Registrations Chart -->
+        <div class="chart-card fade-in">
+            <h3 class="text-lg font-semibold primary-text mb-4">
+                <i class="fas fa-chart-line mr-2"></i>Monthly Patient Registrations
+            </h3>
+            <div class="chart-container">
+                <canvas id="registrationsChart"></canvas>
             </div>
         </div>
     </div>

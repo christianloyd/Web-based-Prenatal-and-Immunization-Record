@@ -3,8 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use App\Models\Patient;
+use App\Models\PrenatalRecord;
 use App\Models\ChildRecord;
 use Carbon\Carbon;
 
@@ -12,30 +11,42 @@ class ChildRecordSeeder extends Seeder
 {
     public function run(): void
     {
-        // Clear existing data
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('child_records')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        $this->command->info('Creating child records for completed pregnancies...');
 
-        // Get available mothers (patients) - use existing patients as mothers
-        $mothers = Patient::inRandomOrder()->limit(15)->get();
+        // Get completed prenatal records only (these should have children)
+        $completedPregnancies = PrenatalRecord::where('status', 'completed')
+            ->with('patient')
+            ->get();
 
-        if ($mothers->isEmpty()) {
-            $this->command->error('No patients found! Please run Patient seeder first.');
+        if ($completedPregnancies->isEmpty()) {
+            $this->command->error('No completed pregnancies found! Please run PrenatalRecordSeeder first.');
             return;
         }
 
-        // Filipino child names
-        $maleNames = [
-            'Gabriel James', 'Lucas Matthew', 'Noah Alexander', 'Ethan Michael', 'Oliver David',
-            'Joshua Miguel', 'John Carlo', 'Mark Anthony', 'James Patrick', 'Christian Jay',
-            'Angelo Miguel', 'Kyle Matthew', 'Sean Gabriel', 'Carl Vincent', 'Tristan Jose'
+        // Filipino first names
+        $maleFirstNames = [
+            'Gabriel', 'Lucas', 'Noah', 'Ethan', 'Oliver',
+            'Joshua', 'John', 'Mark', 'James', 'Christian',
+            'Angelo', 'Kyle', 'Sean', 'Carl', 'Tristan'
         ];
 
-        $femaleNames = [
-            'Sophia Grace', 'Isabella Rose', 'Emma Claire', 'Olivia Marie', 'Ava Elizabeth',
-            'Ashley Mae', 'Princess Joy', 'Angel Grace', 'Sophia Marie', 'Maria Angelica',
-            'Cassandra Joy', 'Samantha Mae', 'Christine Joy', 'Andrea Nicole', 'Bianca Marie'
+        $femaleFirstNames = [
+            'Sophia', 'Isabella', 'Emma', 'Olivia', 'Ava',
+            'Ashley', 'Princess', 'Angel', 'Sophia', 'Maria',
+            'Cassandra', 'Samantha', 'Christine', 'Andrea', 'Bianca'
+        ];
+
+        $middleNames = [
+            'James', 'Matthew', 'Alexander', 'Michael', 'David',
+            'Miguel', 'Carlo', 'Anthony', 'Patrick', 'Jay',
+            'Grace', 'Rose', 'Claire', 'Marie', 'Elizabeth',
+            'Mae', 'Joy', 'Nicole', 'Angelica', 'Vincent'
+        ];
+
+        $lastNames = [
+            'Santos', 'Reyes', 'Cruz', 'Garcia', 'Rodriguez',
+            'Martinez', 'Lopez', 'Gonzalez', 'Torres', 'Morales',
+            'Dela Cruz', 'Ramos', 'Villanueva', 'Aquino', 'Mendoza'
         ];
 
         $fatherNames = [
@@ -44,90 +55,110 @@ class ChildRecordSeeder extends Seeder
             'Fernando Santiago Gonzalez', 'Roberto Manuel Torres', 'Diego Alfonso Morales'
         ];
 
-        $addresses = [
-            'Purok 1, Barangay San Jose, Antipolo City',
-            'Purok 2, Barangay Santa Cruz, Antipolo City',
-            'Purok 3, Barangay San Roque, Antipolo City',
-            'Purok 4, Barangay San Isidro, Antipolo City',
-            'Purok 5, Barangay San Juan, Antipolo City'
-        ];
-
         $birthplaces = [
-            'Antipolo City General Hospital',
-            'Rizal Medical Center',
-            'Our Lady of Peace Hospital',
-            'Antipolo Doctors Hospital'
+            'Dumalinao District Hospital, Zamboanga del Sur',
+            'Zamboanga del Sur Medical Center',
+            'Pagadian City Medical Center',
+            'Rural Health Unit, Dumalinao'
         ];
 
-        $childRecords = [];
+        $createdChildren = 0;
 
-        // Create 10 child records with varying ages for immunization testing
-        for ($i = 0; $i < 10; $i++) {
+        foreach ($completedPregnancies as $pregnancy) {
+            // Calculate realistic birth date based on EDD
+            $edd = Carbon::parse($pregnancy->expected_due_date);
+            $birthDate = $edd->copy()->addDays(rand(-21, 14)); // Born 3 weeks early to 2 weeks late
+
+            // Skip if birth would be in the future (shouldn't happen with completed pregnancies)
+            if ($birthDate->isFuture()) {
+                continue;
+            }
+
+            // Determine child gender
             $gender = rand(0, 1) === 0 ? 'Male' : 'Female';
-            $names = $gender === 'Male' ? $maleNames : $femaleNames;
-            $childName = $names[array_rand($names)];
+            $firstNames = $gender === 'Male' ? $maleFirstNames : $femaleFirstNames;
 
-            // Create children of different ages for realistic immunization scenarios
-            $ageRanges = [
-                Carbon::now()->subMonths(2),   // 2 months old - early immunizations
-                Carbon::now()->subMonths(4),   // 4 months old - mid primary series
-                Carbon::now()->subMonths(6),   // 6 months old - completing primary series
-                Carbon::now()->subMonths(9),   // 9 months old - measles age
-                Carbon::now()->subMonths(12),  // 12 months old - full series
-                Carbon::now()->subMonths(18),  // 18 months old - all complete
-                Carbon::now()->subMonths(24),  // 2 years old - fully immunized
-                Carbon::now()->subMonths(1),   // 1 month old - just started
-                Carbon::now()->subMonths(3),   // 3 months old - partial
-                Carbon::now()->subWeeks(2),    // 2 weeks old - newborn
-            ];
+            // Generate child name
+            $firstName = $firstNames[array_rand($firstNames)];
+            $middleName = $middleNames[array_rand($middleNames)];
+            $lastName = $lastNames[array_rand($lastNames)];
 
-            $birthdate = $ageRanges[$i]->copy();
+            // Generate realistic birth measurements with better distribution
+            $birthWeight = $this->getRealisticBirthWeight(); // 2.0kg to 4.8kg with realistic distribution
+            $birthHeight = $this->getRealisticBirthHeight(); // 44cm to 56cm with realistic distribution
 
-            // Random mother from available patients
-            $mother = $mothers->random();
 
-            // Generate realistic birth measurements
-            $birthWeight = round(rand(2500, 4500) / 1000, 3); // 2.5kg to 4.5kg
-            $birthHeight = round(rand(4500, 5500) / 100, 2); // 45cm to 55cm
-
-            // Generate phone number
-            $phoneNumber = '+639' . rand(100000000, 999999999);
-
-            $childRecords[] = [
-                'child_name' => $childName,
+            ChildRecord::create([
+                'first_name' => $firstName,
+                'middle_name' => $middleName,
+                'last_name' => $lastName,
                 'gender' => $gender,
-                'birthdate' => $birthdate->format('Y-m-d H:i:s'),
+                'birthdate' => $birthDate,
                 'birth_weight' => $birthWeight,
                 'birth_height' => $birthHeight,
                 'birthplace' => $birthplaces[array_rand($birthplaces)],
                 'father_name' => $fatherNames[array_rand($fatherNames)],
-                'mother_id' => $mother->id,
-                'phone_number' => $phoneNumber,
-                'address' => $addresses[array_rand($addresses)],
-                'created_at' => $birthdate->copy()->addDays(rand(0, 3))->format('Y-m-d H:i:s'),
-                'updated_at' => $birthdate->copy()->addDays(rand(0, 3))->format('Y-m-d H:i:s')
-            ];
+                'mother_id' => $pregnancy->patient_id,
+                'phone_number' => $pregnancy->patient->contact,
+                'address' => $pregnancy->patient->address,
+                'created_at' => $birthDate->copy()->addDays(1),
+                'updated_at' => $birthDate->copy()->addDays(1),
+            ]);
+
+            $createdChildren++;
         }
 
-        // Insert child records
-        DB::table('child_records')->insert($childRecords);
-
-        $this->command->info('✅ ChildRecord seeder completed successfully!');
-        $this->command->info('Generated: ' . count($childRecords) . ' child records');
-        $this->command->info('📅 Children of various ages for immunization testing');
-        $this->command->info('👥 Using ' . $mothers->count() . ' different mothers');
-        $this->command->info('🎯 Ages: 2 weeks to 24 months for realistic immunization scenarios');
+        $this->command->info('Child Record seeder completed successfully!');
+        $this->command->info("Generated: {$createdChildren} children from completed pregnancies");
+        $this->command->info('All children linked to their biological mothers from Brgy. Mecolong');
     }
 
-    private function generateBirthHeight(): float
+    private function getRealisticBirthWeight()
     {
-        // Normal birth height range: 45-55 cm
-        return round(rand(4500, 5500) / 100, 2);
+        // More realistic birth weight distribution (grams to kg)
+        $weightRanges = [
+            [2000, 2499, 5],   // 5% low birth weight
+            [2500, 2999, 20],  // 20% lower normal
+            [3000, 3499, 50],  // 50% normal range
+            [3500, 3999, 20],  // 20% higher normal
+            [4000, 4800, 5],   // 5% high birth weight
+        ];
+
+        $totalWeight = array_sum(array_column($weightRanges, 2));
+        $random = rand(1, $totalWeight);
+        $cumulative = 0;
+
+        foreach ($weightRanges as $range) {
+            $cumulative += $range[2];
+            if ($random <= $cumulative) {
+                return round(rand($range[0], $range[1]) / 1000, 3); // Convert to kg
+            }
+        }
+
+        return 3.2; // Default normal weight
     }
 
-    private function generateBirthWeight(): float
+    private function getRealisticBirthHeight()
     {
-        // Normal birth weight range: 2.5-4.5 kg
-        return round(rand(2500, 4500) / 1000, 3);
+        // Realistic birth height distribution (cm)
+        $heightRanges = [
+            [44, 47, 10],  // 10% shorter
+            [48, 52, 70],  // 70% normal range
+            [53, 56, 20],  // 20% taller
+        ];
+
+        $totalWeight = array_sum(array_column($heightRanges, 2));
+        $random = rand(1, $totalWeight);
+        $cumulative = 0;
+
+        foreach ($heightRanges as $range) {
+            $cumulative += $range[2];
+            if ($random <= $cumulative) {
+                return rand($range[0], $range[1]);
+            }
+        }
+
+        return 50; // Default normal height
     }
+
 }

@@ -33,23 +33,36 @@ class ImmunizationSeeder extends Seeder
             return;
         }
 
-        // Define exact immunization sequence as requested
+        // Define STRICT sequential immunization schedule - NO SKIPPING ALLOWED
+        // Each vaccine must be completed in order, every 4 weeks
         $immunizationSequence = [
-            ['vaccine' => 'BCG', 'dose' => '1st Dose', 'age_weeks' => 0],
-            ['vaccine' => 'Pentavalent', 'dose' => '1st Dose', 'age_weeks' => 6],
-            ['vaccine' => 'Pentavalent', 'dose' => '2nd Dose', 'age_weeks' => 10],
-            ['vaccine' => 'Pentavalent', 'dose' => '3rd Dose', 'age_weeks' => 14],
-            ['vaccine' => 'OPV', 'dose' => '1st Dose', 'age_weeks' => 6],
-            ['vaccine' => 'OPV', 'dose' => '2nd Dose', 'age_weeks' => 10],
-            ['vaccine' => 'OPV', 'dose' => '3rd Dose', 'age_weeks' => 14],
-            ['vaccine' => 'IPV', 'dose' => '1st Dose', 'age_weeks' => 14],
-            ['vaccine' => 'IPV', 'dose' => '2nd Dose', 'age_weeks' => 40],
-            ['vaccine' => 'PCV', 'dose' => '1st Dose', 'age_weeks' => 6],
-            ['vaccine' => 'PCV', 'dose' => '2nd Dose', 'age_weeks' => 10],
-            ['vaccine' => 'PCV', 'dose' => '3rd Dose', 'age_weeks' => 14],
-            ['vaccine' => 'Measles', 'dose' => '1st Dose', 'age_weeks' => 40], // MCV 1
-            ['vaccine' => 'Measles', 'dose' => '2nd Dose', 'age_weeks' => 52], // MCV 2
-            ['vaccine' => 'Vitamin A', 'dose' => '1st Dose', 'age_weeks' => 26], // Vitamins
+            ['vaccine' => 'BCG', 'dose' => '1st Dose', 'age_weeks' => 0, 'order' => 1],
+
+            // 6 weeks (1.5 months)
+            ['vaccine' => 'Pentavalent', 'dose' => '1st Dose', 'age_weeks' => 6, 'order' => 2],
+            ['vaccine' => 'OPV', 'dose' => '1st Dose', 'age_weeks' => 6, 'order' => 3],
+            ['vaccine' => 'PCV', 'dose' => '1st Dose', 'age_weeks' => 6, 'order' => 4],
+
+            // 10 weeks (2.5 months)
+            ['vaccine' => 'Pentavalent', 'dose' => '2nd Dose', 'age_weeks' => 10, 'order' => 5],
+            ['vaccine' => 'OPV', 'dose' => '2nd Dose', 'age_weeks' => 10, 'order' => 6],
+            ['vaccine' => 'PCV', 'dose' => '2nd Dose', 'age_weeks' => 10, 'order' => 7],
+
+            // 14 weeks (3.5 months)
+            ['vaccine' => 'Pentavalent', 'dose' => '3rd Dose', 'age_weeks' => 14, 'order' => 8],
+            ['vaccine' => 'PCV', 'dose' => '3rd Dose', 'age_weeks' => 14, 'order' => 9],
+            ['vaccine' => 'IPV', 'dose' => '1st Dose', 'age_weeks' => 14, 'order' => 10],
+
+            // 26 weeks (6 months)
+            ['vaccine' => 'Vitamin A', 'dose' => '1st Dose', 'age_weeks' => 26, 'order' => 11],
+
+            // 40 weeks (9 months)
+            ['vaccine' => 'IPV', 'dose' => '2nd Dose', 'age_weeks' => 40, 'order' => 12],
+            ['vaccine' => 'MCV', 'dose' => '1st Dose', 'age_weeks' => 40, 'order' => 13],
+
+            // 52 weeks (12 months)
+            ['vaccine' => 'Vitamin A', 'dose' => '2nd Dose', 'age_weeks' => 52, 'order' => 14],
+            ['vaccine' => 'MCV', 'dose' => '2nd Dose', 'age_weeks' => 52, 'order' => 15],
         ];
 
         $immunizations = [];
@@ -61,30 +74,25 @@ class ImmunizationSeeder extends Seeder
             return Carbon::parse($child->birthdate)->diffInWeeks(Carbon::now());
         });
 
+        $totalChildren = $sortedChildren->count();
+
         foreach ($sortedChildren as $child) {
             $birthDate = Carbon::parse($child->birthdate);
             $currentAgeWeeks = $birthDate->diffInWeeks(Carbon::now());
 
-            $this->command->info("Processing child #{$childIndex}: {$child->child_name} (Age: {$currentAgeWeeks} weeks)");
+            $this->command->info("Processing child #{$childIndex}: {$child->full_name} (Age: {$currentAgeWeeks} weeks)");
 
-            // Determine immunization status based on distribution:
-            // First 6 children (0-5): Fully immunized (all age-appropriate vaccines Done)
-            // Next 3 children (6-8): Partially immunized (some Done, next one Upcoming)
-            // Last 1 child (9): Not vaccinated (first vaccine Upcoming)
-
-            if ($childIndex < 6) {
-                // Fully immunized - all age-appropriate vaccines are Done
-                $this->createFullyImmunizedChild($child, $birthDate, $currentAgeWeeks, $immunizationSequence, $vaccines, $immunizations, $immunizationIdCounter);
-            } elseif ($childIndex < 9) {
-                // Partially immunized - some Done, next one Upcoming
-                $this->createPartiallyImmunizedChild($child, $birthDate, $currentAgeWeeks, $immunizationSequence, $vaccines, $immunizations, $immunizationIdCounter);
+            // Only create immunizations if child has some age (at least 1 week old)
+            if ($currentAgeWeeks >= 1) {
+                $this->createStrictSequentialImmunizations($child, $birthDate, $currentAgeWeeks, $immunizationSequence, $vaccines, $immunizations, $immunizationIdCounter, $childIndex, $totalChildren);
             } else {
-                // Not vaccinated - first age-appropriate vaccine is Upcoming
-                $this->createUnvaccinatedChild($child, $birthDate, $currentAgeWeeks, $immunizationSequence, $vaccines, $immunizations, $immunizationIdCounter);
+                $this->command->info("Skipping newborn (< 1 week old): {$child->first_name} {$child->last_name}");
             }
 
             $childIndex++;
         }
+
+        // Sequential immunization logic ensures only next vaccine is upcoming
 
         // Insert immunizations in batches
         if (!empty($immunizations)) {
@@ -96,7 +104,7 @@ class ImmunizationSeeder extends Seeder
 
         $this->command->info('✅ Immunization seeder completed successfully!');
         $this->command->info('Generated: ' . count($immunizations) . ' immunization records');
-        $this->command->info('🎯 Distribution: 6 fully immunized, 3 partial, 1 unvaccinated');
+        $this->command->info('🎯 Distribution: 40% fully immunized, 45% partial, 15% starting');
         $this->command->info('📅 Based on each child\'s actual age and current date');
 
         // Display statistics
@@ -106,67 +114,83 @@ class ImmunizationSeeder extends Seeder
         }
     }
 
-    private function createFullyImmunizedChild($child, $birthDate, $currentAgeWeeks, $sequence, $vaccines, &$immunizations, &$idCounter)
+    private function createStrictSequentialImmunizations($child, $birthDate, $currentAgeWeeks, $sequence, $vaccines, &$immunizations, &$idCounter, $childIndex, $totalChildren)
     {
-        // All age-appropriate vaccines are Done
-        foreach ($sequence as $schedule) {
-            if ($currentAgeWeeks >= $schedule['age_weeks']) {
-                $vaccine = $vaccines->get($schedule['vaccine']);
-                if (!$vaccine) continue;
+        // STRICT RULE: Must complete each vaccine in EXACT ORDER - NO SKIPPING
+        // Dates must respect the sequence order
 
-                $immunizationDate = $birthDate->copy()->addWeeks($schedule['age_weeks']);
-                $immunizations[] = $this->createImmunizationRecord(
-                    $child, $vaccine, $schedule, $immunizationDate, 'Done', $idCounter
-                );
-                $idCounter++;
+        $percentage = ($childIndex / $totalChildren) * 100;
+        $lastImmunizationDate = $birthDate->copy(); // Start from birth date
+
+        // Determine where this child should stop in the sequence
+        if ($percentage < 40) {
+            // 40% - Complete all age-appropriate vaccines
+            $stopAtOrder = 999; // Don't stop, complete all
+        } elseif ($percentage < 85) {
+            // 45% - Stop at a random point (stuck waiting for next dose)
+            $maxOrderForAge = 0;
+            foreach ($sequence as $schedule) {
+                if ($currentAgeWeeks >= $schedule['age_weeks'] + 2) {
+                    $maxOrderForAge = max($maxOrderForAge, $schedule['order']);
+                }
             }
+            $stopAtOrder = rand(5, max(5, $maxOrderForAge - 1)); // Stop somewhere in middle
+        } else {
+            // 15% - Just starting (stop early)
+            $stopAtOrder = rand(1, 4); // Stop after first few vaccines
         }
-    }
 
-    private function createPartiallyImmunizedChild($child, $birthDate, $currentAgeWeeks, $sequence, $vaccines, &$immunizations, &$idCounter)
-    {
-        // Some Done, next one Upcoming
-        $upcomingSet = false;
-
+        // Process vaccines in STRICT chronological order
         foreach ($sequence as $schedule) {
-            if ($currentAgeWeeks >= $schedule['age_weeks']) {
-                $vaccine = $vaccines->get($schedule['vaccine']);
-                if (!$vaccine) continue;
+            $vaccine = $vaccines->get($schedule['vaccine']);
+            if (!$vaccine) continue;
 
-                $immunizationDate = $birthDate->copy()->addWeeks($schedule['age_weeks']);
-                $immunizations[] = $this->createImmunizationRecord(
-                    $child, $vaccine, $schedule, $immunizationDate, 'Done', $idCounter
-                );
-                $idCounter++;
-            } elseif (!$upcomingSet && $currentAgeWeeks >= ($schedule['age_weeks'] - 2)) {
-                // Next due vaccine is Upcoming (within 2 weeks)
-                $vaccine = $vaccines->get($schedule['vaccine']);
-                if (!$vaccine) continue;
+            // Check if child is old enough for this vaccine
+            if ($currentAgeWeeks >= $schedule['age_weeks'] + 1) {
 
-                $immunizationDate = $birthDate->copy()->addWeeks($schedule['age_weeks']);
-                $immunizations[] = $this->createImmunizationRecord(
-                    $child, $vaccine, $schedule, $immunizationDate, 'Upcoming', $idCounter
-                );
-                $idCounter++;
-                $upcomingSet = true;
-            }
-        }
-    }
+                if ($schedule['order'] <= $stopAtOrder) {
+                    // Mark as Done with proper chronological date
+                    $targetDate = $birthDate->copy()->addWeeks($schedule['age_weeks']);
 
-    private function createUnvaccinatedChild($child, $birthDate, $currentAgeWeeks, $sequence, $vaccines, &$immunizations, &$idCounter)
-    {
-        // First age-appropriate vaccine is Upcoming
-        foreach ($sequence as $schedule) {
-            if ($currentAgeWeeks >= $schedule['age_weeks']) {
-                $vaccine = $vaccines->get($schedule['vaccine']);
-                if (!$vaccine) continue;
+                    // Add small random variation (1-7 days) but maintain order
+                    $randomDays = rand(0, 7);
+                    $immunizationDate = $targetDate->addDays($randomDays);
 
-                $immunizationDate = $birthDate->copy()->addWeeks($schedule['age_weeks']);
-                $immunizations[] = $this->createImmunizationRecord(
-                    $child, $vaccine, $schedule, $immunizationDate, 'Upcoming', $idCounter
-                );
-                $idCounter++;
-                break; // Only create the first one as Upcoming
+                    // Ensure this date is after the last immunization
+                    if ($immunizationDate->lte($lastImmunizationDate)) {
+                        $immunizationDate = $lastImmunizationDate->copy()->addDays(rand(1, 3));
+                    }
+
+                    $immunizations[] = $this->createImmunizationRecord(
+                        $child, $vaccine, $schedule, $immunizationDate, 'Done', $idCounter
+                    );
+                    $idCounter++;
+                    $lastImmunizationDate = $immunizationDate->copy();
+
+                } else {
+                    // This is the NEXT vaccine needed - mark as Upcoming (future date)
+                    $daysFromNow = rand(1, 21);
+                    $immunizationDate = Carbon::now()->addDays($daysFromNow);
+
+                    $immunizations[] = $this->createImmunizationRecord(
+                        $child, $vaccine, $schedule, $immunizationDate, 'Upcoming', $idCounter
+                    );
+                    $idCounter++;
+                    break; // STOP - cannot proceed until this is done
+                }
+            } else {
+                // Child is not old enough yet - mark as upcoming if approaching age
+                if ($currentAgeWeeks >= ($schedule['age_weeks'] - 2)) {
+                    $weeksUntilDue = $schedule['age_weeks'] - $currentAgeWeeks;
+                    $daysFromNow = max(1, $weeksUntilDue * 7 + rand(1, 7));
+                    $immunizationDate = Carbon::now()->addDays($daysFromNow);
+
+                    $immunizations[] = $this->createImmunizationRecord(
+                        $child, $vaccine, $schedule, $immunizationDate, 'Upcoming', $idCounter
+                    );
+                    $idCounter++;
+                    break; // STOP - cannot proceed until this is done
+                }
             }
         }
     }
@@ -176,7 +200,6 @@ class ImmunizationSeeder extends Seeder
         $scheduleTime = sprintf('%02d:%02d:00', rand(8, 17), rand(0, 59));
 
         return [
-            'formatted_immunization_id' => 'IM-' . str_pad($idCounter, 3, '0', STR_PAD_LEFT),
             'child_record_id' => $child->id,
             'vaccine_id' => $vaccine->id,
             'vaccine_name' => $schedule['vaccine'],
@@ -213,4 +236,5 @@ class ImmunizationSeeder extends Seeder
         $statusNotes = $notes[$status] ?? $notes['Done'];
         return $statusNotes[array_rand($statusNotes)];
     }
+
 }

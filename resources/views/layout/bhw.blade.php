@@ -188,20 +188,82 @@
             transition: none !important;
         }
         
-        /* Force navigation text visibility */
-        .sidebar-nav a,
-        .sidebar-nav li a,
-        nav a,
-        nav ul li a {
-            color: white !important;
+        /* All navigation text must be BLACK for consistency - but allow active states to override */
+        .sidebar-nav a:not(.bg-primary),
+        .sidebar-nav li a:not(.bg-primary),
+        .sidebar-nav .nav-link:not(.bg-primary),
+        nav a:not(.bg-primary),
+        nav ul li a:not(.bg-primary) {
+            color: #000000 !important; /* Pure black text */
             opacity: 1 !important;
             visibility: visible !important;
+            font-weight: 500 !important;
         }
-        
-        /* Ensure text in navigation is always visible */
-        .w-64.bg-secondary a,
-        .bg-secondary a {
-            color: rgba(255, 255, 255, 1) !important;
+
+        /* Icons should also be black - but allow active states to override */
+        .sidebar-nav i:not(.bg-primary i),
+        .nav-link:not(.bg-primary) i,
+        nav i:not(.bg-primary i) {
+            color: #000000 !important;
+        }
+
+        /* Active icons stay white */
+        .sidebar-nav .nav-link.bg-primary i,
+        nav .nav-link.bg-primary i {
+            color: white !important;
+        }
+
+        /* All sidebar text elements */
+        .sidebar-nav h1,
+        .sidebar-nav p,
+        .sidebar-nav span,
+        .sidebar-nav .text-gray-300,
+        .sidebar-nav .text-gray-400 {
+            color: white !important; /* White text on green navbar */
+        }
+
+        /* Hover states */
+        .sidebar-nav button:hover,
+        .sidebar-nav .text-gray-300:hover {
+            color: #f0f0f0 !important; /* Light gray on hover */
+        }
+
+        /* Warm Brown Sidebar and Cream Color Scheme */
+        .bg-primary {
+            background-color: #D4A373 !important; /* Warm brown for sidebar */
+        }
+
+        .bg-secondary {
+            background-color: #ecb99e !important; /* Peach for buttons and accents */
+        }
+
+        .bg-neutral {
+            background-color: #FFFFFF !important; /* White for main content background */
+        }
+
+        .bg-header {
+            background-color: #FEFAE0 !important; /* Near-white ivory for header */
+        }
+
+        /* Custom hover states */
+        .hover-cream:hover {
+            background-color: #e2e8f0 !important; /* Soft cream beige for hover */
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Active state that matches hover - this stays persistent when clicked */
+        .nav-active {
+            background-color: #e2e8f0 !important; /* Same as hover color */
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Override the bg-primary for active nav links to use consistent styling */
+        .nav-link.bg-primary {
+            background-color: #e2e8f0 !important; /* Match hover color for consistency */
+            color: #000000 !important; /* Black text for readability */
+            font-weight: 600 !important;
         }
 
         /* ====================================
@@ -257,27 +319,27 @@
               ></div>
 
         <!-- Left Sidebar Navigation -->
-        <div class="sidebar-nav fixed inset-y-0 left-0 z-50 w-64 bg-secondary text-white flex flex-col lg:static lg:inset-0"
+        <div class="sidebar-nav fixed inset-y-0 left-0 z-50 w-64 bg-primary text-gray-800 flex flex-col lg:static lg:inset-0"
              :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen, 'transition-transform duration-300 ease-in-out': sidebarInitialized}"
              x-show="sidebarOpen"
              x-init="setTimeout(() => sidebarInitialized = true, 100); window.addEventListener('resize', () => { sidebarOpen = window.innerWidth >= 1024; })"
               >
             <!-- TODO: Replace with DaisyUI navbar brand -->
             <!-- Original: div with border-b border-primary -->
-            <div class="p-4 sm:p-6 border-b border-primary">
+            <div class="p-4 sm:p-6 border-b border-primary" style="border-color: #D4A373;">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <!--<img src="{{ asset('images/logo1.webp') }}"
+                    <div class="flex flex-col items-center text-center">
+                        <img src="{{ asset('images/logoooo.jpg') }}"
                              alt="Healthcare Logo"
-                             class="w-8 h-8 sm:w-10 sm:h-10 mr-3 object-contain">-->
+                             class="w-12 h-12 sm:w-16 sm:h-16 mb-2 object-cover rounded-full">
                         <div>
-                            <h1 class="text-lg sm:text-xl font-bold">Barangay Health Worker Portal</h1>
-                            <p class="text-xs sm:text-sm text-gray-300 mt-1">Healthcare Dashboard</p>
+                            <h1 class="text-lg sm:text-xl font-bold">Brgy Mecolong Health Center</h1>
+                            <p class="text-xs sm:text-sm text-gray-300 mt-1">Barangay Health Worker Portal</p>
                         </div>
                     </div>
                     <!-- Close button for mobile -->
                     <button @click="sidebarInitialized = true; sidebarOpen = false"
-                            class="lg:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-primary transition-colors">
+                            class="lg:hidden p-2 rounded-md text-gray-300 hover:text-white hover-cream transition-colors">
                         <i class="fas fa-times w-5 h-5"></i>
                     </button>
                 </div>
@@ -289,7 +351,7 @@
                 <ul class="space-y-1 sm:space-y-2">
                     <li>
                         <a href="{{ route('dashboard') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('dashboard') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('dashboard') ? 'nav-active bg-primary' : 'hover-cream' }}"
                            data-section="dashboard"
                            onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-tachometer-alt w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
@@ -300,7 +362,7 @@
                     <!-- Patient Registration -->
                     <li>
                         <a href="{{ route('bhw.patients.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.patients.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.patients.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
                            data-section="patients"
                            onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-user-plus w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
@@ -311,7 +373,7 @@
                     <!-- Prenatal Records -->
                     <li>
                         <a href="{{ route('bhw.prenatalrecord.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.prenatalrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.prenatalrecord.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
                            data-section="prenatal"
                            onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-file-medical w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
@@ -322,7 +384,7 @@
                     <!-- Child Records -->
                     <li>
                         <a href="{{ route('bhw.childrecord.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.childrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.childrecord.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
                            data-section="child-records"
                            onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-child w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
@@ -333,7 +395,7 @@
                     <!-- Reports -->
                     <li>
                         <a href="{{ route('bhw.report') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.report*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.report*') ? 'nav-active bg-primary' : 'hover-cream' }}"
                            data-section="reports"
                            onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-chart-bar w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
@@ -343,22 +405,21 @@
                 </ul>
             </nav>
             
-            <!-- TODO: Replace with DaisyUI dropdown and avatar -->
-            <!-- Original: div with border-t border-primary -->
-            <div class="p-3 sm:p-4 border-t border-primary">
+            <!-- User Profile & Logout Section -->
+            <div class="p-3 sm:p-4 border-t border-primary" style="border-color: #B8956A; background-color: #B8956A;">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center min-w-0">
                         <div class="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-xs sm:text-sm font-semibold">{{ strtoupper(substr(auth()->user()->name ?? 'BHW', 0, 2)) }}</span>
+                            <span class="text-xs sm:text-sm font-semibold text-white">{{ strtoupper(substr(auth()->user()->name ?? 'BHW', 0, 2)) }}</span>
                         </div>
                         <div class="ml-2 sm:ml-3 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium truncate">{{ auth()->user()->name ?? 'BHW User' }}</p>
-                            <p class="text-xs text-gray-400 truncate">{{ auth()->user()->role ?? 'Barangay Health Worker' }}</p>
+                            <p class="text-xs sm:text-sm font-medium truncate text-white">{{ auth()->user()->name ?? 'BHW User' }}</p>
+                            <p class="text-xs text-gray-200 truncate">{{ auth()->user()->role ?? 'Barangay Health Worker' }}</p>
                         </div>
                     </div>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="p-2 text-gray-300 hover:text-white hover:bg-primary rounded-lg transition-colors flex-shrink-0" title="Logout">
+                        <button type="submit" class="p-2 text-white hover:text-gray-200 hover-cream rounded-lg transition-colors flex-shrink-0" title="Logout">
                             <i class="fas fa-sign-out-alt w-4 h-4 sm:w-5 sm:h-5"></i>
                         </button>
                     </form>
@@ -369,7 +430,7 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 lg:ml-0">
             <!-- Header -->
-            <header class="bg-white shadow-sm border-b p-3 sm:p-4">
+            <header class="shadow-sm border-b p-3 sm:p-4" style="background-color: #FEFAE0;">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center min-w-0">
                         <!-- Mobile menu button -->
@@ -387,7 +448,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-scroll custom-scrollbar">
+            <main class="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-scroll custom-scrollbar bg-gray-50">
                 <div class="content-wrapper">
                     <!-- Breadcrumb -->
                     @if(!request()->routeIs('dashboard'))

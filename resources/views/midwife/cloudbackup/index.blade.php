@@ -49,6 +49,15 @@
         color: white;
         border-color: #dc2626;
     }
+
+    .tab-button.active {
+        border-color: #0ea5e9;
+        color: #0ea5e9;
+    }
+
+    .tab-content.hidden {
+        display: none;
+    }
 </style>
 @endpush
 
@@ -56,6 +65,9 @@
 <div class="max-w-7xl mx-auto">
     <!-- Success/Error Messages -->
     @include('components.flowbite-alert')
+
+    <!-- Global Confirmation Modal -->
+    @include('components.confirmation-modal')
     <!-- Page Header -->
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -78,16 +90,16 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Stats Cards 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
                 <div class="p-2 sm:p-3 rounded-lg bg-blue-100">
-                    <i class="fas fa-database text-lg sm:text-xl text-blue-600"></i>
+                    <i class="fas fa-database text-2xl sm:text-3xl text-blue-600"></i>
                 </div>
                 <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Backups</p>
-                    <p id="totalBackups" class="text-xl sm:text-2xl font-bold text-gray-900">{{ $stats['total_backups'] ?? 0 }}</p>
+                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Total Backups</p>
+                    <p id="totalBackups" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{{ $stats['total_backups'] ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -95,11 +107,11 @@
         <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
                 <div class="p-2 sm:p-3 rounded-lg bg-green-100">
-                    <i class="fas fa-check-circle text-lg sm:text-xl text-green-600"></i>
+                    <i class="fas fa-check-circle text-2xl sm:text-3xl text-green-600"></i>
                 </div>
                 <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Successful</p>
-                    <p id="successfulBackups" class="text-xl sm:text-2xl font-bold text-gray-900">{{ $stats['successful_backups'] ?? 0 }}</p>
+                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Successful</p>
+                    <p id="successfulBackups" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{{ $stats['successful_backups'] ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -107,11 +119,11 @@
         <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
                 <div class="p-2 sm:p-3 rounded-lg bg-yellow-100">
-                    <i class="fas fa-clock text-lg sm:text-xl text-yellow-600"></i>
+                    <i class="fas fa-clock text-2xl sm:text-3xl text-yellow-600"></i>
                 </div>
                 <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Last Backup</p>
-                    <p id="lastBackup" class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ $stats['last_backup'] ?? 'Never' }}</p>
+                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Last Backup</p>
+                    <p id="lastBackup" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 truncate">{{ $stats['last_backup'] ?? 'Never' }}</p>
                 </div>
             </div>
         </div>
@@ -119,30 +131,16 @@
         <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <div class="flex items-center">
                 <div class="p-2 sm:p-3 rounded-lg bg-purple-100">
-                    <i class="fas fa-hdd text-lg sm:text-xl text-purple-600"></i>
+                    <i class="fas fa-hdd text-2xl sm:text-3xl text-purple-600"></i>
                 </div>
                 <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Storage Used</p>
-                    <p id="storageUsed" class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ $stats['storage_used'] ?? '0 MB' }}</p>
+                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Storage Used</p>
+                    <p id="storageUsed" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 truncate">{{ $stats['storage_used'] ?? '0 MB' }}</p>
                 </div>
             </div>
         </div>
-    </div>
+    </div>-->
 
-    <!-- Success/Error Messages -->
-    <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-        <div class="flex items-center">
-            <i class="fas fa-check-circle mr-2"></i>
-            <span id="successText"></span>
-        </div>
-    </div>
-
-    <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-        <div class="flex items-center">
-            <i class="fas fa-exclamation-circle mr-2"></i>
-            <span id="errorText"></span>
-        </div>
-    </div>
 
     <!-- Connection Status -->
     <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
@@ -241,26 +239,41 @@
         </div>
     </div>
 
-    <!-- Backup History -->
+    <!-- History Tabs -->
     <div class="bg-white rounded-lg border border-gray-200">
-        <div class="p-4 sm:p-6 border-b border-gray-200">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Backup History</h3>
-                <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                    <select id="filterType" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
-                        <option value="">All Types</option>
-                        <option value="full">Full Backup</option>
-                        <option value="selective">Selective Backup</option>
-                    </select>
-                    <select id="filterStatus" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
-                        <option value="">All Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="failed">Failed</option>
-                        <option value="in-progress">In Progress</option>
-                    </select>
+        <div class="border-b border-gray-200">
+            <nav class="flex space-x-8 px-4 sm:px-6" aria-label="Tabs">
+                <button id="backupHistoryTab" class="tab-button border-b-2 border-secondary text-secondary py-4 px-1 text-sm font-medium" onclick="switchTab('backup')">
+                    <i class="fas fa-cloud-upload-alt mr-2"></i>
+                    Backup History
+                </button>
+                <button id="restoreHistoryTab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium" onclick="switchTab('restore')">
+                    <i class="fas fa-cloud-download-alt mr-2"></i>
+                    Restore History
+                </button>
+            </nav>
+        </div>
+
+        <!-- Backup History Tab Content -->
+        <div id="backupHistoryContent" class="tab-content">
+            <div class="p-4 sm:p-6 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Backup Operations</h3>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                        <select id="filterType" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
+                            <option value="">All Types</option>
+                            <option value="full">Full Backup</option>
+                            <option value="selective">Selective Backup</option>
+                        </select>
+                        <select id="filterStatus" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
+                            <option value="">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                            <option value="in-progress">In Progress</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
 
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -280,14 +293,57 @@
             </table>
         </div>
 
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden text-center py-12">
-            <i class="fas fa-cloud text-4xl mb-4 text-gray-300"></i>
-            <h3 class="text-lg font-medium mb-2 text-gray-900">No backups found</h3>
-            <p class="mb-6 text-gray-600">Create your first backup to secure your healthcare data.</p>
-            <button onclick="openBackupModal()" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg font-medium">
-                Create Backup
-            </button>
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-12">
+                <i class="fas fa-cloud text-4xl mb-4 text-gray-300"></i>
+                <h3 class="text-lg font-medium mb-2 text-gray-900">No backups found</h3>
+                <p class="mb-6 text-gray-600">Create your first backup to secure your healthcare data.</p>
+                <button onclick="openBackupModal()" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg font-medium">
+                    Create Backup
+                </button>
+            </div>
+        </div>
+
+        <!-- Restore History Tab Content -->
+        <div id="restoreHistoryContent" class="tab-content hidden">
+            <div class="p-4 sm:p-6 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Restore Operations</h3>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                        <select id="filterRestoreStatus" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterRestoreBackups()">
+                            <option value="">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                            <option value="in-progress">In Progress</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restore Details</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Source Backup</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Options</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">User</th>
+                        </tr>
+                    </thead>
+                    <tbody id="restoreTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Dynamic restore entries will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State for Restores -->
+            <div id="emptyRestoreState" class="hidden text-center py-12">
+                <i class="fas fa-cloud-download-alt text-4xl mb-4 text-gray-300"></i>
+                <h3 class="text-lg font-medium mb-2 text-gray-900">No restore operations found</h3>
+                <p class="mb-6 text-gray-600">Restore operations will appear here when you restore data from backups.</p>
+            </div>
         </div>
     </div>
 
@@ -523,10 +579,6 @@
                                     <input type="checkbox" name="restore_options" value="verify_integrity" class="w-5 h-5 text-primary" checked>
                                     <span class="text-sm text-gray-900">Verify backup integrity</span>
                                 </label>
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" name="restore_options" value="selective_restore" class="w-5 h-5 text-primary">
-                                    <span class="text-sm text-gray-900">Enable selective module restore</span>
-                                </label>
                             </div>
                         </div>
 
@@ -560,9 +612,12 @@
 <script>
     // Initialize with empty array - will be populated from server
     let backups = [];
+    let restores = [];
 
     let filteredBackups = [...backups];
+    let filteredRestores = [...restores];
     let currentBackupProgress = null;
+    let activeTab = 'backup';
 
     // Module data - will be loaded dynamically
     let moduleSizes = {};
@@ -587,11 +642,35 @@
     // Load backup data from server
     function loadBackupData() {
         return fetch('{{ route("midwife.cloudbackup.data") }}')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                backups = data.backups;
-                filteredBackups = [...backups];
-                renderBackups();
+                // Handle error response from server
+                if (data.success === false) {
+                    console.error('Server error loading backup data:', data.error);
+                    showError(data.message || 'Failed to load backup data');
+
+                    // Use empty data to prevent further errors
+                    backups = [];
+                    restores = [];
+                    filteredBackups = [];
+                    filteredRestores = [];
+                } else {
+                    backups = data.backups || [];
+                    restores = data.restores || [];
+                    filteredBackups = [...backups];
+                    filteredRestores = [...restores];
+                }
+
+                if (activeTab === 'backup') {
+                    renderBackups();
+                } else {
+                    renderRestores();
+                }
 
                 // Update stats
                 if (data.stats) {
@@ -602,7 +681,21 @@
             })
             .catch(error => {
                 console.error('Error loading backup data:', error);
-                showError('Failed to load backup data');
+                showError('Failed to load backup data: ' + error.message);
+
+                // Set empty data to prevent further errors
+                backups = [];
+                restores = [];
+                filteredBackups = [];
+                filteredRestores = [];
+
+                // Still render to show empty state
+                if (activeTab === 'backup') {
+                    renderBackups();
+                } else {
+                    renderRestores();
+                }
+
                 throw error; // Re-throw for proper error handling
             });
     }
@@ -664,6 +757,95 @@
                 </tr>
             `;
         }).join('');
+    }
+
+    function renderRestores() {
+        const tbody = document.getElementById('restoreTableBody');
+        const emptyState = document.getElementById('emptyRestoreState');
+
+        if (filteredRestores.length === 0) {
+            tbody.innerHTML = '';
+            emptyState.classList.remove('hidden');
+            return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        tbody.innerHTML = filteredRestores.map(restore => {
+            const statusColor = getStatusColor(restore.status);
+
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 sm:px-6 py-4">
+                        <div class="font-medium text-gray-900 text-sm sm:text-base">Restored from: ${restore.backup_name}</div>
+                        <div class="text-xs sm:text-sm text-gray-500">${restore.formatted_modules}</div>
+                        <div class="sm:hidden text-xs text-gray-500 mt-1">${restore.restore_options}</div>
+                        <div class="lg:hidden text-xs text-gray-500 mt-1">${formatDate(restore.restored_at)} • ${restore.restored_by}</div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-4 hidden sm:table-cell">
+                        <div class="text-sm text-gray-900">${restore.backup_name}</div>
+                        <div class="text-xs text-gray-500">Backup ID: ${restore.backup_id}</div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden md:table-cell">${restore.restore_options}</td>
+                    <td class="px-3 sm:px-6 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text}">
+                            <i class="fas ${statusColor.icon} mr-1"></i>
+                            <span class="hidden sm:inline">${restore.status.charAt(0).toUpperCase() + restore.status.slice(1)}</span>
+                            <span class="sm:hidden">${restore.status.charAt(0).toUpperCase()}</span>
+                        </span>
+                        ${restore.error ? `<div class="text-xs text-red-600 mt-1">${restore.error}</div>` : ''}
+                    </td>
+                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">${formatDate(restore.restored_at)}</td>
+                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">${restore.restored_by}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function switchTab(tabName) {
+        // Update active tab
+        activeTab = tabName;
+
+        // Update tab buttons
+        const backupTab = document.getElementById('backupHistoryTab');
+        const restoreTab = document.getElementById('restoreHistoryTab');
+
+        if (tabName === 'backup') {
+            backupTab.classList.add('border-secondary', 'text-secondary');
+            backupTab.classList.remove('border-transparent', 'text-gray-500');
+            restoreTab.classList.add('border-transparent', 'text-gray-500');
+            restoreTab.classList.remove('border-secondary', 'text-secondary');
+        } else {
+            restoreTab.classList.add('border-secondary', 'text-secondary');
+            restoreTab.classList.remove('border-transparent', 'text-gray-500');
+            backupTab.classList.add('border-transparent', 'text-gray-500');
+            backupTab.classList.remove('border-secondary', 'text-secondary');
+        }
+
+        // Update tab content
+        const backupContent = document.getElementById('backupHistoryContent');
+        const restoreContent = document.getElementById('restoreHistoryContent');
+
+        if (tabName === 'backup') {
+            backupContent.classList.remove('hidden');
+            restoreContent.classList.add('hidden');
+            renderBackups();
+        } else {
+            restoreContent.classList.remove('hidden');
+            backupContent.classList.add('hidden');
+            renderRestores();
+        }
+    }
+
+    function filterRestoreBackups() {
+        const statusFilter = document.getElementById('filterRestoreStatus').value;
+
+        filteredRestores = restores.filter(restore => {
+            const matchesStatus = !statusFilter || restore.status === statusFilter;
+            return matchesStatus;
+        });
+
+        renderRestores();
     }
 
     function getStatusColor(status) {
@@ -796,40 +978,70 @@
             confirmText: 'Yes, create backup',
             cancelText: 'Cancel',
             onConfirm: function() {
-                // Close the backup modal and start the backup process
-                closeBackupModal();
-                
-                // Show progress immediately
-                const progressContainer = document.getElementById('backupProgress');
-                progressContainer.classList.remove('hidden');
-                document.getElementById('progressStatus').textContent = 'Starting backup...';
-                document.getElementById('progressBar').style.width = '0%';
-                document.getElementById('progressText').textContent = '0%';
-                
-                // Send request to server
-                fetch('{{ route("midwife.cloudbackup.store") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify(backupData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Simulate progress updates (in real app, you'd poll the progress endpoint)
-                        simulateBackupProgress(data.backup_id);
-                    } else {
+            // Close the backup modal and start the backup process
+            closeBackupModal();
+
+            // Show progress immediately
+            const progressContainer = document.getElementById('backupProgress');
+            progressContainer.classList.remove('hidden');
+            document.getElementById('progressStatus').textContent = 'Starting backup...';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressText').textContent = '0%';
+            document.getElementById('progressETA').textContent = 'Calculating...';
+
+            // Start progress simulation
+            simulateBackupProgress();
+
+            // Send request to server
+            fetch('{{ route("midwife.cloudbackup.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(backupData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Stop progress simulation
+                if (currentBackupProgress) {
+                    clearInterval(currentBackupProgress);
+                    currentBackupProgress = null;
+                }
+
+                if (data.success) {
+                    // Complete the progress bar
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('progressText').textContent = '100%';
+                    document.getElementById('progressStatus').textContent = 'Backup completed!';
+                    document.getElementById('progressETA').textContent = 'Done';
+
+                    // Hide progress after a short delay to show completion
+                    setTimeout(() => {
                         progressContainer.classList.add('hidden');
-                        showError(data.message || 'Failed to create backup');
-                    }
-                })
-                .catch(error => {
+                    }, 2000);
+
+                    // Reload data to show the new backup
+                    loadBackupData();
+
+                    // Show success message
+                    showSuccess('Backup created successfully!');
+                } else {
                     progressContainer.classList.add('hidden');
-                    console.error('Error:', error);
-                    showError('Failed to create backup');
-                });
+                    showError(data.message || 'Failed to create backup');
+                }
+            })
+            .catch(error => {
+                // Stop progress simulation
+                if (currentBackupProgress) {
+                    clearInterval(currentBackupProgress);
+                    currentBackupProgress = null;
+                }
+
+                progressContainer.classList.add('hidden');
+                console.error('Error:', error);
+                showError('Failed to create backup: ' + error.message);
+            });
             }
         });
     }
@@ -843,12 +1055,12 @@
         }
     }
 
-    function simulateBackupProgress(backupId) {
+    function simulateBackupProgress() {
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
         const progressStatus = document.getElementById('progressStatus');
         const progressETA = document.getElementById('progressETA');
-        
+
         let progress = 10;
         const steps = [
             'Preparing backup...',
@@ -860,52 +1072,29 @@
             'Finalizing...'
         ];
         let currentStep = 0;
-        
+
         currentBackupProgress = setInterval(() => {
-            if (progress < 90) {
-                progress += Math.random() * 15;
-                if (progress > 90) progress = 90;
-                
+            // Only animate progress if request hasn't completed yet
+            if (currentBackupProgress && progress < 85) {
+                progress += Math.random() * 8 + 2;
+                if (progress > 85) progress = 85;
+
                 progressBar.style.width = progress + '%';
                 progressText.textContent = Math.round(progress) + '%';
-                
-                if (currentStep < steps.length - 1) {
+
+                // Update status step
+                const stepIndex = Math.floor((progress / 85) * steps.length);
+                if (stepIndex < steps.length && stepIndex !== currentStep) {
+                    currentStep = stepIndex;
                     progressStatus.textContent = steps[currentStep];
-                    currentStep++;
                 }
-                
-                const remainingTime = Math.max(0, Math.round((100 - progress) / 10));
-                progressETA.textContent = remainingTime > 0 ? `${remainingTime}s remaining` : 'Almost done...';
-            } else {
-                clearInterval(currentBackupProgress);
-                // Check final status from server
-                checkBackupCompletion(backupId);
+
+                const remainingTime = Math.max(1, Math.round((100 - progress) / 8));
+                progressETA.textContent = remainingTime > 0 ? `~${remainingTime}s remaining` : 'Almost done...';
             }
-        }, 1500);
+        }, 800);
     }
 
-    function checkBackupCompletion(backupId) {
-        // Check if we already completed this backup to prevent multiple success messages
-        if (!currentBackupProgress) {
-            return; // Already completed or cancelled
-        }
-
-        setTimeout(() => {
-            const progressContainer = document.getElementById('backupProgress');
-            progressContainer.classList.add('hidden');
-
-            // Clear the backup progress tracker
-            currentBackupProgress = null;
-
-            // Reload backup data from server to get the real backup entry
-            loadBackupData();
-
-            showSuccess('Backup completed successfully!');
-        }, 2000);
-    }
-
-    // Removed completeBackup() function to prevent duplicate entries
-    // The server already creates the backup entry, so we just need to reload data
 
     function cancelBackup() {
         if (currentBackupProgress) {
@@ -919,7 +1108,7 @@
                     clearInterval(currentBackupProgress);
                     currentBackupProgress = null;
                     document.getElementById('backupProgress').classList.add('hidden');
-                    showError('Backup cancelled by user.');
+                    showWarning('Backup cancelled by user.');
                 }
             });
         }
@@ -1002,42 +1191,51 @@
             confirm_restore: document.querySelector('input[name="confirm_restore"]').checked ? 1 : 0
         };
         
-        // Additional confirmation using the global modal for critical restore operation
+        // Additional confirmation for critical restore operation
         const moduleNames = backup.modules.map(m => formatModuleName(m)).join(', ');
-        const restoreOptions = restoreData.restore_options.length > 0 ? 
+        const restoreOptions = restoreData.restore_options.length > 0 ?
             ' with options: ' + restoreData.restore_options.join(', ') : '';
-        
+
         showConfirmationModal({
             title: `⚠️ CRITICAL OPERATION: Are you absolutely sure you want to restore data from "${backup.name}" (${moduleNames})${restoreOptions}? This will overwrite existing data and cannot be undone without another backup.`,
             type: 'danger',
             confirmText: 'Yes, restore data',
             cancelText: 'Cancel restore',
             onConfirm: function() {
-                closeRestoreModal();
-                
-                showSuccess(`Starting restore from "${backup.name}". This may take several minutes...`);
-                
-                fetch('{{ route("midwife.cloudbackup.restore") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify(restoreData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showSuccess(data.message);
-                        loadBackupData(); // Reload data
-                    } else {
-                        showError(data.message || 'Failed to restore backup');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showError('Failed to restore backup');
-                });
+            closeRestoreModal();
+
+            // Prevent duplicate requests
+            if (window.restoreInProgress) {
+                showError('Restore already in progress. Please wait...');
+                return;
+            }
+            window.restoreInProgress = true;
+
+            showInfo(`Starting restore from "${backup.name}". This may take several minutes...`);
+
+            fetch('{{ route("midwife.cloudbackup.restore") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(restoreData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                window.restoreInProgress = false; // Reset flag
+                if (data.success) {
+                    showSuccess(data.message);
+                    loadBackupData(); // Reload data
+                } else {
+                    showError(data.message || 'Failed to restore backup');
+                }
+            })
+            .catch(error => {
+                window.restoreInProgress = false; // Reset flag on error
+                console.error('Error:', error);
+                showError('Failed to restore backup');
+            });
             }
         });
     }
@@ -1046,7 +1244,7 @@
         const backup = backups.find(b => b.id === id);
         if (backup) {
             showSuccess(`Downloading "${backup.name}"...`);
-            window.open(`{{ route('midwife.cloudbackup.download', ':id') }}`.replace(':id', id), '_blank');
+            window.open('{{ route("midwife.cloudbackup.download", ":id") }}'.replace(':id', id), '_blank');
         }
     }
 
@@ -1071,10 +1269,9 @@
             return;
         }
         
-        // Use the global confirmation modal instead of native confirm
+        // Use confirmation modal for delete operation
         confirmDelete(backup.name, function() {
-            // This callback is executed when user confirms deletion
-            fetch(`{{ route('midwife.cloudbackup.destroy', ':id') }}`.replace(':id', id), {
+            fetch('/midwife/cloudbackup/' + id, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -1114,18 +1311,24 @@
 
     function updateStatsFromServer(stats) {
         const statsData = @json($stats ?? []);
-        
-        if (stats.total_backups !== undefined) {
-            document.getElementById('totalBackups').textContent = stats.total_backups;
+
+        // Only update stats if elements exist (they're commented out in the current UI)
+        const totalElement = document.getElementById('totalBackups');
+        const successfulElement = document.getElementById('successfulBackups');
+        const lastElement = document.getElementById('lastBackup');
+        const storageElement = document.getElementById('storageUsed');
+
+        if (stats.total_backups !== undefined && totalElement) {
+            totalElement.textContent = stats.total_backups;
         }
-        if (stats.successful_backups !== undefined) {
-            document.getElementById('successfulBackups').textContent = stats.successful_backups;
+        if (stats.successful_backups !== undefined && successfulElement) {
+            successfulElement.textContent = stats.successful_backups;
         }
-        if (stats.last_backup !== undefined) {
-            document.getElementById('lastBackup').textContent = stats.last_backup;
+        if (stats.last_backup !== undefined && lastElement) {
+            lastElement.textContent = stats.last_backup;
         }
-        if (stats.storage_used !== undefined) {
-            document.getElementById('storageUsed').textContent = stats.storage_used;
+        if (stats.storage_used !== undefined && storageElement) {
+            storageElement.textContent = stats.storage_used;
         }
     }
 
@@ -1141,83 +1344,48 @@
         return moduleNames[moduleKey] || moduleKey;
     }
 
-    // Global variable to track success message timer
-    let successMessageTimer = null;
-
+    // Use flowbite alert system for all notifications
     function showSuccess(message) {
-        const successElement = document.getElementById('successMessage');
-        const textElement = document.getElementById('successText');
-
-        // Clear any existing timer to prevent multiple timers
-        if (successMessageTimer) {
-            clearTimeout(successMessageTimer);
-            successMessageTimer = null;
+        // Use the global healthcare alert system
+        if (window.healthcareAlert) {
+            window.healthcareAlert.success(message);
+        } else {
+            console.log('Success:', message);
         }
-
-        // Hide any existing error messages
-        const errorElement = document.getElementById('errorMessage');
-        errorElement.classList.add('hidden');
-
-        textElement.textContent = message;
-        successElement.classList.remove('hidden');
-
-        // Set new timer to hide message after 5 seconds
-        successMessageTimer = setTimeout(() => {
-            successElement.classList.add('hidden');
-            successMessageTimer = null;
-        }, 5000);
     }
-
-    // Global variable to track error message timer
-    let errorMessageTimer = null;
 
     function showError(message) {
-        const errorElement = document.getElementById('errorMessage');
-        const textElement = document.getElementById('errorText');
-
-        // Clear any existing timer to prevent multiple timers
-        if (errorMessageTimer) {
-            clearTimeout(errorMessageTimer);
-            errorMessageTimer = null;
+        // Use the global healthcare alert system
+        if (window.healthcareAlert) {
+            window.healthcareAlert.error(message);
+        } else {
+            console.error('Error:', message);
         }
-
-        // Hide any existing success messages
-        const successElement = document.getElementById('successMessage');
-        successElement.classList.add('hidden');
-
-        textElement.textContent = message;
-        errorElement.classList.remove('hidden');
-
-        // Set new timer to hide message after 5 seconds
-        errorMessageTimer = setTimeout(() => {
-            errorElement.classList.add('hidden');
-            errorMessageTimer = null;
-        }, 5000);
     }
 
-    // Function to hide all messages and clear timers
+    function showInfo(message) {
+        // Use the global healthcare alert system
+        if (window.healthcareAlert) {
+            window.healthcareAlert.info(message);
+        } else {
+            console.log('Info:', message);
+        }
+    }
+
+    function showWarning(message) {
+        // Use the global healthcare alert system
+        if (window.healthcareAlert) {
+            window.healthcareAlert.warning(message);
+        } else {
+            console.warn('Warning:', message);
+        }
+    }
+
+    // Function to hide all messages (no longer needed with centered overlays)
     function hideAllMessages() {
-        // Clear success message timer
-        if (successMessageTimer) {
-            clearTimeout(successMessageTimer);
-            successMessageTimer = null;
-        }
-
-        // Clear error message timer
-        if (errorMessageTimer) {
-            clearTimeout(errorMessageTimer);
-            errorMessageTimer = null;
-        }
-
-        // Hide all messages
-        const successElement = document.getElementById('successMessage');
-        const errorElement = document.getElementById('errorMessage');
-
-        if (successElement) {
-            successElement.classList.add('hidden');
-        }
-        if (errorElement) {
-            errorElement.classList.add('hidden');
+        // Remove any existing alert overlays from healthcare alert system
+        if (window.healthcareAlert) {
+            window.healthcareAlert.removeExisting();
         }
     }
 

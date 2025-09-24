@@ -14,8 +14,8 @@
     }
     
     :root {
-        --primary: #243b55;
-        --secondary: #141e30;
+        --primary: #D4A373;
+        --secondary: #ecb99e;
         --gray-50: #f9fafb;
         --gray-100: #f3f4f6;
         --gray-200: #e5e7eb;
@@ -196,10 +196,23 @@
     }
     
     .report-metric-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--primary);
-        margin-bottom: 4px;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        color: var(--primary) !important;
+        margin-bottom: 4px !important;
+        line-height: 1.1 !important;
+    }
+
+    @media (max-width: 1024px) {
+        .report-metric-number {
+            font-size: 2.5rem !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .report-metric-number {
+            font-size: 2rem !important;
+        }
     }
     
     .report-metric-label {
@@ -259,7 +272,8 @@
     
     .chart-container {
         position: relative;
-        height: 300px;
+        height: 400px;
+        width: 100%;
         padding: 20px 0;
     }
     
@@ -275,7 +289,10 @@
     
     @media (max-width: 640px) {
         .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
-        .chart-container { height: 250px; }
+        .chart-container { height: 300px; width: 100%; }
+        .report-metric-number {
+            font-size: 1rem !important;
+        }
     }
     
     .spacing-section {
@@ -339,12 +356,13 @@
         }
         
         .report-metric-number {
-            font-size: 16px !important;
+            font-size: 20px !important;
             font-weight: 700 !important;
         }
         
         .chart-container {
-            height: 200px !important;
+            height: 250px !important;
+            width: 100% !important;
         }
         
         .report-table th {
@@ -424,61 +442,54 @@
 </style>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"
+        onerror="console.error('Primary CDN failed, trying fallback...'); this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js';"></script>
+
+<!-- Success/Error Messages -->
+@include('components.flowbite-alert')
 
 <!-- Report Filters -->
 <div class="report-filters">
-    <h3 class="section-title">
-        <i class="fas fa-filter"></i>
-        Report Configuration
-    </h3>
-    
-    <form method="GET" action="{{ route('midwife.report') }}">
-        <div class="grid-4">
-            <div class="form-group">
-                <label class="form-label">Report Format</label>
-                <select class="form-select" name="report_format" onchange="toggleReportFormat()">
-                    <option value="dynamic" {{ ($currentFilters['report_format'] ?? 'dynamic') === 'dynamic' ? 'selected' : '' }}> Dynamic Analytics Report</option>
-                    <option value="custom" {{ ($currentFilters['report_format'] ?? '') === 'custom' ? 'selected' : '' }}> Custom Paper Report</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Report Type</label>
-                <select class="form-select" name="report_type">
-                    <option value="monthly" {{ ($currentFilters['report_type'] ?? 'monthly') === 'monthly' ? 'selected' : '' }}>Monthly Summary</option>
-                    <option value="quarterly" {{ ($currentFilters['report_type'] ?? '') === 'quarterly' ? 'selected' : '' }}>Quarterly Report</option>
-                    <option value="annual" {{ ($currentFilters['report_type'] ?? '') === 'annual' ? 'selected' : '' }}>Annual Report</option>
-                    <option value="custom" {{ ($currentFilters['report_type'] ?? '') === 'custom' ? 'selected' : '' }}>Custom Range</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Month</label>
-                <select class="form-select" name="month" id="monthFilter">
-                    @foreach($availableMonths as $value => $label)
-                        <option value="{{ $value }}" {{ ($currentFilters['month'] ?? '') === (string)$value ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Department</label>
-                <select class="form-select" name="department">
-                    <option value="all" {{ ($currentFilters['department'] ?? 'all') === 'all' ? 'selected' : '' }}>All Services</option>
-                    <option value="prenatal" {{ ($currentFilters['department'] ?? '') === 'prenatal' ? 'selected' : '' }}>Prenatal Care</option>
-                    <option value="immunization" {{ ($currentFilters['department'] ?? '') === 'immunization' ? 'selected' : '' }}>Child Immunization</option>
-                </select>
-            </div>
-            
+    <div style="margin-bottom: 24px;">
+        <h3 class="section-title">
+            <i class="fas fa-filter"></i>
+            Report Configuration
+        </h3>
+    </div>
+
+    <!-- Month and Department selections repositioned -->
+    <div style="display: flex; gap: 16px; align-items: end; margin-bottom: 24px;">
+        <div class="form-group" style="margin-bottom: 0; min-width: 200px;">
+            <label class="form-label">Month</label>
+            <select class="form-select" name="month" id="monthFilter" onchange="updateHiddenInputs()" style="padding: 12px 16px; font-size: 0.875rem;">
+                @foreach($availableMonths as $value => $label)
+                    <option value="{{ $value }}" {{ ($currentFilters['month'] ?? '') === (string)$value ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
-       
+        <div class="form-group" style="margin-bottom: 0; min-width: 200px;">
+            <label class="form-label">Department</label>
+            <select class="form-select" name="department" id="departmentFilter" onchange="updateHiddenInputs()" style="padding: 12px 16px; font-size: 0.875rem;">
+                <option value="all" {{ ($currentFilters['department'] ?? 'all') === 'all' ? 'selected' : '' }}>All Services</option>
+                <option value="prenatal" {{ ($currentFilters['department'] ?? '') === 'prenatal' ? 'selected' : '' }}>Prenatal Care</option>
+                <option value="immunization" {{ ($currentFilters['department'] ?? '') === 'immunization' ? 'selected' : '' }}>Child Immunization</option>
+            </select>
+        </div>
+    </div>
 
-        <div style="margin-top: 24px; display: flex; gap: 12px; align-items: center;">
-            <button type="submit" class="btn btn-primary" id="updateReportBtn">
+    <!-- Export buttons section with Update Report -->
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <!-- Update Report button positioned with other buttons -->
+        <form method="GET" action="{{ route('midwife.report') }}" style="display: inline-block;">
+            <input type="hidden" name="report_format" value="dynamic">
+            <input type="hidden" name="report_type" value="monthly">
+            <input type="hidden" name="month" value="{{ $currentFilters['month'] ?? '' }}" id="hiddenMonth">
+            <input type="hidden" name="department" value="{{ $currentFilters['department'] ?? 'all' }}" id="hiddenDepartment">
+
+            <button type="submit" class="btn btn-primary" id="updateReportBtn" style="padding: 12px 16px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px;">
                 <span class="btn-content">
                     <i class="fas fa-chart-bar"></i>
                     Update Report
@@ -488,29 +499,18 @@
                     Updating Report...
                 </span>
             </button>
-            
-            <div class="report-format-info" style="flex: 1; padding: 12px 16px; background: var(--gray-50); border-radius: 8px; font-size: 0.875rem; color: var(--gray-600);">
-                <span id="formatDescription">
-                    {{ ($currentFilters['report_format'] ?? 'dynamic') === 'dynamic' ? 
-                        ' Interactive charts, real-time analytics, and comprehensive data visualizations' : 
-                        ' Traditional paper-style report format with structured layout and summary tables'
-                    }}
-                </span>
-            </div>
-        </div>
-    </form>
-    
-    <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
-        <button class="btn btn-primary" onclick="printReport()">
+        </form>
+
+        <button class="btn btn-primary" onclick="printReport()" style="padding: 12px 16px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fas fa-print"></i>
             Print Report
         </button>
-        <button class="btn btn-secondary" onclick="exportPDF()">
+        <button class="btn btn-secondary" onclick="exportPDF()" style="padding: 12px 16px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fas fa-file-pdf"></i>
             Export PDF
         </button>
         <div class="dropdown" style="position: relative; display: inline-block;">
-            <button class="btn btn-secondary dropdown-toggle" onclick="toggleExportDropdown()">
+            <button class="btn btn-secondary dropdown-toggle" onclick="toggleExportDropdown()" style="padding: 12px 16px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px;">
                 <i class="fas fa-file-excel"></i>
                 Export Excel
                 <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 0.8em;"></i>
@@ -591,8 +591,8 @@
         <div class="grid-2">
             <div class="card" style="padding: 24px;">
                 <h3 class="section-title">
-                    <i class="fas fa-chart-area"></i>
-                    Daily Activity Trends
+                    <i class="fas fa-chart-bar"></i>
+                    Most Used Vaccines
                 </h3>
                 <div class="chart-container">
                     <canvas id="dailyTrendsChart"></canvas>
@@ -761,50 +761,117 @@
     Chart.defaults.font.size = 12;
     Chart.defaults.color = '#6b7280';
     
-    const primaryColor = '#243b55';
-    const secondaryColor = '#141e30';
+    const primaryColor = '#D4A373';
+    const secondaryColor = '#ecb99e';
     const successColor = '#059669';
     const warningColor = '#d97706';
     const infoColor = '#2563eb';
     
     let dailyTrendsChart, serviceDistributionChart;
     
-    // Initialize charts on page load
+    // Initialize charts with error handling (same pattern as dashboard)
     function initializeCharts() {
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        console.log('Chart Data:', {!! json_encode($charts) !!});
+
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js failed to load!');
+            // Show fallback message
+            document.querySelectorAll('.chart-container').forEach(container => {
+                container.innerHTML = '<div class="flex items-center justify-center h-full text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Chart library failed to load</div>';
+            });
+            return;
+        }
+
+        console.log('DOM loaded, initializing charts...');
         generateCharts();
+
         // Show report content
         const dynamicContent = document.getElementById('dynamicReportContent');
         if (dynamicContent) {
             dynamicContent.classList.add('active');
         }
     }
-    
+
     function generateCharts() {
         // Destroy existing charts
         if (dailyTrendsChart) dailyTrendsChart.destroy();
         if (serviceDistributionChart) serviceDistributionChart.destroy();
-        
-        // Daily Trends Chart
-        const dailyTrendsCtx = document.getElementById('dailyTrendsChart').getContext('2d');
-        const weeklyData = {!! json_encode($charts['weekly_trends']) !!};
-        dailyTrendsChart = new Chart(dailyTrendsCtx, {
-            type: 'line',
+
+        // Most Used Vaccines Chart
+        try {
+            const dailyTrendsCtx = document.getElementById('dailyTrendsChart');
+            if (dailyTrendsCtx) {
+                // Real vaccine data from backend
+                let vaccineData = {!! json_encode($charts['vaccine_usage']) !!};
+
+        // Handle empty vaccine data - show chart with placeholder data
+        if (!vaccineData.labels || vaccineData.labels.length === 0) {
+            vaccineData = {
+                labels: ['No Data Available'],
+                data: [0]
+            };
+        }
+
+        // Generate dynamic colors based on number of vaccines
+        const generateColors = (count) => {
+            const baseColors = [
+                '#D4A373',  // Primary warm brown
+                '#ecb99e',  // Secondary peach
+                '#059669',  // Success green
+                '#d97706',  // Warning orange
+                '#2563eb',  // Info blue
+                '#dc2626',  // Error red
+                '#6b7280',  // Gray
+                '#8b5cf6',  // Purple
+                '#06b6d4',  // Cyan
+                '#84cc16',  // Lime
+            ];
+
+            const borderColors = [
+                '#B8956A',  // Darker brown
+                '#d4a373',  // Darker peach
+                '#047857',  // Darker green
+                '#b45309',  // Darker orange
+                '#1d4ed8',  // Darker blue
+                '#b91c1c',  // Darker red
+                '#4b5563',  // Darker gray
+                '#7c3aed',  // Darker purple
+                '#0891b2',  // Darker cyan
+                '#65a30d',  // Darker lime
+            ];
+
+            // Repeat colors if we have more vaccines than predefined colors
+            const bgColors = [];
+            const bdColors = [];
+            for (let i = 0; i < count; i++) {
+                bgColors.push(baseColors[i % baseColors.length]);
+                bdColors.push(borderColors[i % borderColors.length]);
+            }
+
+            return { backgroundColor: bgColors, borderColor: bdColors };
+        };
+
+        const colors = generateColors(vaccineData.labels.length);
+
+        // Special styling for "No Data Available" state
+        if (vaccineData.labels[0] === 'No Data Available') {
+            colors.backgroundColor = ['#f3f4f6']; // Light gray
+            colors.borderColor = ['#d1d5db']; // Gray border
+        }
+
+                dailyTrendsChart = new Chart(dailyTrendsCtx.getContext('2d'), {
+            type: 'bar',
             data: {
-                labels: weeklyData.labels,
+                labels: vaccineData.labels,
                 datasets: [{
-                    label: 'Checkups',
-                    data: weeklyData.checkups,
-                    borderColor: primaryColor,
-                    backgroundColor: primaryColor + '20',
-                    tension: 0.4,
-                    fill: true
-                }, {
-                    label: 'Vaccinations',
-                    data: weeklyData.vaccinations,
-                    borderColor: infoColor,
-                    backgroundColor: infoColor + '20',
-                    tension: 0.4,
-                    fill: true
+                    label: 'Doses Administered',
+                    data: vaccineData.data,
+                    backgroundColor: colors.backgroundColor,
+                    borderColor: colors.borderColor,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    borderSkipped: false
                 }]
             },
             options: {
@@ -812,10 +879,25 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
+                        display: false
+                    },
+                    title: {
+                        display: vaccineData.labels[0] === 'No Data Available',
+                        text: 'No vaccine data for selected period',
+                        color: '#6b7280',
+                        font: {
+                            size: 14
+                        }
+                    },
+                    tooltip: {
+                        enabled: vaccineData.labels[0] !== 'No Data Available',
+                        callbacks: {
+                            label: function(context) {
+                                if (context.label === 'No Data Available') {
+                                    return 'No vaccine data available';
+                                }
+                                return context.dataset.label + ': ' + context.parsed.y + ' doses';
+                            }
                         }
                     }
                 },
@@ -824,27 +906,55 @@
                         beginAtZero: true,
                         grid: {
                             color: '#f3f4f6'
+                        },
+                        ticks: {
+                            font: {
+                                size: function(context) {
+                                    return window.innerWidth < 640 ? 10 : 12;
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of Doses',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: function(context) {
+                                    return window.innerWidth < 640 ? 10 : 12;
+                                }
+                            }
                         }
                     }
                 }
             }
         });
-        
+            }
+        } catch (error) {
+            console.error('Error creating vaccines chart:', error);
+        }
+
         // Service Distribution Chart
-        const serviceDistributionCtx = document.getElementById('serviceDistributionChart').getContext('2d');
-        const serviceData = {!! json_encode($charts['service_distribution']) !!};
-        serviceDistributionChart = new Chart(serviceDistributionCtx, {
+        try {
+            const serviceDistributionCtx = document.getElementById('serviceDistributionChart');
+            if (serviceDistributionCtx) {
+                const serviceData = {!! json_encode($charts['service_distribution']) !!};
+                serviceDistributionChart = new Chart(serviceDistributionCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: serviceData.labels,
                 datasets: [{
                     data: serviceData.data,
-                    backgroundColor: [primaryColor, infoColor, successColor, warningColor],
+                    backgroundColor: [primaryColor, secondaryColor, successColor, warningColor],
                     borderWidth: 0,
                     cutout: '60%'
                 }]
@@ -858,12 +968,21 @@
                         labels: {
                             padding: 20,
                             usePointStyle: true,
-                            pointStyle: 'circle'
+                            pointStyle: 'circle',
+                            font: {
+                                size: function(context) {
+                                    return window.innerWidth < 640 ? 12 : 14;
+                                }
+                            }
                         }
                     }
                 }
             }
-        });
+                });
+            }
+        } catch (error) {
+            console.error('Error creating service distribution chart:', error);
+        }
     }
     
     function exportPDF() {
@@ -1041,7 +1160,7 @@
         const customContent = document.getElementById('customReportContent');
         
         if (formatSelect.value === 'dynamic') {
-            formatDescription.textContent = '📊 Interactive charts, real-time analytics, and comprehensive data visualizations';
+            formatDescription.textContent = ' ';
             dynamicContent.classList.add('active');
             customContent.classList.remove('active');
         } else {
@@ -1097,17 +1216,18 @@
         }
     }
     
-    // Initialize report on page load
+    // Initialize report on page load (same pattern as dashboard)
     document.addEventListener('DOMContentLoaded', function() {
+        // Add small delay to ensure Chart.js is fully loaded
         setTimeout(() => {
             const currentFormat = '{{ $currentFilters["report_format"] ?? "dynamic" }}';
             if (currentFormat === 'dynamic') {
                 initializeCharts();
             }
-            
+
             // Set initial format description
             toggleReportFormat();
-        }, 500);
+        }, 100);
         
         // Add form submit handler for loading state
         const reportForm = document.querySelector('form');
@@ -1133,5 +1253,42 @@
         // Add debug info about current filters
         console.log('Current filters on page load:', @json($currentFilters ?? []));
     });
+
+    // Add loading states for charts (same as dashboard)
+    function showChartLoading(chartId) {
+        const container = document.getElementById(chartId).parentElement;
+        container.innerHTML = `
+            <div class="flex items-center justify-center h-full">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-500">Loading chart...</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // Responsive chart handling (same as dashboard)
+    window.addEventListener('resize', function() {
+        if (typeof Chart !== 'undefined' && Chart.instances) {
+            Object.values(Chart.instances).forEach(function(instance) {
+                instance.resize();
+            });
+        }
+    });
+
+    // Function to update hidden inputs when dropdowns change
+    function updateHiddenInputs() {
+        const monthSelect = document.getElementById('monthFilter');
+        const departmentSelect = document.getElementById('departmentFilter');
+        const hiddenMonth = document.getElementById('hiddenMonth');
+        const hiddenDepartment = document.getElementById('hiddenDepartment');
+
+        if (monthSelect && hiddenMonth) {
+            hiddenMonth.value = monthSelect.value;
+        }
+        if (departmentSelect && hiddenDepartment) {
+            hiddenDepartment.value = departmentSelect.value;
+        }
+    }
 </script>
 @endsection

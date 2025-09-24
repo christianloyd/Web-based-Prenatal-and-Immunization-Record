@@ -56,11 +56,20 @@
                     <h4 class="font-semibold text-gray-800">Personal Information</h4>
                 </div>
 
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                    <input type="text" name="name" id="edit-name" required value="{{ old('name') }}"
-                        class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('name') error-border @enderror">
-                    @error('name')
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                    <input type="text" name="first_name" id="edit-first-name" required value="{{ old('first_name') }}"
+                        class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('first_name') error-border @enderror">
+                    @error('first_name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                    <input type="text" name="last_name" id="edit-last-name" required value="{{ old('last_name') }}"
+                        class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('last_name') error-border @enderror">
+                    @error('last_name')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -75,8 +84,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
-                    <input type="text" name="occupation" id="edit-occupation" value="{{ old('occupation') }}"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Occupation *</label>
+                    <input type="text" name="occupation" id="edit-occupation" required value="{{ old('occupation') }}"
                         class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('occupation') error-border @enderror">
                     @error('occupation')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -84,8 +93,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Primary Contact</label>
-                    <input type="tel" name="contact" id="edit-contact" value="{{ old('contact') }}"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Primary Contact *</label>
+                    <input type="tel" name="contact" id="edit-contact" required value="{{ old('contact') }}"
                         class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('contact') error-border @enderror">
                     @error('contact')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -93,8 +102,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                    <input type="tel" name="emergency_contact" id="edit-emergency-contact" value="{{ old('emergency_contact') }}"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact *</label>
+                    <input type="tel" name="emergency_contact" id="edit-emergency-contact" required value="{{ old('emergency_contact') }}"
                         class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('emergency_contact') error-border @enderror">
                     @error('emergency_contact')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -102,9 +111,14 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea name="address" id="edit-address" rows="3"
-                            class="form-input w-full border border-gray-300 rounded-lg p-2.5 resize-none focus:ring-2 focus:ring-primary @error('address') error-border @enderror">{{ old('address') }}</textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                    <select name="address" id="edit-address" required
+                            class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('address') error-border @enderror">
+                        <option value="">-- Select Address --</option>
+                        <option value="Brgy. Mecolong, Dumalinao, Zamboanga del Sur" {{ old('address') == 'Brgy. Mecolong, Dumalinao, Zamboanga del Sur' ? 'selected' : '' }}>
+                            Brgy. Mecolong, Dumalinao, Zamboanga del Sur
+                        </option>
+                    </select>
                     @error('address')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror

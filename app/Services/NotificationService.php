@@ -136,7 +136,7 @@ class NotificationService
                     'New Patient Registered',
                     "New patient {$patient->full_name} has been registered in the system",
                     'info',
-                    $user->role === 'Midwife' ? route('midwife.patients.index') : route('bhw.patients.index'),
+                    $user->role === 'midwife' ? route('midwife.patients.index') : route('bhw.patients.index'),
                     [
                         'patient_id' => $patient->id,
                         'patient_name' => $patient->full_name,

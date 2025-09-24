@@ -268,13 +268,22 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($prenatalRecord->patient->prenatalCheckups as $index => $checkup)
+                        @php
+                            // Sort checkups in ascending chronological order (oldest first)
+                            $sortedCheckups = $prenatalRecord->patient->prenatalCheckups->sortBy('checkup_date');
+
+                            $upcomingCheckup = $sortedCheckups->where('status', 'upcoming')->first();
+                            $latestDoneCheckup = $sortedCheckups->where('status', 'done')->last(); // Last in ascending order = most recent
+                        @endphp
+                        @foreach($sortedCheckups as $index => $checkup)
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar-day text-gray-500 mr-1"></i>
                                         {{ $checkup->checkup_date->format('M d, Y') }}
-                                        @if($index === 0)
+                                        @if($checkup->status === 'upcoming')
+                                            <span class="ml-2 px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">Upcoming</span>
+                                        @elseif($checkup->id === $latestDoneCheckup?->id)
                                             <span class="ml-2 px-1 py-0.5 bg-green-100 text-green-800 text-xs rounded">Latest</span>
                                         @endif
                                     </div>
@@ -284,7 +293,11 @@
                                     {{ \Carbon\Carbon::parse($checkup->checkup_time)->format('h:i A') }}
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
-                                    @if($checkup->weeks_pregnant)
+                                    @if($checkup->gestational_age_weeks)
+                                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                            {{ $checkup->gestational_age_weeks }}w
+                                        </span>
+                                    @elseif($checkup->weeks_pregnant)
                                         <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
                                             {{ $checkup->weeks_pregnant }}w
                                         </span>
@@ -293,28 +306,36 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
-                                    @if($checkup->bp_high && $checkup->bp_low)
+                                    @if($checkup->blood_pressure_systolic && $checkup->blood_pressure_diastolic)
+                                        {{ $checkup->blood_pressure_systolic }}/{{ $checkup->blood_pressure_diastolic }}
+                                    @elseif($checkup->bp_high && $checkup->bp_low)
                                         {{ $checkup->bp_high }}/{{ $checkup->bp_low }}
                                     @else
                                         <span class="text-gray-400">N/A</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
-                                    @if($checkup->weight)
+                                    @if($checkup->weight_kg)
+                                        {{ $checkup->weight_kg }}kg
+                                    @elseif($checkup->weight)
                                         {{ $checkup->weight }}kg
                                     @else
                                         <span class="text-gray-400">N/A</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
-                                    @if($checkup->baby_heartbeat)
+                                    @if($checkup->fetal_heart_rate)
+                                        {{ $checkup->fetal_heart_rate }}bpm
+                                    @elseif($checkup->baby_heartbeat)
                                         {{ $checkup->baby_heartbeat }}bpm
                                     @else
                                         <span class="text-gray-400">N/A</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
-                                    @if($checkup->belly_size)
+                                    @if($checkup->fundal_height_cm)
+                                        {{ $checkup->fundal_height_cm }}cm
+                                    @elseif($checkup->belly_size)
                                         {{ $checkup->belly_size }}cm
                                     @else
                                         <span class="text-gray-400">N/A</span>

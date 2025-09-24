@@ -17,6 +17,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PrenatalCheckupController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\SystemAnalysisController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\CloudBackupController as AdminCloudBackupController;
 // Redirect root to login
 Route::get('/', fn () => redirect()->route('login'));
 
@@ -45,6 +48,7 @@ Route::middleware('auth')->group(function () {
         return match ($user->role) {
             'midwife' => redirect()->route('midwife.dashboard'),
             'bhw'     => redirect()->route('bhw.dashboard'),
+            'admin'   => redirect()->route('admin.dashboard'),
             default   => abort(403, 'Unauthorized role'),
         };
     })->name('dashboard');
@@ -74,6 +78,9 @@ Route::middleware('auth')->group(function () {
 
             // Patient Prenatal Record Routes
             Route::resource('patients', PatientController::class);
+            Route::get('patients-search', [PatientController::class, 'search'])->name('patients.search');
+            Route::get('patients/{id}/profile', [PatientController::class, 'profile'])->name('patients.profile');
+            Route::get('patients/{id}/print', [PatientController::class, 'printProfile'])->name('patients.print');
 
             /* --- NEW: complete resource for PrenatalRecord --- */
             Route::resource('prenatalrecord', PrenatalRecordController::class);
@@ -83,6 +90,7 @@ Route::middleware('auth')->group(function () {
             Route::get('prenatalcheckup/{id}/data', [PrenatalCheckupController::class, 'getData'])->name('prenatalcheckup.data');
             Route::post('prenatalcheckup/{id}/complete', [PrenatalCheckupController::class, 'markCompleted'])->name('prenatalcheckup.complete');
             Route::put('prenatalcheckup/{id}/schedule', [PrenatalCheckupController::class, 'updateSchedule'])->name('prenatalcheckup.schedule');
+            Route::get('prenatalcheckup-patients/search', [PrenatalCheckupController::class, 'getPatientsWithActivePrenatalRecords'])->name('prenatalcheckup.patients.search');
 
             //Appointment Routes
             Route::resource('appointments', AppointmentController::class);
@@ -103,17 +111,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('childrecord/{childRecord}/immunizations/{immunization}', [App\Http\Controllers\ChildImmunizationController::class, 'destroy'])->name('childrecord.immunizations.destroy');
 
 
-            //Cloud Backup Routes
-            Route::prefix('cloudbackup')->name('cloudbackup.')->group(function () {
-                Route::get('/', [CloudBackupController::class, 'index'])->name('index');
-                Route::get('/data', [CloudBackupController::class, 'getData'])->name('data');
-                Route::post('/create', [CloudBackupController::class, 'store'])->name('store');
-                Route::get('/progress/{id}', [CloudBackupController::class, 'progress'])->name('progress');
-                Route::get('/download/{id}', [CloudBackupController::class, 'download'])->name('download');
-                Route::post('/restore', [CloudBackupController::class, 'restore'])->name('restore');
-                Route::delete('/{id}', [CloudBackupController::class, 'destroy'])->name('destroy');
-                Route::post('/estimate-size', [CloudBackupController::class, 'estimateSize'])->name('estimate-size');
-            });
 
             Route::post('vaccines/stock-transaction', [VaccineController::class, 'stockTransaction'])
                  ->name('vaccines.stock-transaction');
@@ -134,6 +131,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/reports/export-pdf', [ReportController::class, 'exportPdf'])->name('report.export.pdf');
             Route::post('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('report.export.excel');
 
+            // System Analysis Report
+            Route::get('/system-analysis-report', [SystemAnalysisController::class, 'generateAnalysisReport'])->name('system.analysis.report');
+
             // User Management Routes
             Route::resource('user', UserController::class);
             Route::patch('user/{user}/deactivate', [UserController::class, 'deactivate'])->name('user.deactivate');
@@ -151,15 +151,19 @@ Route::middleware('auth')->group(function () {
             
             //Patient Routes for BHW
             Route::resource('patients', PatientController::class);
+            Route::get('patients/search', [PatientController::class, 'search'])->name('patients.search');
+            Route::get('patients/{id}/profile', [PatientController::class, 'profile'])->name('patients.profile');
+            Route::get('patients/{id}/print', [PatientController::class, 'printProfile'])->name('patients.print');
 
             //Prenatal Record Routes for BHW
             Route::resource('prenatalrecord', PrenatalRecordController::class);
-
+            
             //Prenatal Checkup Routes for BHW
             Route::resource('prenatalcheckup', PrenatalCheckupController::class);
             Route::get('prenatalcheckup/{id}/data', [PrenatalCheckupController::class, 'getData'])->name('prenatalcheckup.data');
             Route::post('prenatalcheckup/{id}/complete', [PrenatalCheckupController::class, 'markCompleted'])->name('prenatalcheckup.complete');
             Route::put('prenatalcheckup/{id}/schedule', [PrenatalCheckupController::class, 'updateSchedule'])->name('prenatalcheckup.schedule');
+            
 
             //Child Record Routes for BHW
             Route::resource('childrecord', ChildRecordController::class);
@@ -188,6 +192,38 @@ Route::middleware('auth')->group(function () {
             Route::post('/report/generate', [ReportController::class, 'generateReport'])->name('report.generate');
             Route::post('/report/export-pdf', [ReportController::class, 'exportPdf'])->name('report.export.pdf');
             Route::post('/report/export-excel', [ReportController::class, 'exportExcel'])->name('report.export.excel');
+         });
+
+    // Admin routes
+    Route::prefix('admin')
+            ->name('admin.')
+            ->group(function () {
+
+            // Dashboard route
+            Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+
+            // User management (view-only)
+            Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+            Route::get('/users/{id}', [AdminController::class, 'userShow'])->name('users.show');
+
+            // Patient management (view-only)
+            Route::get('/patients', [AdminController::class, 'patients'])->name('patients.index');
+            Route::get('/patients/{id}', [AdminController::class, 'patientShow'])->name('patients.show');
+
+            // Records overview (view-only)
+            Route::get('/records', [AdminController::class, 'records'])->name('records.index');
+
+            // Cloud Backup Management
+            Route::prefix('cloudbackup')->name('cloudbackup.')->group(function () {
+                Route::get('/', [AdminCloudBackupController::class, 'index'])->name('index');
+                Route::get('/data', [AdminCloudBackupController::class, 'getData'])->name('data');
+                Route::post('/create', [AdminCloudBackupController::class, 'store'])->name('store');
+                Route::get('/progress/{id}', [AdminCloudBackupController::class, 'progress'])->name('progress');
+                Route::get('/download/{id}', [AdminCloudBackupController::class, 'download'])->name('download');
+                Route::post('/restore', [AdminCloudBackupController::class, 'restore'])->name('restore');
+                Route::delete('/{id}', [AdminCloudBackupController::class, 'destroy'])->name('destroy');
+                Route::post('/estimate-size', [AdminCloudBackupController::class, 'estimateSize'])->name('estimate-size');
+            });
          });
 
     // Logout

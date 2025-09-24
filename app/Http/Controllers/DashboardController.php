@@ -101,21 +101,55 @@ class DashboardController extends Controller
                                            ];
                                        });
 
-        // Upcoming Appointments (next 7 days)
+        // Upcoming Prenatal Checkups - only upcoming status for active pregnancies (exclude completed pregnancies)
         $upcomingAppointments = PrenatalCheckup::with(['patient', 'prenatalRecord'])
-                                             ->where('checkup_date', '>', Carbon::now())
-                                             ->where('checkup_date', '<=', Carbon::now()->addDays(7))
+                                             ->where('status', 'Upcoming') // Specifically look for 'Upcoming' status
+                                             ->where('checkup_date', '>=', Carbon::now()->toDateString()) // Future dates only
+                                             ->whereHas('prenatalRecord', function($q) {
+                                                 $q->where('is_active', 1)
+                                                   ->where('status', '!=', 'completed');
+                                             })
                                              ->orderBy('checkup_date', 'asc')
+                                             ->orderBy('checkup_time', 'asc')
                                              ->limit(5)
                                              ->get()
                                              ->map(function ($appointment) {
                                                  return [
                                                      'patient_name' => $appointment->patient->name ?? 'Unknown',
                                                      'appointment_date' => $appointment->checkup_date,
+                                                     'appointment_time' => $appointment->checkup_time,
                                                      'type' => $this->determineAppointmentType($appointment),
-                                                     'midwife' => $appointment->conducted_by ?? 'Unassigned'
+                                                     'status' => $appointment->status,
+                                                     'gestational_weeks' => $appointment->gestational_age_weeks ?? $appointment->weeks_pregnant,
+                                                     'midwife' => $appointment->conducted_by ?? 'Unassigned',
+                                                     'notes' => $appointment->notes,
+                                                     'next_visit_date' => $appointment->next_visit_date,
+                                                     'next_visit_time' => $appointment->next_visit_time,
+                                                     'formatted_checkup_id' => $appointment->formatted_checkup_id
                                                  ];
                                              });
+
+        // Upcoming Immunizations - from actual scheduled immunizations (future dates only)
+        $upcomingImmunizations = Immunization::with(['childRecord', 'vaccine'])
+                                            ->whereHas('childRecord') // Only include immunizations with valid child records
+                                            ->where('status', 'Upcoming')
+                                            ->where('schedule_date', '>=', Carbon::now()->toDateString())
+                                            ->orderBy('schedule_date', 'asc')
+                                            ->limit(5)
+                                            ->get()
+                                            ->map(function ($immunization) {
+                                                return [
+                                                    'child_name' => $immunization->childRecord
+                                                        ? ($immunization->childRecord->full_name ?: $immunization->childRecord->first_name . ' ' . $immunization->childRecord->last_name)
+                                                        : 'Unknown Child',
+                                                    'vaccine_name' => $immunization->vaccine_name ?? ($immunization->vaccine->name ?? 'Unknown Vaccine'),
+                                                    'dose_number' => $immunization->dose ?? '1st Dose',
+                                                    'due_date' => $immunization->schedule_date,
+                                                    'schedule_time' => $immunization->schedule_time,
+                                                    'status' => $immunization->status,
+                                                    'notes' => $immunization->notes
+                                                ];
+                                            });
 
         // Prepare chart data arrays
         $charts = [
@@ -138,7 +172,8 @@ class DashboardController extends Controller
             'stats',
             'charts',
             'recentCheckups',
-            'upcomingAppointments'
+            'upcomingAppointments',
+            'upcomingImmunizations'
         ));
     }
 
@@ -206,6 +241,19 @@ class DashboardController extends Controller
                                         ];
                                     });
 
+        // Recent Child Records (last 5)
+        $recentChildRecords = ChildRecord::orderBy('created_at', 'desc')
+                                        ->limit(5)
+                                        ->get()
+                                        ->map(function ($child) {
+                                            return [
+                                                'child_name' => $child->full_name,
+                                                'date_of_birth' => $child->birthdate ? Carbon::parse($child->birthdate) : null,
+                                                'gender' => $child->gender,
+                                                'age' => $child->birthdate ? Carbon::parse($child->birthdate)->diffForHumans() : 'Unknown'
+                                            ];
+                                        });
+
         // Prepare chart data arrays for BHW
         $charts = [
             'prenatal' => $prenatalStats,
@@ -218,7 +266,8 @@ class DashboardController extends Controller
         return view('bhw.dashboard', compact(
             'stats',
             'charts',
-            'recentRegistrations'
+            'recentRegistrations',
+            'recentChildRecords'
         ));
     }
 
@@ -344,5 +393,47 @@ class DashboardController extends Controller
         } else {
             return 'Not Started';
         }
+    }
+
+    private function getNextDueVaccine($child, $ageMonths)
+    {
+        // Standard vaccination schedule (in months)
+        $vaccinationSchedule = [
+            ['vaccine' => 'BCG', 'due_months' => 0, 'dose' => 1],
+            ['vaccine' => 'Hepatitis B', 'due_months' => 0, 'dose' => 1],
+            ['vaccine' => 'DPT', 'due_months' => 2, 'dose' => 1],
+            ['vaccine' => 'OPV', 'due_months' => 2, 'dose' => 1],
+            ['vaccine' => 'DPT', 'due_months' => 4, 'dose' => 2],
+            ['vaccine' => 'OPV', 'due_months' => 4, 'dose' => 2],
+            ['vaccine' => 'DPT', 'due_months' => 6, 'dose' => 3],
+            ['vaccine' => 'OPV', 'due_months' => 6, 'dose' => 3],
+            ['vaccine' => 'Measles', 'due_months' => 9, 'dose' => 1],
+            ['vaccine' => 'MMR', 'due_months' => 12, 'dose' => 1],
+        ];
+
+        // Get existing immunizations for this child (status = 'Done' means completed)
+        $existingVaccines = Immunization::where('child_record_id', $child->id)
+                                      ->where('status', 'Done')
+                                      ->pluck('vaccine_name')
+                                      ->toArray();
+
+        // Find the next due vaccine
+        foreach ($vaccinationSchedule as $vaccine) {
+            // Check if child is old enough for this vaccine
+            if ($ageMonths >= $vaccine['due_months']) {
+                // Check if this vaccine hasn't been given yet
+                if (!in_array($vaccine['vaccine'], $existingVaccines)) {
+                    $dueDate = Carbon::parse($child->birthdate)->addMonths($vaccine['due_months']);
+
+                    return [
+                        'vaccine' => $vaccine['vaccine'],
+                        'dose' => $vaccine['dose'],
+                        'due_date' => $dueDate,
+                    ];
+                }
+            }
+        }
+
+        return null; // No pending vaccines
     }
 }

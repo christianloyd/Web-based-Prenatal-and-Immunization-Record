@@ -31,7 +31,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             // Double-check role validity
-            if (!in_array($user->role, ['midwife', 'bhw'])) {
+            if (!in_array($user->role, ['midwife', 'bhw', 'admin'])) {
                 Auth::logout();
                 return redirect()->route('login')
                     ->with('error', 'Invalid user role. Please contact administrator.');

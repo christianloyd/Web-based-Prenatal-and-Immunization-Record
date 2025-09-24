@@ -286,13 +286,17 @@ class ReportController extends Controller
     {
         // Weekly trends for the month
         $weeklyData = $this->getWeeklyTrends($filterDate);
-        
+
         // Service distribution
         $serviceDistribution = $this->getServiceDistribution($filterDate, $department);
-        
+
+        // Vaccine usage data
+        $vaccineUsageData = $this->getVaccineUsageData($filterDate);
+
         return [
             'weekly_trends' => $weeklyData,
             'service_distribution' => $serviceDistribution,
+            'vaccine_usage' => $vaccineUsageData,
         ];
     }
 
@@ -373,6 +377,45 @@ class ReportController extends Controller
             'labels' => ['Prenatal Care', 'Immunizations'],
             'data' => [$prenatalCount, $vaccinationCount],
         ];
+    }
+
+    private function getVaccineUsageData($filterDate)
+    {
+        try {
+            // Use same pattern as dashboard - Immunization table with vaccine_name
+            $query = Immunization::select('vaccine_name', DB::raw('COUNT(*) as count'))
+                                 ->whereNotNull('vaccine_name')
+                                 ->where('vaccine_name', '!=', '');
+
+            // Apply date filter if specified
+            if ($filterDate) {
+                $query->whereMonth('schedule_date', $filterDate->month)
+                      ->whereYear('schedule_date', $filterDate->year)
+                      ->where('status', 'Done'); // Only count completed immunizations
+            } else {
+                $query->where('status', 'Done'); // Only count completed immunizations
+            }
+
+            $vaccineData = $query->groupBy('vaccine_name')
+                                ->orderBy('count', 'desc')
+                                ->limit(10) // Top 10 most used vaccines
+                                ->get();
+
+            // Always return the expected structure, even if empty
+            return [
+                'labels' => $vaccineData->pluck('vaccine_name')->toArray(),
+                'data' => $vaccineData->pluck('count')->toArray(),
+            ];
+
+        } catch (\Exception $e) {
+            // Log error and return safe fallback
+            \Log::error('Error fetching vaccine usage data: ' . $e->getMessage());
+
+            return [
+                'labels' => [],
+                'data' => [],
+            ];
+        }
     }
 
 

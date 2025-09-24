@@ -14,11 +14,11 @@
     }
     
     :root {
-        --primary: #243b55;
-        --secondary: #141e30;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
+        --primary: #D4A373; /* Warm brown matching current theme */
+        --secondary: #ecb99e; /* Peach matching current theme */
+        --gray-50: #FEFAE0; /* Near-white ivory matching theme */
+        --gray-100: #f5f1eb;
+        --gray-200: #e2e8f0; /* Cream matching hover states */
         --gray-300: #d1d5db;
         --gray-400: #9ca3af;
         --gray-500: #6b7280;

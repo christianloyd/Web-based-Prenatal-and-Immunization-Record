@@ -6,8 +6,9 @@
 @push('styles')
 <style>
     :root {
-        --primary: #243b55;
-        --secondary: #141e30;
+        --primary: #D4A373; /* Warm brown for primary elements */
+        --secondary: #ecb99e; /* Peach for buttons and accents */
+        --neutral: #FFFFFF; /* White for content backgrounds */
     }
 
 .btn-action {
@@ -88,11 +89,34 @@
         background-color: #f59e0b;
         color: white;
     }
+
+    /* Simple Table Responsiveness - Minimal Changes */
+    .patients-table {
+        min-width: 900px; /* Ensure table fits properly */
+    }
+
+    /* Compact padding for better space usage */
+    .patients-table th,
+    .patients-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 1366px) {
+        .patients-table th,
+        .patients-table td {
+            padding: 0.5rem 0.375rem;
+            font-size: 0.8rem;
+        }
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="space-y-6">
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
@@ -142,10 +166,10 @@
     <!-- Patients Table -->
     <div id="patient-main-content" class="bg-white rounded-lg shadow-sm border">
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="patients-table w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient ID</th>
+                        <!--<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient ID</th>-->
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
@@ -158,9 +182,9 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($patients as $patient)
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <!--<td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-blue-600">{{ $patient->formatted_patient_id }}</div>
-                        </td>
+                        </td>-->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                  
@@ -196,10 +220,10 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
-                            <button data-patient='@json($patient)' onclick='openViewPatientModal(JSON.parse(this.dataset.patient))' class="btn-action btn-view inline-flex items-center justify-center">
+                            <a href="{{ route('midwife.patients.profile', $patient->id) }}" class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
                             <span class="hidden sm:inline">View</span>
-                            </button>
+                            </a>
                                 <button data-patient='@json($patient)' onclick='openEditPatientModal(JSON.parse(this.dataset.patient))' class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
                             <span class="hidden sm:inline">Edit</span></button>
@@ -291,7 +315,7 @@ function openViewPatientModal(patient) {
     currentPatientData = patient;
     
     // Populate modal fields
-    document.getElementById('viewPatientName').textContent = patient.name || 'N/A';
+    document.getElementById('viewPatientName').textContent = patient.name || (patient.first_name + ' ' + patient.last_name) || 'N/A';
     document.getElementById('viewPatientId').textContent = patient.formatted_patient_id || 'N/A';
     document.getElementById('viewPatientAge').textContent = patient.age ? patient.age + ' years' : 'N/A';
     document.getElementById('viewPatientContact').textContent = patient.contact || 'N/A';
@@ -348,7 +372,7 @@ function openViewPatientModal(patient) {
     const prenatalLink = document.getElementById('viewPrenatalRecordsLink');
     if (prenatalLink) {
         const baseUrl = "{{ route('midwife.prenatalrecord.index') }}";
-        prenatalLink.href = `${baseUrl}?search=${encodeURIComponent(patient.name || patient.formatted_patient_id)}`;
+        prenatalLink.href = `${baseUrl}?search=${encodeURIComponent(patient.name || (patient.first_name + ' ' + patient.last_name) || patient.formatted_patient_id)}`;
     }
     
     // Show modal
@@ -393,7 +417,8 @@ function openEditPatientModal(patient) {
     
     // Populate form fields
     const fields = {
-        'edit-name': patient.name || '',
+        'edit-first-name': patient.first_name || (patient.name ? patient.name.split(' ')[0] : ''),
+        'edit-last-name': patient.last_name || (patient.name ? patient.name.split(' ').slice(1).join(' ') : ''),
         'edit-age': patient.age || '',
         'edit-contact': patient.contact || '',
         'edit-emergency-contact': patient.emergency_contact || '',
@@ -443,13 +468,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            const nameInput = this.querySelector('input[name="name"]');
+            const firstNameInput = this.querySelector('input[name="first_name"]');
+            const lastNameInput = this.querySelector('input[name="last_name"]');
             const ageInput = this.querySelector('input[name="age"]');
-            
-            if (!nameInput || !nameInput.value.trim()) {
+
+            if (!firstNameInput || !firstNameInput.value.trim()) {
                 e.preventDefault();
-                if (nameInput) nameInput.focus();
-                alert('Patient name is required.');
+                if (firstNameInput) firstNameInput.focus();
+                alert('First name is required.');
+                return;
+            }
+
+            if (!lastNameInput || !lastNameInput.value.trim()) {
+                e.preventDefault();
+                if (lastNameInput) lastNameInput.focus();
+                alert('Last name is required.');
                 return;
             }
             
@@ -477,14 +510,14 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.querySelector('form[method="GET"]');
     const searchInput = searchForm?.querySelector('input[name="search"]');
-    
+
     if (searchInput) {
         // Clear search on double click
         searchInput.addEventListener('dblclick', function() {
             this.value = '';
             this.focus();
         });
-        
+
         // Submit on Enter key
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {

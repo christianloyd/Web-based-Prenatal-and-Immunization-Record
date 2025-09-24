@@ -42,11 +42,11 @@ class User extends Authenticatable
         $rules = [
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users,username',
-            'gender' => 'required|in:Male,Female',
+            'gender' => 'required|in:male,female,other',
             'age' => 'required|integer|min:18|max:100',
             'contact_number' => 'required|regex:/^9\d{9}$/|unique:users,contact_number',
             'address' => 'nullable|string|max:500',
-            'role' => 'required|in:Midwife,BHW',
+            'role' => 'required|in:midwife,bhw,admin',
             'password' => 'required|string|min:8',
             'is_active' => 'sometimes|boolean', // Add validation for is_active
         ];
@@ -130,11 +130,11 @@ class User extends Authenticatable
         return [
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users,username,' . $userId,
-            'gender' => 'required|in:Male,Female',
+            'gender' => 'required|in:male,female,other',
             'age' => 'required|integer|min:18|max:100',
             'contact_number' => 'required|regex:/^9\d{9}$/|unique:users,contact_number,' . $userId,
             'address' => 'nullable|string|max:500',
-            'role' => 'required|in:Midwife,BHW',
+            'role' => 'required|in:midwife,bhw,admin',
             'password' => 'nullable|string|min:8',
         ];
     }
@@ -149,7 +149,7 @@ class User extends Authenticatable
             'username.unique' => 'This username is already taken.',
             'username.max' => 'Username cannot exceed 50 characters.',
             'gender.required' => 'Gender is required.',
-            'gender.in' => 'Gender must be either Male or Female.',
+            'gender.in' => 'Gender must be male, female, or other.',
             'age.required' => 'Age is required.',
             'age.integer' => 'Age must be a valid number.',
             'age.min' => 'Age must be at least 18 years old.',
@@ -159,7 +159,7 @@ class User extends Authenticatable
             'contact_number.unique' => 'This contact number is already registered.',
             'address.max' => 'Address cannot exceed 500 characters.',
             'role.required' => 'Role is required.',
-            'role.in' => 'Role must be either Midwife or BHW.',
+            'role.in' => 'Role must be midwife, bhw, or admin.',
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters long.',
         ];
@@ -174,25 +174,41 @@ class User extends Authenticatable
     // Accessor for role badge class
     public function getRoleBadgeClassAttribute()
     {
-        return $this->role === 'Midwife' ? 'role-badge-midwife' : 'role-badge-bhw';
+        return match($this->role) {
+            'midwife' => 'role-badge-midwife',
+            'bhw' => 'role-badge-bhw',
+            'admin' => 'role-badge-admin',
+            default => 'role-badge-default'
+        };
     }
 
     // Accessor for role icon
     public function getRoleIconAttribute()
     {
-        return $this->role === 'Midwife' ? 'fa-user-md' : 'fa-hands-helping';
+        return match($this->role) {
+            'midwife' => 'fa-user-md',
+            'bhw' => 'fa-hands-helping',
+            'admin' => 'fa-user-shield',
+            default => 'fa-user'
+        };
     }
 
     // Check if user is midwife
     public function isMidwife()
     {
-        return $this->role === 'Midwife';
+        return $this->role === 'midwife';
     }
 
     // Check if user is BHW
     public function isBhw()
     {
-        return $this->role === 'BHW';
+        return $this->role === 'bhw';
+    }
+
+    // Check if user is Admin
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
     }
 
     // Scope for filtering by role

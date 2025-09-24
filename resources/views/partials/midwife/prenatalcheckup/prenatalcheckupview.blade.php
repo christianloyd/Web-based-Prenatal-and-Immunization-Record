@@ -15,7 +15,7 @@
 <div id="viewCheckupModal" class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
      role="dialog" aria-modal="true" onclick="closeViewCheckupModal(event)">
 
-    <div class="modal-content relative w-full max-w-4xl bg-white rounded-xl shadow-2xl my-8" onclick="event.stopPropagation()">
+    <div class="modal-content relative w-full max-w-3xl max-h-[90vh] bg-white rounded-xl shadow-2xl my-4 flex flex-col" onclick="event.stopPropagation()">
         <!-- Header -->
         <div class="sticky top-0 bg-white border-b px-6 py-4 rounded-t-xl">
             <div class="flex justify-between items-center">
@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <div class="p-6">
+        <div class="p-6 overflow-y-auto flex-1">
 
         <!-- Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -123,6 +123,10 @@
                         Health Assessment
                     </h4>
                     <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Baby Movement</label>
+                            <p class="text-gray-900 font-medium" id="view-baby-movement">-</p>
+                        </div>
                         <div>
                             <label class="text-sm font-medium text-gray-600">Symptoms</label>
                             <p class="text-gray-900 leading-relaxed bg-gray-50 p-3 rounded-md" id="view-symptoms">No symptoms reported</p>
@@ -276,6 +280,8 @@
         document.getElementById('view-fundal-height').textContent = (checkup.fundal_height_cm || checkup.belly_size) ? `${checkup.fundal_height_cm || checkup.belly_size} cm` : '-';
 
         // Health Assessment
+        const babyMovementText = checkup.baby_movement ? checkup.baby_movement.charAt(0).toUpperCase() + checkup.baby_movement.slice(1) : '-';
+        document.getElementById('view-baby-movement').textContent = babyMovementText;
         document.getElementById('view-symptoms').textContent = checkup.symptoms || 'No symptoms reported';
         document.getElementById('view-notes').textContent = checkup.notes || 'No notes recorded';
 
@@ -289,8 +295,15 @@
             appointmentStatusElement.innerHTML = `<span class="px-2 py-1 rounded-full text-xs font-semibold status-${checkup.appointment.status}">${checkup.appointment.status_text || checkup.appointment.status}</span>`;
         }
 
-        // Next Appointment
-        if (checkup.next_visit_date) {
+        // Next Appointment - Look for actual upcoming checkup
+        const hasNextAppointment = checkup.next_checkup && checkup.next_checkup.checkup_date;
+        if (hasNextAppointment) {
+            document.getElementById('view-next-appointment').style.display = 'block';
+            document.getElementById('view-next-visit-date').textContent = checkup.next_checkup.formatted_checkup_date || checkup.next_checkup.checkup_date || '-';
+            document.getElementById('view-next-visit-time').textContent = checkup.next_checkup.formatted_checkup_time || checkup.next_checkup.checkup_time || '-';
+            document.getElementById('view-next-visit-notes').textContent = checkup.next_checkup.notes || checkup.next_visit_notes || 'No reminder notes';
+        } else if (checkup.next_visit_date) {
+            // Fallback to legacy next_visit_date field if no separate upcoming checkup exists
             document.getElementById('view-next-appointment').style.display = 'block';
             document.getElementById('view-next-visit-date').textContent = checkup.formatted_next_visit_date || checkup.next_visit_date || '-';
             document.getElementById('view-next-visit-time').textContent = checkup.formatted_next_visit_time || checkup.next_visit_time || '-';

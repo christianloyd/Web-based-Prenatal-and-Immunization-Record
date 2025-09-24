@@ -196,12 +196,288 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         transform: translateY(-1px);
     }
+
+    /* ====================================
+       LAPTOP-SPECIFIC OPTIMIZATIONS
+       ==================================== */
+
+    /* Small Laptops - 1366x768 */
+    @media screen and (min-width: 1024px) and (max-width: 1366px) and (max-height: 768px) {
+        /* Compact search/filter section */
+        .grid-cols-1.md\\:grid-cols-4 {
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        /* Smaller table cells */
+        th, td {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Compact modal */
+        .modal-content {
+            max-width: 95%;
+            max-height: 90vh;
+        }
+
+        .grid-cols-1.lg\\:grid-cols-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* MacBook Air 13" - 1440x900 */
+    @media screen and (min-width: 1367px) and (max-width: 1440px) and (max-height: 900px) {
+        /* Better use of horizontal space */
+        .space-y-6 > * + * {
+            margin-top: 1.25rem;
+        }
+
+        /* Optimize search layout */
+        .grid-cols-1.md\\:grid-cols-4 {
+            grid-template-columns: 2fr 1fr 1fr;
+        }
+
+        /* Modal optimization */
+        .modal-content {
+            max-width: 90%;
+            max-height: 85vh;
+        }
+
+        /* Form optimization */
+        .grid-cols-1.lg\\:grid-cols-2 {
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+    }
+
+    /* MacBook Pro 13" & Huawei MateBook 14 - 1440x960+ */
+    @media screen and (min-width: 1441px) and (max-width: 1680px) and (min-height: 900px) {
+        /* Full 4-column search layout */
+        .grid-cols-1.md\\:grid-cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* Better table spacing */
+        th, td {
+            padding: 1rem 1.25rem;
+        }
+
+        /* Optimal modal size */
+        .modal-content {
+            max-width: 85%;
+            max-height: 90vh;
+        }
+
+        /* Two-column form layout */
+        .grid-cols-1.lg\\:grid-cols-2 {
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Enhanced button spacing */
+        .flex.space-x-2 > * + * {
+            margin-left: 0.75rem;
+        }
+    }
+
+    /* Large Laptops - MacBook Pro 14"/16" */
+    @media screen and (min-width: 1681px) and (max-width: 1920px) {
+        /* Spacious layout */
+        .space-y-6 > * + * {
+            margin-top: 2rem;
+        }
+
+        /* Enhanced search layout */
+        .grid-cols-1.md\\:grid-cols-4 {
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 1.5rem;
+        }
+
+        /* Larger table cells */
+        th, td {
+            padding: 1.25rem 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* Large modal */
+        .modal-content {
+            max-width: 80%;
+            max-height: 85vh;
+        }
+
+        /* Enhanced form spacing */
+        .space-y-4 > * + * {
+            margin-top: 1.25rem;
+        }
+
+        /* Better button sizing */
+        .btn-action {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Ultra High-Res Laptops - 1921px+ */
+    @media screen and (min-width: 1921px) {
+        /* Maximum layout optimization */
+        .space-y-6 > * + * {
+            margin-top: 2.5rem;
+        }
+
+        /* Enhanced search with more spacing */
+        .grid-cols-1.md\\:grid-cols-4 {
+            grid-template-columns: 3fr 1fr 1fr auto;
+            gap: 2rem;
+        }
+
+        /* Large table cells */
+        th, td {
+            padding: 1.5rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* Full-size modal */
+        .modal-content {
+            max-width: 75%;
+            max-height: 80vh;
+        }
+
+        /* Enhanced typography */
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+        }
+
+        /* Larger action buttons */
+        .btn-action {
+            padding: 10px 20px;
+            font-size: 1rem;
+        }
+
+        /* Enhanced form spacing */
+        .space-y-4 > * + * {
+            margin-top: 1.5rem;
+        }
+    }
+
+    /* Retina Display Optimizations */
+    @media screen and (-webkit-min-device-pixel-ratio: 2) {
+        /* Crisp table borders */
+        .table-container {
+            border: 0.5px solid #e5e7eb;
+        }
+
+        th {
+            border-bottom: 0.5px solid #e2e8f0;
+        }
+
+        td {
+            border-bottom: 0.5px solid #f1f5f9;
+        }
+`
+        /* Crisp modal borders */
+        .modal-content {
+            border: 0.5px solid #e5e7eb;
+        }
+
+        /* Sharp icons */
+        .fas, .fa {
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Simple dropdown styles - no complex search needed */
+            padding: 0.75rem;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.375rem;
+        }
+
+        .form-input.error {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+    /* Patient search styles */
+    .search-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-top: none;
+        border-radius: 0 0 0.375rem 0.375rem;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .search-dropdown.show {
+        display: block;
+    }
+
+    .search-option {
+        padding: 0.75rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background-color 0.15s ease;
+    }
+
+    .search-option:hover {
+        background-color: #f9fafb;
+    }
+
+    .search-option:last-child {
+        border-bottom: none;
+    }
+
+    .search-option.selected {
+        background-color: #eff6ff;
+        color: var(--primary);
+    }
+
+    .patient-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .patient-name {
+        font-weight: 500;
+        color: #000000;
+    }
+
+    .patient-details {
+        font-size: 0.75rem;
+        color: #374151;
+        margin-top: 0.25rem;
+    }
+
+    /* Selected patient display */
+    .selected-patient {
+        background-color: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .selected-patient .patient-name {
+        color: var(--primary);
+        font-weight: 600;
+    }
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="space-y-6">
-    
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
 
     @if($errors->any())
     <div class="alert alert-error">
@@ -266,7 +542,7 @@
             <table class="w-full">
                 <thead>
                     <tr>
-                        <th>Patient ID</th>
+                        <!--<th>Patient ID</th>-->
                         <th>Patient Name</th>
                         <th>Checkup Date</th>
                         <th>Checkup Time</th>
@@ -278,16 +554,16 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($checkups as $checkup)
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
-                    <td class="font-medium text-blue-600">
+                    <!--<td class="font-medium text-blue-600">
                         {{ $checkup->prenatalRecord->patient->formatted_patient_id ?? 'N/A' }}
-                    </td>
+                    </td>-->
                     <td>
                         <div class="flex items-center space-x-3">
                              
                                 
                             </div>
                             <div>
-                                <p class="font-medium text-gray-900">{{ $checkup->prenatalRecord->patient->name ?? 'N/A' }}</p>
+                                <p class="font-medium text-gray-900">{{ $checkup->patient->name ?? ($checkup->prenatalRecord->patient->name ?? 'N/A') }}</p>
                                     </div>
                         </div>
                     </td>
@@ -314,13 +590,11 @@
                         <div class="flex space-x-2">
                             <button onclick="openViewCheckupModal({{ $checkup->id }})"
                                     class="btn-action btn-view inline-flex items-center justify-center" title="View Checkup Details">
-                                <i class="fas fa-eye mr-1"></i>
-                                <span class="hidden sm:inline">View</span>
+                                <i class="fas fa-eye"></i>
                             </button>
                             <button onclick="openScheduleEditModal({{ $checkup->id }})"
                                     class="btn-action btn-edit inline-flex items-center justify-center" title="Edit Schedule">
-                                <i class="fas fa-calendar-edit mr-1"></i>
-                                <span class="hidden sm:inline">Edit Schedule</span>
+                                <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </td>
@@ -371,21 +645,7 @@
             <!-- Hidden field for conducted_by -->
             <input type="hidden" name="conducted_by" value="{{ auth()->id() }}">
 
-            <!-- Workflow Instructions -->
-            <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-info-circle text-blue-400"></i>
-                    </div>
-                    <div class="ml-3">
-                        <h4 class="text-sm font-medium text-blue-800">How it works:</h4>
-                        <p class="text-sm text-blue-700 mt-1">
-                            <strong>Option 1:</strong> Fill only date, time & patient → Creates "Upcoming" checkup<br>
-                            <strong>Option 2:</strong> Fill date, time, patient + medical data → Creates "Done" checkup
-                        </p>
-                    </div>
-                </div>
-            </div>
+             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <!-- Left Column -->
                 <div class="space-y-4">
@@ -399,15 +659,54 @@
                         </h3>
                         <div class="grid grid-cols-1 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Patient *</label>
-                                <select name="patient_id" id="patient_select" class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
-                                    <option value="">Choose a patient...</option>
-                                    @foreach($patients as $patient)
-                                        <option value="{{ $patient->id }}" {{ old('patient_id') == $patient->id ? 'selected' : '' }}>
-                                            {{ $patient->name }} - Age {{ $patient->age }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Search and Select Patient/Mother *
+                                </label>
+                                <div class="relative">
+                                    <input type="text"
+                                           id="patient-search"
+                                           placeholder="Type patient name or ID to search..."
+                                           class="form-input pl-10 pr-10 @error('patient_id') error @enderror"
+                                           autocomplete="off">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-search text-gray-400"></i>
+                                    </div>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <div id="search-loading" class="hidden">
+                                            <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                                        </div>
+                                        <button type="button" id="clear-search" class="hidden text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Search Dropdown -->
+                                    <div id="search-dropdown" class="search-dropdown">
+                                        <!-- Results will be populated here -->
+                                    </div>
+                                </div>
+
+                                <!-- Hidden input for selected patient ID -->
+                                <input type="hidden" name="patient_id" id="selected-patient-id" value="{{ old('patient_id') }}">
+
+                                @error('patient_id')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+
+                                <!-- Selected Patient Display -->
+                                <div id="selected-patient-display" class="selected-patient hidden">
+                                    <div class="flex justify-between items-start">
+                                        <div class="patient-info">
+                                            <div class="patient-name" id="selected-patient-name"></div>
+                                            <div class="patient-details" id="selected-patient-details"></div>
+                                        </div>
+                                        <button type="button" id="remove-selection" class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                 
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
@@ -471,6 +770,16 @@
                         </h3>
                         <div class="space-y-3">
                             <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Baby Movement</label>
+                                <select name="baby_movement" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                    <option value="">-- Select Baby Movement --</option>
+                                    <option value="active" {{ old('baby_movement') == 'active' ? 'selected' : '' }}>Active</option>
+                                    <option value="normal" {{ old('baby_movement') == 'normal' ? 'selected' : '' }}>Normal</option>
+                                    <option value="less" {{ old('baby_movement') == 'less' ? 'selected' : '' }}>Less Active</option>
+                                    <option value="none" {{ old('baby_movement') == 'none' ? 'selected' : '' }}>No Movement</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Symptoms</label>
                                 <textarea name="symptoms" rows="2" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
                                           placeholder="Any symptoms reported by the patient...">{{ old('symptoms') }}</textarea>
@@ -498,8 +807,13 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Next Visit Date</label>
-                                    <input type="date" name="next_visit_date" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                           value="{{ old('next_visit_date') }}">
+                                    <input type="date"
+                                           name="next_visit_date"
+                                           id="next-visit-date"
+                                           class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                           value="{{ old('next_visit_date') }}"
+                                           min="{{ date('Y-m-d', strtotime('+8 days')) }}">
+                                    <p class="text-xs text-gray-500 mt-1">Minimum 1 week gap required from today</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
@@ -553,6 +867,125 @@
             modal.classList.add('show');
         });
         document.body.style.overflow = 'hidden';
+
+        // Initialize patient search when modal opens
+        setTimeout(() => {
+            initializePatientSearch();
+        }, 100);
+    }
+
+    // Simple patient search functionality
+    function initializePatientSearch() {
+        const searchInput = document.getElementById('patient-search');
+        const searchDropdown = document.getElementById('search-dropdown');
+        const selectedPatientId = document.getElementById('selected-patient-id');
+        const selectedPatientDisplay = document.getElementById('selected-patient-display');
+        const selectedPatientName = document.getElementById('selected-patient-name');
+        const selectedPatientDetails = document.getElementById('selected-patient-details');
+
+        if (!searchInput || !selectedPatientId || !searchDropdown) {
+            console.warn('Search elements not found, retrying...');
+            setTimeout(initializePatientSearch, 100);
+            return;
+        }
+
+        console.log('Initializing patient search...');
+
+        let searchTimeout;
+        let patients = [];
+
+        // Fetch patients with active prenatal records
+        fetch('{{ route("midwife.prenatalcheckup.patients.search") }}')
+            .then(response => response.json())
+            .then(data => {
+                patients = data;
+                console.log('Loaded patients:', patients.length);
+            })
+            .catch(error => {
+                console.error('Error fetching patients:', error);
+            });
+
+        // Search input handler
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+
+            clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                searchDropdown.classList.remove('show');
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                const filteredPatients = patients.filter(patient => {
+                    const name = patient.name || (patient.first_name + ' ' + patient.last_name);
+                    const id = patient.formatted_patient_id || '';
+                    return name.toLowerCase().includes(query) || id.toLowerCase().includes(query);
+                });
+
+                displayResults(filteredPatients);
+            }, 300);
+        });
+
+        function displayResults(results) {
+            searchDropdown.innerHTML = '';
+
+            if (results.length === 0) {
+                searchDropdown.innerHTML = '<div class="search-option" style="color: #374151;">No patients found</div>';
+            } else {
+                results.forEach(patient => {
+                    const option = document.createElement('div');
+                    option.className = 'search-option';
+                    option.innerHTML = `
+                        <div class="patient-info">
+                            <div class="patient-name">${patient.name || (patient.first_name + ' ' + patient.last_name)}</div>
+                            <div class="patient-details">${patient.formatted_patient_id || 'P-' + String(patient.id).padStart(3, '0')} • Age: ${patient.age || 'N/A'}</div>
+                        </div>
+                    `;
+                    option.addEventListener('click', () => selectPatient(patient));
+                    searchDropdown.appendChild(option);
+                });
+            }
+
+            searchDropdown.classList.add('show');
+        }
+
+        function selectPatient(patient) {
+            selectedPatientId.value = patient.id;
+            selectedPatientName.textContent = patient.name || (patient.first_name + ' ' + patient.last_name);
+            selectedPatientDetails.textContent = `${patient.formatted_patient_id || 'P-' + String(patient.id).padStart(3, '0')} • Age: ${patient.age || 'N/A'}`;
+
+            searchInput.value = patient.name || (patient.first_name + ' ' + patient.last_name);
+            selectedPatientDisplay.classList.remove('hidden');
+            searchDropdown.classList.remove('show');
+
+            console.log('Patient selected:', patient.name || (patient.first_name + ' ' + patient.last_name));
+        }
+
+        // Clear button
+        const clearBtn = document.getElementById('clear-search');
+        const removeBtn = document.getElementById('remove-selection');
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearSelection);
+        }
+        if (removeBtn) {
+            removeBtn.addEventListener('click', clearSelection);
+        }
+
+        function clearSelection() {
+            selectedPatientId.value = '';
+            searchInput.value = '';
+            selectedPatientDisplay.classList.add('hidden');
+            searchDropdown.classList.remove('show');
+        }
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.classList.remove('show');
+            }
+        });
     }
 
     function closeCheckupModal(e) {

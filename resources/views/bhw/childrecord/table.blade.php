@@ -27,7 +27,7 @@
                         <div class="font-medium text-blue-600">{{ $record->formatted_child_id ?? 'CH-001' }}</div>
                     </td>
                     <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                        <div class="font-medium text-gray-900">{{ $record->child_name ?? 'N/A' }}</div>
+                        <div class="font-medium text-gray-900">{{ $record->full_name ?? 'N/A' }}</div>
                         <div class="text-sm text-gray-500 sm:hidden">{{ $record->mother_name ?? 'N/A' }}</div>
                     </td>
                     <td class="px-2 sm:px-4 py-3 whitespace-nowrap">

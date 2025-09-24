@@ -6,11 +6,13 @@
 @push('styles')
 <style>
     :root {
-        --primary: #243b55;
-        --secondary: #141e30;
+        --primary: #D4A373; /* Warm brown for sidebar and primary elements */
+        --secondary: #ecb99e; /* Peach for buttons and accents */
+        --neutral: #FFFFFF; /* White for view content backgrounds */
     }
 
-    .btn-action {
+     /* Action Button Styles */
+     .btn-action {
         padding: 6px 12px;
         border-radius: 6px;
         font-size: 0.875rem;
@@ -18,41 +20,29 @@
         transition: all 0.15s ease;
         border: 1px solid transparent;
     }
-    
+
     .btn-view {
         background-color: #f8fafc;
         color: #475569;
         border-color: #e2e8f0;
     }
-    
+
     .btn-view:hover {
         background-color: #68727A;
         color: white;
         border-color: #68727A;
     }
-    
+
     .btn-edit {
         background-color: #fef3c7;
         color: #92400e;
         border-color: #fde68a;
     }
-    
+
     .btn-edit:hover {
         background-color: #f59e0b;
         color: white;
         border-color: #f59e0b;
-    }
-
-    .btn-success {
-        background-color: #f0fdf4;
-        color: #166534;
-        border-color: #bbf7d0;
-    }
-
-    .btn-success:hover {
-        background-color: #10b981;
-        color: white;
-        border-color: #10b981;
     }
     /* Modal Animation Styles */
     .modal-overlay {
@@ -101,17 +91,22 @@
     
     .form-input:focus {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        box-shadow: 0 4px 12px rgba(236, 185, 158, 0.15); /* Peach shadow */
     }
-    
+
     /* Button Hover Effects */
     .btn-primary {
         transition: all 0.2s ease;
     }
-    
+
     .btn-primary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 12px rgba(236, 185, 158, 0.3); /* Peach shadow */
+    }
+
+    /* Keep cards clean and white */
+    .bg-white {
+        background-color: white !important;
     }
 
     /* Badge Styles */
@@ -130,6 +125,8 @@
 
 @section('content')
 <div class="space-y-6">
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
@@ -195,7 +192,7 @@
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient ID</th>
+                        <!--<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient ID</th>-->
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
@@ -208,9 +205,9 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($patients as $patient)
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <!--<td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-blue-600">{{ $patient->formatted_patient_id }}</div>
-                        </td>
+                        </td>-->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                  
@@ -247,10 +244,10 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
-                            <button data-patient='@json($patient)' onclick='openViewPatientModal(JSON.parse(this.dataset.patient))' class="btn-action btn-view inline-flex items-center justify-center">
+                            <a href="{{ route('bhw.patients.profile', $patient->id) }}" class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
                             <span class="hidden sm:inline">View</span>
-                            </button>
+                            </a>
                         <button data-patient='@json($patient)' onclick='openEditPatientModal(JSON.parse(this.dataset.patient))' class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
                                 <span class="hidden sm:inline">Edit</span>
@@ -340,7 +337,7 @@ function openViewPatientModal(patient) {
     currentPatientData = patient;
     
     // Populate modal fields
-    document.getElementById('viewPatientName').textContent = patient.name || 'N/A';
+    document.getElementById('viewPatientName').textContent = patient.name || (patient.first_name + ' ' + patient.last_name) || 'N/A';
     document.getElementById('viewPatientId').textContent = patient.formatted_patient_id || 'N/A';
     document.getElementById('viewPatientAge').textContent = patient.age ? patient.age + ' years' : 'N/A';
     document.getElementById('viewPatientContact').textContent = patient.contact || 'N/A';
@@ -397,7 +394,7 @@ function openViewPatientModal(patient) {
     const prenatalLink = document.getElementById('viewPrenatalRecordsLink');
     if (prenatalLink) {
         const baseUrl = "{!! route('bhw.prenatalrecord.index') !!}";
-        prenatalLink.href = baseUrl + '?search=' + encodeURIComponent(patient.name || patient.formatted_patient_id);
+        prenatalLink.href = baseUrl + '?search=' + encodeURIComponent(patient.name || (patient.first_name + ' ' + patient.last_name) || patient.formatted_patient_id);
     }
     
     // Show modal
@@ -442,7 +439,8 @@ function openEditPatientModal(patient) {
     
     // Populate form fields
     const fields = {
-        'edit-name': patient.name || '',
+        'edit-first-name': patient.first_name || (patient.name ? patient.name.split(' ')[0] : ''),
+        'edit-last-name': patient.last_name || (patient.name ? patient.name.split(' ').slice(1).join(' ') : ''),
         'edit-age': patient.age || '',
         'edit-contact': patient.contact || '',
         'edit-emergency-contact': patient.emergency_contact || '',
@@ -492,13 +490,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            const nameInput = this.querySelector('input[name="name"]');
+            const firstNameInput = this.querySelector('input[name="first_name"]');
+            const lastNameInput = this.querySelector('input[name="last_name"]');
             const ageInput = this.querySelector('input[name="age"]');
-            
-            if (!nameInput || !nameInput.value.trim()) {
+
+            if (!firstNameInput || !firstNameInput.value.trim()) {
                 e.preventDefault();
-                if (nameInput) nameInput.focus();
-                alert('Patient name is required.');
+                if (firstNameInput) firstNameInput.focus();
+                alert('First name is required.');
+                return;
+            }
+
+            if (!lastNameInput || !lastNameInput.value.trim()) {
+                e.preventDefault();
+                if (lastNameInput) lastNameInput.focus();
+                alert('Last name is required.');
                 return;
             }
             

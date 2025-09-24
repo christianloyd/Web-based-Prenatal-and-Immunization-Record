@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Midwife;
 
 use App\Http\Controllers\Controller;
 use App\Models\CloudBackup;
+use App\Models\RestoreOperation;
 use App\Services\DatabaseBackupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,42 +51,91 @@ class CloudBackupController extends Controller
      */
     public function getData(Request $request)
     {
-        $query = CloudBackup::with('creator')->orderBy('created_at', 'desc');
+        try {
+            $query = CloudBackup::with('creator')->orderBy('created_at', 'desc');
 
-        // Apply filters
-        if ($request->has('type') && $request->type !== '') {
-            $query->where('type', $request->type);
+            // Apply filters
+            if ($request->has('type') && $request->type !== '') {
+                $query->where('type', $request->type);
+            }
+
+            if ($request->has('status') && $request->status !== '') {
+                $query->where('status', $request->status);
+            }
+
+            $backups = $query->get()->map(function ($backup) {
+                return [
+                    'id' => $backup->id,
+                    'name' => $backup->name ?? 'Unnamed Backup',
+                    'type' => $backup->type ?? 'unknown',
+                    'format' => $backup->format ?? 'sql_dump',
+                    'modules' => $backup->modules ?? [],
+                    'formatted_modules' => $backup->formatted_modules ?? '',
+                    'size' => $backup->file_size ?: '0 MB',
+                    'status' => $backup->status ?? 'pending',
+                    'created_at' => $backup->created_at ? $backup->created_at->toISOString() : now()->toISOString(),
+                    'storage_location' => $backup->storage_location ?? 'local',
+                    'encrypted' => $backup->encrypted ?? false,
+                    'compressed' => $backup->compressed ?? false,
+                    'error' => $backup->error_message,
+                    'status_badge' => $backup->status_badge ?? '',
+                    'google_drive_file_id' => $backup->google_drive_file_id,
+                    'google_drive_link' => $backup->google_drive_link
+                ];
+            });
+
+            // Get restore operations with error handling
+            $restores = [];
+            try {
+                $restoreQuery = RestoreOperation::with(['restoredBy'])->orderBy('restored_at', 'desc');
+
+                // Apply filters for restores
+                if ($request->has('status') && $request->status !== '') {
+                    $restoreQuery->where('status', $request->status);
+                }
+
+                $restores = $restoreQuery->get()->map(function ($restore) {
+                    return [
+                        'id' => $restore->id,
+                        'backup_name' => $restore->backup_name ?? 'Unknown Backup',
+                        'backup_id' => $restore->backup_id,
+                        'modules_restored' => $restore->modules_restored ?? [],
+                        'formatted_modules' => $restore->formatted_modules ?? '',
+                        'status' => $restore->status ?? 'unknown',
+                        'restore_options' => $restore->formatted_restore_options ?? '',
+                        'restored_at' => $restore->restored_at ? $restore->restored_at->toISOString() : now()->toISOString(),
+                        'error' => $restore->error_message,
+                        'status_badge' => $restore->status_badge ?? '',
+                        'restored_by' => $restore->restoredBy ? $restore->restoredBy->name : 'Unknown'
+                    ];
+                });
+            } catch (Exception $e) {
+                \Log::warning('Failed to load restore operations: ' . $e->getMessage());
+                $restores = [];
+            }
+
+            return response()->json([
+                'backups' => $backups,
+                'restores' => $restores,
+                'stats' => $this->backupService->getBackupStats()
+            ]);
+
+        } catch (Exception $e) {
+            \Log::error('Failed to load backup data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load backup data',
+                'error' => $e->getMessage(),
+                'backups' => [],
+                'restores' => [],
+                'stats' => [
+                    'total_backups' => 0,
+                    'successful_backups' => 0,
+                    'last_backup' => 'Never',
+                    'storage_used' => '0 MB'
+                ]
+            ], 500);
         }
-
-        if ($request->has('status') && $request->status !== '') {
-            $query->where('status', $request->status);
-        }
-
-        $backups = $query->get()->map(function ($backup) {
-            return [
-                'id' => $backup->id,
-                'name' => $backup->name,
-                'type' => $backup->type,
-                'format' => $backup->format,
-                'modules' => $backup->modules,
-                'formatted_modules' => $backup->formatted_modules,
-                'size' => $backup->file_size ?: '0 MB',
-                'status' => $backup->status,
-                'created_at' => $backup->created_at->toISOString(),
-                'storage_location' => $backup->storage_location,
-                'encrypted' => $backup->encrypted,
-                'compressed' => $backup->compressed,
-                'error' => $backup->error_message,
-                'status_badge' => $backup->status_badge,
-                'google_drive_file_id' => $backup->google_drive_file_id,
-                'google_drive_link' => $backup->google_drive_link
-            ];
-        });
-
-        return response()->json([
-            'backups' => $backups,
-            'stats' => $this->backupService->getBackupStats()
-        ]);
     }
 
     /**
@@ -185,12 +235,19 @@ class CloudBackupController extends Controller
         $request->validate([
             'backup_id' => 'required|exists:cloud_backups,id',
             'restore_options' => 'nullable|array',
-            'restore_options.*' => 'in:create_backup,verify_integrity,selective_restore',
+            'restore_options.*' => 'in:create_backup,verify_integrity',
             'confirm_restore' => 'required|accepted'
         ]);
 
         try {
             $backup = CloudBackup::findOrFail($request->backup_id);
+
+            // Debug: Log what restore options we received
+            \Log::info('Restore request received', [
+                'backup_id' => $request->backup_id,
+                'restore_options' => $request->restore_options,
+                'backup_name' => $backup->name
+            ]);
 
             if ($backup->status !== 'completed') {
                 return response()->json([
@@ -201,6 +258,7 @@ class CloudBackupController extends Controller
 
             // Create backup before restore if requested
             if (in_array('create_backup', $request->restore_options ?? [])) {
+                \Log::info('Creating pre-restore backup...');
                 $preRestoreBackup = CloudBackup::create([
                     'name' => 'Pre-restore Backup ' . now()->format('Y-m-d H:i:s'),
                     'type' => 'full',
@@ -220,16 +278,51 @@ class CloudBackupController extends Controller
                 $backup->refresh();
             }
 
+            // Verify backup integrity if requested
+            if (in_array('verify_integrity', $request->restore_options ?? [])) {
+                $integrityCheck = $this->backupService->verifyBackupIntegrity($backup);
+
+                if (!$integrityCheck['valid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Backup integrity verification failed: ' . $integrityCheck['error']
+                    ], 400);
+                }
+            }
+
             // Double-check the backup status before restore (in case it was affected by pre-backup process)
+            $backup->refresh(); // Refresh from database
+            \Log::info('Final backup status check before restore', [
+                'backup_id' => $backup->id,
+                'backup_name' => $backup->name,
+                'status' => $backup->status
+            ]);
+
             if ($backup->status !== 'completed') {
+                \Log::error('Backup status check failed', [
+                    'backup_id' => $backup->id,
+                    'status' => $backup->status,
+                    'expected' => 'completed'
+                ]);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot restore from incomplete backup'
+                    'message' => 'Cannot restore from incomplete backup. Current status: ' . $backup->status
                 ], 400);
             }
 
             // Perform the restore
             $this->backupService->restoreBackup($backup);
+
+            // Create restore operation record after successful restore
+            RestoreOperation::create([
+                'backup_id' => $backup->id,
+                'backup_name' => $backup->name,
+                'modules_restored' => $backup->modules,
+                'status' => 'completed',
+                'restore_options' => $request->restore_options ?? [],
+                'restored_at' => now(),
+                'restored_by' => Auth::id()
+            ]);
 
             $restoreMessage = 'Data restored successfully from "' . $backup->name . '"!';
             if ($backup->type === 'selective') {
@@ -246,6 +339,20 @@ class CloudBackupController extends Controller
             ]);
 
         } catch (Exception $e) {
+            // Create failed restore operation record
+            if (isset($backup)) {
+                RestoreOperation::create([
+                    'backup_id' => $backup->id,
+                    'backup_name' => $backup->name,
+                    'modules_restored' => $backup->modules,
+                    'status' => 'failed',
+                    'restore_options' => $request->restore_options ?? [],
+                    'error_message' => $e->getMessage(),
+                    'restored_at' => now(),
+                    'restored_by' => Auth::id()
+                ]);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Restore failed: ' . $e->getMessage()
@@ -259,13 +366,21 @@ class CloudBackupController extends Controller
     public function destroy($id)
     {
         try {
-            $backup = CloudBackup::findOrFail($id);
-            
+            $backup = CloudBackup::find($id);
+
+            if (!$backup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Backup not found.'
+                ], 404);
+            }
+
+            $backupName = $backup->name;
             $this->backupService->deleteBackup($backup);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Backup "' . $backup->name . '" deleted successfully.'
+                'message' => 'Backup "' . $backupName . '" deleted successfully.'
             ]);
 
         } catch (Exception $e) {

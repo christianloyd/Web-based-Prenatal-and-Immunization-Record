@@ -1,7 +1,7 @@
 @extends('layout.midwife')
-@section('title', 'Child Record Details - ' . $childRecord->child_name)
+@section('title', 'Child Record Details - ' . $childRecord->full_name)
 @section('page-title', 'Child Record Details')
-@section('page-subtitle', $childRecord->child_name . ' - Complete Child Record & Immunization History')
+@section('page-subtitle', $childRecord->full_name . ' - Complete Child Record & Immunization History')
 
 @push('styles')
 <style>
@@ -115,7 +115,7 @@
                         <i class="fas fa-baby text-pink-600 text-xs"></i>
                     </div>
                     <div>
-                        <h1 class="text-sm font-semibold text-gray-900">{{ $childRecord->child_name }}</h1>
+                        <h1 class="text-sm font-semibold text-gray-900">{{ $childRecord->full_name }}</h1>
                         <div class="flex items-center space-x-3 text-xs text-gray-500">
                             <span><i class="fas fa-id-card mr-1"></i>{{ $childRecord->formatted_child_id ?? 'CH-' . str_pad($childRecord->id, 3, '0', STR_PAD_LEFT) }}</span>
                             <span><i class="fas fa-birthday-cake mr-1"></i>{{ $childRecord->age ?? 'N/A' }}</span>
@@ -153,7 +153,7 @@
                         <i class="fas fa-check-circle mr-1"></i>Completed
                     </div>
                     @php
-                        $totalRequiredImmunizations = 12; // Standard childhood immunization schedule
+                        $totalRequiredImmunizations = 13; // Standard childhood immunization schedule including vitamins
                         $completedCount = $completedImmunizations->count();
                         $progressPercentage = $totalRequiredImmunizations > 0 ? round(($completedCount / $totalRequiredImmunizations) * 100) : 0;
                     @endphp
@@ -264,6 +264,122 @@
         </div>
 
         @if($childRecord->immunizations->count() > 0)
+           <!-- Immunization Timeline -->
+<div class="px-4 py-4 border-b border-gray-100">
+    <h4 class="text-xs font-medium text-gray-700 mb-6 flex items-center">
+        <i class="fas fa-project-diagram mr-2 text-gray-500"></i>
+        Vaccination Timeline
+    </h4>
+
+    @php
+        // Group immunizations by vaccine name
+        $groupedImmunizations = $childRecord->immunizations->groupBy('vaccine_name');
+        
+        // Sort the grouped collection with BCG first
+        $groupedImmunizations = $groupedImmunizations->sortKeys()->sortKeysUsing(function($a, $b) {
+            // BCG should always come first
+            if ($a === 'BCG') return -1;
+            if ($b === 'BCG') return 1;
+            // Then sort alphabetically
+            return 0; // Keep original order for others since sortKeys() already sorted alphabetically
+        });
+        
+        // If sortKeysUsing doesn't work, use this alternative approach:
+        $sortedVaccines = [];
+        
+        // First add BCG if it exists
+        if ($groupedImmunizations->has('BCG')) {
+            $sortedVaccines['BCG'] = $groupedImmunizations->get('BCG');
+        }
+        
+        // Then add all other vaccines alphabetically
+        foreach ($groupedImmunizations->sortKeys() as $vaccineName => $vaccineGroup) {
+            if ($vaccineName !== 'BCG') {
+                $sortedVaccines[$vaccineName] = $vaccineGroup;
+            }
+        }
+        
+        $groupedImmunizations = collect($sortedVaccines);
+    @endphp
+
+    <!-- Horizontal Timeline Container -->
+    <div class="relative overflow-x-auto pb-8">
+        <!-- Mobile: Larger spacing, Desktop: Normal spacing -->
+        <div class="flex items-center space-x-6 sm:space-x-8 min-w-max relative py-4">
+            <!-- Main horizontal connecting line positioned at center of circles -->
+            <div class="absolute top-1/2 left-6 sm:left-8 right-6 sm:right-8 h-0.5 bg-gray-300 transform -translate-y-1/2 z-0"></div>
+            
+            @foreach($groupedImmunizations as $vaccineName => $vaccineImmunizations)
+                @php 
+                    $vaccineIndex = $loop->index;
+                    $sortedDoses = $vaccineImmunizations->sortBy('schedule_date');
+                    $isLastVaccine = $loop->last;
+                @endphp
+                
+                <!-- Vaccine Name (Big Circle) -->
+                <div class="relative z-10 flex flex-col items-center">
+                    <!-- Larger touch target for mobile -->
+                    <div class="w-12 h-12 sm:w-12 sm:h-12 bg-blue-100 border-2 border-blue-300 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 touch-manipulation"
+                         data-tooltip-target="tooltip-vaccine-{{ $vaccineIndex }}"
+                         data-tooltip-placement="bottom">
+                        <i class="fas fa-syringe text-blue-600 text-sm"></i>
+                    </div>
+                    
+                    <!-- Vaccine Name Label -->
+                    <div class="mt-2 text-center">
+                        <div class="text-xs sm:text-xs font-medium text-gray-700 max-w-16 sm:max-w-none break-words">{{ $vaccineName }}</div>
+                    </div>
+                    
+                    <!-- Vaccine Name Tooltip -->
+                    <div id="tooltip-vaccine-{{ $vaccineIndex }}" role="tooltip" class="absolute z-20 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
+                        <div class="text-center">
+                            <div class="font-semibold">{{ $vaccineName }}</div>
+                            <div class="text-xs opacity-75">{{ $sortedDoses->count() }} dose(s)</div>
+                        </div>
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                    </div>
+                </div>
+
+                <!-- Dose Timeline (Small Circles) -->
+                @foreach($sortedDoses as $doseIndex => $immunization)
+                    <div class="relative z-10 flex flex-col items-center">
+                        <!-- Dose Circle - Larger on mobile for better touch -->
+                        <div
+                            class="w-10 h-10 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-125 z-10 touch-manipulation
+                            @if($immunization->status === 'Done')
+                                bg-green-100 border-green-400 hover:bg-green-200
+                            @elseif($immunization->status === 'Upcoming')
+                                bg-yellow-100 border-yellow-400 hover:bg-yellow-200
+                            @else
+                                bg-red-100 border-red-400 hover:bg-red-200
+                            @endif"
+                            data-tooltip-target="tooltip-dose-{{ $vaccineIndex }}-{{ $doseIndex }}"
+                            data-tooltip-placement="bottom">
+
+                            @if($immunization->status === 'Done')
+                                <i class="fas fa-check text-green-600 text-xs sm:text-xs"></i>
+                            @elseif($immunization->status === 'Upcoming')
+                                <i class="fas fa-clock text-yellow-600 text-xs sm:text-xs"></i>
+                            @else
+                                <i class="fas fa-times text-red-600 text-xs sm:text-xs"></i>
+                            @endif
+                        </div>
+
+                        <!-- No visible label for doses -->
+
+                        <!-- Dose Tooltip - Using the exposed text as tooltip -->
+                        <div id="tooltip-dose-{{ $vaccineIndex }}-{{ $doseIndex }}" role="tooltip" class="absolute z-30 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
+                            <div class="text-center text-xs">
+                                {{ $immunization->dose ?? ($doseIndex + 1) }}
+                            </div>
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+                    </div>
+                @endforeach
+            @endforeach
+        </div>
+    </div>
+</div>
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50">

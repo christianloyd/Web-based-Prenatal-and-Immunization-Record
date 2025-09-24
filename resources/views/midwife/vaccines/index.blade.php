@@ -114,9 +114,8 @@
 
 @section('content')
 <div class="space-y-6">
-   
-
-    
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center">

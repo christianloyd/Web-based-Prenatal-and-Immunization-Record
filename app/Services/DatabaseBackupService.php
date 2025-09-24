@@ -579,6 +579,108 @@ class DatabaseBackupService
     }
 
     /**
+     * Verify backup file integrity
+     */
+    public function verifyBackupIntegrity(CloudBackup $backup): array
+    {
+        $result = [
+            'valid' => false,
+            'checks' => [],
+            'error' => null
+        ];
+
+        try {
+            // Check 1: Backup status
+            $result['checks']['status'] = $backup->status === 'completed';
+            if (!$result['checks']['status']) {
+                $result['error'] = 'Backup is not completed';
+                return $result;
+            }
+
+            // Check 2: File exists and is accessible
+            try {
+                $sqlContent = $this->getBackupFileContent($backup);
+                $result['checks']['file_accessible'] = !empty($sqlContent);
+
+                if (empty($sqlContent)) {
+                    $result['error'] = 'Backup file is empty or inaccessible';
+                    return $result;
+                }
+            } catch (Exception $e) {
+                $result['checks']['file_accessible'] = false;
+                $result['error'] = 'Cannot access backup file: ' . $e->getMessage();
+                return $result;
+            }
+
+            // Check 3: Basic SQL structure validation
+            $result['checks']['sql_structure'] = $this->validateSqlStructure($sqlContent);
+            if (!$result['checks']['sql_structure']) {
+                $result['error'] = 'Invalid SQL structure in backup file';
+                return $result;
+            }
+
+            // Check 4: Contains essential tables
+            $result['checks']['essential_tables'] = $this->validateEssentialTables($sqlContent);
+            if (!$result['checks']['essential_tables']) {
+                $result['error'] = 'Backup missing essential database tables';
+                return $result;
+            }
+
+            // Check 5: File size validation
+            $actualSize = strlen($sqlContent);
+            $minExpectedSize = 1024; // At least 1KB
+            $result['checks']['file_size'] = $actualSize >= $minExpectedSize;
+
+            if (!$result['checks']['file_size']) {
+                $result['error'] = 'Backup file too small, possibly corrupted';
+                return $result;
+            }
+
+            // All checks passed
+            $result['valid'] = true;
+            return $result;
+
+        } catch (Exception $e) {
+            $result['error'] = 'Integrity verification failed: ' . $e->getMessage();
+            return $result;
+        }
+    }
+
+    /**
+     * Validate SQL file structure
+     */
+    private function validateSqlStructure(string $sqlContent): bool
+    {
+        // Check for basic SQL dump markers
+        $hasCreateTable = strpos($sqlContent, 'CREATE TABLE') !== false;
+        $hasInsertInto = strpos($sqlContent, 'INSERT INTO') !== false || strpos($sqlContent, 'CREATE TABLE') !== false;
+
+        return $hasCreateTable || $hasInsertInto;
+    }
+
+    /**
+     * Validate that backup contains some valid tables (not necessarily essential ones for selective backups)
+     */
+    private function validateEssentialTables(string $sqlContent): bool
+    {
+        // For selective backups, we just need to ensure there are SOME tables
+        // Common healthcare tables that might be in any backup
+        $possibleTables = [
+            'users', 'cloud_backups', 'patients', 'prenatal_records', 'child_records',
+            'immunization_records', 'vaccines', 'prenatal_checkups', 'immunizations'
+        ];
+
+        // Check if at least ONE table exists in the backup
+        foreach ($possibleTables as $table) {
+            if (strpos($sqlContent, "`{$table}`") !== false || strpos($sqlContent, $table) !== false) {
+                return true; // Found at least one valid table
+            }
+        }
+
+        return false; // No valid tables found
+    }
+
+    /**
      * Restore database from backup (Production-safe version)
      */
     public function restoreBackup(CloudBackup $backup): void

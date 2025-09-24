@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('child_records', function (Blueprint $table) {
             $table->id();
-            $table->string('child_name');
+            $table->string('formatted_child_id')->nullable(); // Auto-generated child ID
+            $table->string('first_name'); // Required first name
+            $table->string('middle_name')->nullable(); // Optional middle name
+            $table->string('last_name'); // Required last name
             $table->enum('gender', ['Male', 'Female']);
             $table->decimal('birth_height', 6, 2)->nullable(); // Changed to 6,2 for values like 999.99 and made nullable
             $table->decimal('birth_weight', 6, 3)->nullable(); // Changed to 6,3 for values like 99.999 and made nullable
@@ -23,14 +26,16 @@ return new class extends Migration
             $table->string('father_name')->nullable(); // Made nullable
             $table->string('phone_number', 20);
             $table->string('mother_name')->nullable(); // Added this field for storing mother name
-            
+
             $table->foreignId('mother_id')->nullable()->constrained('patients')->onDelete('set null');
             $table->timestamps();
-            
+
             // Add indexes for better performance
-            $table->index(['child_name']);
+            $table->index(['first_name']);
+            $table->index(['last_name']);
             $table->index(['birthdate']);
             $table->index(['mother_id']);
+            $table->index(['formatted_child_id']);
         });
     }
 

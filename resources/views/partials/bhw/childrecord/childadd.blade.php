@@ -72,32 +72,62 @@
                             <h3 class="text-lg font-semibold text-gray-900">Basic Information</h3>
                         </div>
                         <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Child Name *</label>
-                                <input type="text" id="child_name" name="child_name" required 
-                                       class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('child_name') error-border @enderror"
-                                       placeholder="Enter child's full name"
-                                       value="{{ old('child_name') }}">
-                                @error('child_name')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
-                                <div class="flex space-x-6">
-                                    <label class="flex items-center">
-                                        <input type="radio" name="gender" value="Male" required class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Male' ? 'checked' : '' }}>
-                                        <span class="ml-2 text-gray-700">Male</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="gender" value="Female" required class="text-[#68727A] focus:ring-[#68727A]" {{ old('gender') == 'Female' ? 'checked' : '' }}>
-                                        <span class="ml-2 text-gray-700">Female</span>
-                                    </label>
+                            <!-- First Row: First Name and Middle Name -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                                    <input type="text" id="first_name" name="first_name" required
+                                           class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('first_name') error-border @enderror"
+                                           placeholder="Enter first name"
+                                           value="{{ old('first_name') }}">
+                                    @error('first_name')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                @error('gender')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
+                                    <input type="text" id="middle_name" name="middle_name"
+                                           class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('middle_name') error-border @enderror"
+                                           placeholder="Enter middle name (optional)"
+                                           value="{{ old('middle_name') }}">
+                                    @error('middle_name')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Second Row: Last Name and Gender -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                                    <input type="text" id="last_name" name="last_name" required
+                                           class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('last_name') error-border @enderror"
+                                           placeholder="Enter last name"
+                                           value="{{ old('last_name') }}">
+                                    @error('last_name')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
+                                    <div class="flex space-x-6 mt-2">
+                                        <label class="flex items-center cursor-pointer">
+                                            <input type="radio" name="gender" value="Male" required
+                                                   class="h-4 w-4 text-[#68727A] border-gray-300 focus:ring-[#68727A] focus:ring-2"
+                                                   {{ old('gender') == 'Male' ? 'checked' : '' }}>
+                                            <span class="ml-2 text-gray-700 select-none">Male</span>
+                                        </label>
+                                        <label class="flex items-center cursor-pointer">
+                                            <input type="radio" name="gender" value="Female" required
+                                                   class="h-4 w-4 text-[#68727A] border-gray-300 focus:ring-[#68727A] focus:ring-2"
+                                                   {{ old('gender') == 'Female' ? 'checked' : '' }}>
+                                            <span class="ml-2 text-gray-700 select-none">Female</span>
+                                        </label>
+                                    </div>
+                                    @error('gender')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
                             
                             <div>
@@ -199,7 +229,7 @@
                                                 data-contact="{{ $mother->contact ?? '' }}"
                                                 data-address="{{ $mother->address ?? '' }}"
                                                 {{ old('mother_id') == $mother->id ? 'selected' : '' }}>
-                                            {{ $mother->name }} (ID: {{ $mother->formatted_patient_id }})
+                                            {{ $mother->name }} (ID: {{ $mother->formatted_patient_id ?: 'PT-' . str_pad($mother->id, 3, '0', STR_PAD_LEFT) }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -308,7 +338,7 @@
                     <button type="button" onclick="closeModal()" class="btn-minimal px-6 py-2.5 text-gray-600 border border-gray-300 rounded-lg">
                         Cancel
                     </button>
-                    <button type="submit" id="submit-btn" class="btn-primary bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-secondary transition-all duration-200" style="background-color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
+                    <button type="submit" id="submit-btn" class="btn-primary px-6 py-2.5 rounded-lg font-medium transition-all duration-200" style="background-color: #243b55; color: white;" onmouseover="this.style.backgroundColor='#141e30'" onmouseout="this.style.backgroundColor='#243b55'">
                         <i class="fas fa-save mr-2"></i>Save Record
                     </button>
                 </div>

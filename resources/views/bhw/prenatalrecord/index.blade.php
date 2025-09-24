@@ -201,6 +201,8 @@
 
 @section('content')
 <div class="space-y-6">
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
@@ -220,14 +222,14 @@
                 </div>-->
             </div>
         </div>
-        <div class="flex space-x-3"> 
-            <!-- FIXED: Changed from anchor to button that opens modal -->
-            <button onclick="openPrenatalModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center btn-primary">
+        <div class="flex space-x-3">
+            <!-- Redirect to create page instead of modal -->
+            <a href="{{ route('bhw.prenatalrecord.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                 </svg>
                 Add Prenatal Record
-            </button>
+            </a>
         </div>
     </div>
 
@@ -271,8 +273,8 @@
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Record ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient ID</th> 
+                        <!--<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Record ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient ID</th>--> 
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gestational Age</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trimester</th>
@@ -285,12 +287,12 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($prenatalRecords as $record)
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                        <!--<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                             {{ $record->formatted_prenatal_id ?? 'PR-001' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $record->patient->formatted_patient_id ?? 'N/A' }}
-                        </td>
+                        </td>-->
                         
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {{ $record->patient->name ?? 'N/A' }}
@@ -312,8 +314,6 @@
                                 {{ $record->expected_due_date->format('M d, Y') }}
                                 @if($record->is_overdue)
                                     <span class="text-red-600 text-xs block"></span>
-                                @elseif($record->days_until_due <= 14 && $record->days_until_due >= 0)
-                                    <span class="text-orange-600 text-xs block">{{ $record->days_until_due }} days left</span>
                                 @endif
                             @else
                                 N/A
@@ -355,9 +355,9 @@
                                 </svg>
                                 <p class="text-lg font-medium text-gray-900 mb-2">No prenatal records found</p>
                                 <p class="text-gray-600 mb-4">Get started by creating your first prenatal record</p>
-                                <button onclick="openPrenatalModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors btn-primary">
+                                <a href="{{ route('bhw.prenatalrecord.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors btn-primary">
                                     Create First Record
-                                </button>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -375,9 +375,6 @@
     </div>
 </div>
 
-<!-- Add Prenatal Record Modal -->
-@include('partials.bhw.prenatalrecord.prenataladd')
-
 <!-- View Prenatal Record Modal -->
 @include('partials.bhw.prenatalrecord.prenatalview')
 
@@ -388,48 +385,6 @@
 
 @push('scripts')
 <script>
-// --------------------
-// Add Prenatal Record Modal
-// --------------------
-function openPrenatalModal() {
-    const modal = document.getElementById('prenatal-modal');
-    if (!modal) {
-        console.error('Prenatal modal not found');
-        return;
-    }
-    
-    // Reset form if no validation errors
-    if (!document.querySelector('.bg-red-100')) {
-        const form = modal.querySelector('form');
-        if (form) form.reset();
-    }
-    
-    modal.classList.remove('hidden');
-    requestAnimationFrame(() => {
-        modal.classList.add('show');
-    });
-    document.body.style.overflow = 'hidden';
-}
-
-function closePrenatalModal(e) {
-    // Don't close if click is inside modal content
-    if (e && e.target !== e.currentTarget) return;
-    
-    const modal = document.getElementById('prenatal-modal');
-    if (!modal) return;
-    
-    modal.classList.remove('show');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-        
-        // Only reset form if there are no validation errors
-        if (!document.querySelector('.bg-red-100')) {
-            const form = modal.querySelector('form');
-            if (form) form.reset();
-        }
-    }, 300);
-}
 
 // --------------------
 // View Prenatal Record Modal
@@ -598,30 +553,14 @@ function calculateEDD(lmpDate) {
 
 function setupDateValidation() {
     const today = new Date().toISOString().split('T')[0];
-    
-    // Setup for Add Modal
-    const addLmpInput = document.querySelector('#prenatal-modal input[name="last_menstrual_period"]');
-    const addEddInput = document.querySelector('#prenatal-modal input[name="expected_due_date"]');
-    
-    if (addLmpInput) {
-        addLmpInput.setAttribute('max', today);
-        
-        if (addEddInput) {
-            addLmpInput.addEventListener('change', function() {
-                if (this.value && !addEddInput.value) {
-                    addEddInput.value = calculateEDD(this.value);
-                }
-            });
-        }
-    }
-    
+
     // Setup for Edit Modal
     const editLmpInput = document.querySelector('#edit-prenatal-modal input[name="last_menstrual_period"]');
     const editEddInput = document.querySelector('#edit-prenatal-modal input[name="expected_due_date"]');
-    
+
     if (editLmpInput) {
         editLmpInput.setAttribute('max', today);
-        
+
         if (editEddInput) {
             editLmpInput.addEventListener('change', function() {
                 if (this.value && !editEddInput.value) {
@@ -659,18 +598,8 @@ function validateForm(formId) {
 // --------------------
 document.addEventListener('DOMContentLoaded', function() {
     setupDateValidation();
-    
-    // Form submission validation
-    const prenatalForm = document.getElementById('prenatal-form');
-    if (prenatalForm) {
-        prenatalForm.addEventListener('submit', function(e) {
-            if (!validateForm('prenatal-form')) {
-                e.preventDefault();
-                alert('Please fill in all required fields.');
-            }
-        });
-    }
-    
+
+    // Form submission validation for edit form
     const editPrenatalForm = document.getElementById('edit-prenatal-form');
     if (editPrenatalForm) {
         editPrenatalForm.addEventListener('submit', function(e) {
@@ -685,7 +614,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Close modals on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closePrenatalModal();
         closeViewPrenatalModal();
         closeEditPrenatalModal();
     }
@@ -696,9 +624,6 @@ document.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-overlay')) {
         const modalId = e.target.id;
         switch (modalId) {
-            case 'prenatal-modal':
-                closePrenatalModal(e);
-                break;
             case 'view-prenatal-modal':
                 closeViewPrenatalModal(e);
                 break;

@@ -41,20 +41,20 @@
                 <div class="bg-gray-50 p-3 sm:p-4 rounded-lg">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Patient Name</label>
-                            <div id="edit-patient-name-display" class="text-xs sm:text-sm font-medium text-gray-900 py-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Patient Name</label>
+                            <div id="edit-patient-name-display" class="text-base font-medium text-gray-900 py-2">
                                 Loading...
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Patient ID</label>
-                            <div id="edit-patient-id-display" class="text-xs sm:text-sm text-gray-700 py-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Patient ID</label>
+                            <div id="edit-patient-id-display" class="text-base text-gray-700 py-2">
                                 Loading...
                             </div>
                         </div>
                         <div class="sm:col-span-2 lg:col-span-1">
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Age</label>
-                            <div id="edit-patient-age-display" class="text-xs sm:text-sm text-gray-700 py-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                            <div id="edit-patient-age-display" class="text-base text-gray-700 py-2">
                                 Loading...
                             </div>
                         </div>
@@ -83,17 +83,8 @@
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <p class="text-xs text-gray-500 mt-1">Auto-calculated if left blank</p>
                     </div>
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" id="edit-status" 
-                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="normal">Normal</option>
-                            <option value="monitor">Monitor</option>
-                            <option value="high-risk">High Risk</option>
-                            <option value="due">Appointment Due</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
+                    <!-- Status field hidden - automatically calculated by backend -->
+                    <input type="hidden" name="status" id="edit-status" value="">
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Gravida</label>
                         <select name="gravida" id="edit-gravida" 

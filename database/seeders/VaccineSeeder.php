@@ -10,8 +10,14 @@ class VaccineSeeder extends Seeder
 {
     public function run(): void
     {
-        // Clear existing data
-        DB::table('vaccines')->delete();
+        // Check if vaccines already exist to avoid constraint errors
+        $existingVaccines = DB::table('vaccines')->count();
+
+        if ($existingVaccines > 0) {
+            $this->command->info('Vaccines already exist. Skipping vaccine seeding to avoid constraint violations.');
+            $this->command->info('If you need to reseed vaccines, please run: php artisan migrate:fresh --seed');
+            return;
+        }
 
         // Define vaccines matching the actual table structure
         $vaccines = [

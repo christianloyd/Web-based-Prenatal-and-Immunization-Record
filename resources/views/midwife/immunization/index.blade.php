@@ -200,6 +200,8 @@
 
 @section('content')
 <div class="space-y-6">
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
 
     <!-- Disabled Toast Notifications - Using Alert Components instead -->
     {{-- @include('components.toast-notification') --}}
@@ -271,7 +273,7 @@
                 <table class="w-full table-container">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Immunization ID</th>
+                            <!--<th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Immunization ID</th>-->
                             <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'child_name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
                                     Child Name <i class="fas fa-sort ml-1 text-gray-400"></i>
@@ -301,11 +303,11 @@
                     <tbody class="divide-y divide-gray-200">
                         @foreach($immunizations as $immunization)
                         <tr class="table-row-hover">
-                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            <!--<td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <div class="font-medium text-blue-600">{{ $immunization->formatted_immunization_id ?? 'IM-001' }}</div>
-                            </td>
+                            </td>-->
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $immunization->childRecord->child_name ?? 'N/A' }}</div>
+                                <div class="font-medium text-gray-900">{{ $immunization->childRecord->full_name ?? 'N/A' }}</div>
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <div class="font-medium text-gray-900">{{ $immunization->vaccine_name ?? 'N/A' }}</div>
@@ -455,7 +457,7 @@ function openViewModal(immunization) {
     
     try {
         // Populate modal fields
-        updateElementText('modalChildName', immunization.child_record?.child_name);
+        updateElementText('modalChildName', immunization.child_record?.full_name);
         updateElementText('modalVaccineName', immunization.vaccine_name);
         updateElementText('modalDose', immunization.dose);
         updateElementText('modalStatus', immunization.status);
@@ -851,21 +853,21 @@ document.addEventListener('DOMContentLoaded', function() {
         openAddModal();
     @endif
 
-    // Handle Laravel session messages and show as alerts
+    // Handle Laravel session messages using the global healthcare alert system
     @if(session('success'))
-        window.immunizationAlert.showAlert('success', 'Success!', '{{ session("success") }}');
+        window.healthcareAlert.success('{{ addslashes(session("success")) }}');
     @endif
 
     @if(session('error'))
-        window.immunizationAlert.showAlert('error', 'Error!', '{{ session("error") }}');
+        window.healthcareAlert.error('{{ addslashes(session("error")) }}');
     @endif
 
     @if(session('warning'))
-        window.immunizationAlert.showAlert('warning', 'Warning!', '{{ session("warning") }}');
+        window.healthcareAlert.warning('{{ addslashes(session("warning")) }}');
     @endif
 
     @if(session('info'))
-        window.immunizationAlert.showAlert('info', 'Information', '{{ session("info") }}');
+        window.healthcareAlert.info('{{ addslashes(session("info")) }}');
     @endif
 
     // Enhanced form submission with toast notifications
@@ -875,36 +877,36 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add form submission handlers for alert notifications
     if (immunizationForm) {
         immunizationForm.addEventListener('submit', function(e) {
-            // Show pending alert
+            // Show pending alert using global healthcare alert
             setTimeout(() => {
-                window.immunizationAlert.showAlert('info', 'Processing', 'Scheduling immunization...');
+                window.healthcareAlert.info('Scheduling immunization...', 'Processing');
             }, 100);
         });
     }
 
     if (editImmunizationForm) {
         editImmunizationForm.addEventListener('submit', function(e) {
-            // Show pending alert
+            // Show pending alert using global healthcare alert
             setTimeout(() => {
-                window.immunizationAlert.showAlert('info', 'Processing', 'Updating immunization record...');
+                window.healthcareAlert.info('Updating immunization record...', 'Processing');
             }, 100);
         });
     }
 });
 
-// Custom alert functions for immunization operations using Flowbite alerts
+// Custom alert functions for immunization operations using global healthcare alerts
 window.immunizationAlert = {
     scheduled: function(childName, vaccineName) {
-        this.showAlert('success', 'Scheduled Successfully!', `Immunization scheduled for ${childName} - ${vaccineName} vaccination`);
+        window.healthcareAlert.success(`Immunization scheduled for ${childName} - ${vaccineName} vaccination`, 'Scheduled Successfully!');
     },
     updated: function(childName, status) {
-        this.showAlert('success', 'Updated Successfully!', `Record updated for ${childName} - Status changed to ${status}`);
+        window.healthcareAlert.success(`Record updated for ${childName} - Status changed to ${status}`, 'Updated Successfully!');
     },
     error: function(message) {
-        this.showAlert('error', 'Operation Failed', message);
+        window.healthcareAlert.error(message, 'Operation Failed');
     },
     lowStock: function(vaccineName, stock) {
-        this.showAlert('warning', 'Low Stock Warning', `Only ${stock} units left for ${vaccineName}`);
+        window.healthcareAlert.warning(`Only ${stock} units left for ${vaccineName}`, 'Low Stock Warning');
     },
     showAlert: function(type, title, message) {
         // Remove any existing alerts first
@@ -1007,12 +1009,12 @@ window.immunizationAlert = {
     }
 };
 
-// Test function to demonstrate the new alert system (remove in production)
+// Test function to demonstrate the enhanced healthcare alert system
 window.testAlerts = function() {
-    setTimeout(() => window.immunizationAlert.showAlert('success', 'Success!', 'This is a success alert sliding from the top'), 500);
-    setTimeout(() => window.immunizationAlert.showAlert('error', 'Error!', 'This is an error alert sliding from the top'), 1000);
-    setTimeout(() => window.immunizationAlert.showAlert('warning', 'Warning!', 'This is a warning alert sliding from the top'), 1500);
-    setTimeout(() => window.immunizationAlert.showAlert('info', 'Info!', 'This is an info alert sliding from the top'), 2000);
+    setTimeout(() => window.healthcareAlert.success('This is an enhanced success alert with better design'), 500);
+    setTimeout(() => window.healthcareAlert.error('This is an enhanced error alert with better design'), 1000);
+    setTimeout(() => window.healthcareAlert.warning('This is an enhanced warning alert with better design'), 1500);
+    setTimeout(() => window.healthcareAlert.info('This is an enhanced info alert with better design'), 2000);
 };
 </script>
 @endpush

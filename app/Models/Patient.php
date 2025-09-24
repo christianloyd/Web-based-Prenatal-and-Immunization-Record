@@ -20,7 +20,10 @@ class Patient extends Model
     protected $fillable = [
         'formatted_patient_id',
         'name',
+        'first_name',
+        'last_name',
         'age',
+        'date_of_birth',
         'contact',
         'emergency_contact',
         'address',
@@ -31,7 +34,8 @@ class Patient extends Model
        Casting
     ---------------------------------------------------------- */
     protected $casts = [
-        'age' => 'integer'
+        'age' => 'integer',
+        'date_of_birth' => 'date'
     ];
 
     /* ----------------------------------------------------------
@@ -44,6 +48,18 @@ class Patient extends Model
         static::creating(function ($patient) {
             if (empty($patient->formatted_patient_id)) {
                 $patient->formatted_patient_id = static::generatePatientId();
+            }
+
+            // Calculate date_of_birth from age if age is provided and date_of_birth is not
+            if ($patient->age && !$patient->date_of_birth) {
+                $patient->date_of_birth = Carbon::now()->subYears($patient->age)->startOfYear();
+            }
+        });
+
+        static::updating(function ($patient) {
+            // Calculate date_of_birth from age if age is provided and date_of_birth is not
+            if ($patient->age && !$patient->date_of_birth) {
+                $patient->date_of_birth = Carbon::now()->subYears($patient->age)->startOfYear();
             }
         });
     }
@@ -62,7 +78,10 @@ class Patient extends Model
     ---------------------------------------------------------- */
     public function scopeSearch($query, $term)
     {
-        return $query->where(fn ($q) => $q->where('name', 'like', "%{$term}%")
+        return $query->where(fn ($q) => $q->where('first_name', 'like', "%{$term}%")
+                                          ->orWhere('last_name', 'like', "%{$term}%")
+                                          ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$term}%"])
+                                          ->orWhere('name', 'like', "%{$term}%")
                                           ->orWhere('formatted_patient_id', 'like', "%{$term}%"));
     }
 

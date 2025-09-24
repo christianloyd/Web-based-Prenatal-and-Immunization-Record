@@ -26,7 +26,9 @@ class ChildRecordController extends Controller
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('child_name', 'like', "%{$request->search}%")
+                $q->where('first_name', 'like', "%{$request->search}%")
+                  ->orWhere('middle_name', 'like', "%{$request->search}%")
+                  ->orWhere('last_name', 'like', "%{$request->search}%")
                   ->orWhere('phone_number', 'like', "%{$request->search}%");
             });
         }
@@ -36,7 +38,11 @@ class ChildRecordController extends Controller
         $sortField = $request->get('sort', 'created_at');
         $sortDirection = $request->get('direction', 'desc');
         if (in_array($sortField, ['child_name', 'birthdate', 'created_at'])) {
-            $query->orderBy($sortField, $sortDirection);
+            if ($sortField === 'child_name') {
+                $query->orderBy('first_name', $sortDirection)->orderBy('last_name', $sortDirection);
+            } else {
+                $query->orderBy($sortField, $sortDirection);
+            }
         }
 
         $childRecords = $query->paginate(10)->appends($request->query());
@@ -70,7 +76,9 @@ class ChildRecordController extends Controller
         // Apply search filters
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('child_name', 'like', "%{$request->search}%")
+                $q->where('first_name', 'like', "%{$request->search}%")
+                  ->orWhere('middle_name', 'like', "%{$request->search}%")
+                  ->orWhere('last_name', 'like', "%{$request->search}%")
                   ->orWhere('phone_number', 'like', "%{$request->search}%");
             });
         }
@@ -82,7 +90,7 @@ class ChildRecordController extends Controller
         // Apply sorting
         $sortField = $request->get('sort', 'created_at');
         $sortDirection = $request->get('direction', 'desc');
-        if (in_array($sortField, ['child_name', 'birthdate', 'created_at'])) {
+        if (in_array($sortField, ['first_name', 'last_name', 'birthdate', 'created_at'])) {
             $query->orderBy($sortField, $sortDirection);
         }
 
@@ -132,7 +140,9 @@ class ChildRecordController extends Controller
 
     // Define base validation rules
     $baseRules = [
-        'child_name' => 'required|string|max:255|min:2',
+        'first_name' => 'required|string|max:255|min:2',
+        'middle_name' => 'nullable|string|max:255',
+        'last_name' => 'required|string|max:255|min:2',
         'gender' => ['required', Rule::in(['Male', 'Female'])],
         'birthdate' => 'required|date|before_or_equal:today|after:1900-01-01',
         'birth_height' => 'nullable|numeric|min:0|max:999.99',
@@ -251,7 +261,9 @@ class ChildRecordController extends Controller
 
         // Prepare child record data
         $childData = [
-            'child_name' => $validated['child_name'],
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'],
+            'last_name' => $validated['last_name'],
             'gender' => $validated['gender'],
             'birthdate' => $validated['birthdate'],
             'birth_height' => $validated['birth_height'],
@@ -269,7 +281,7 @@ class ChildRecordController extends Controller
             
             \Log::info('Child record created successfully', [
                 'child_record_id' => $childRecord->id,
-                'child_name' => $childRecord->child_name,
+                'child_name' => $childRecord->full_name,
                 'mother_id' => $motherId,
                 'mother_exists' => $validated['mother_exists'],
                 'created_by' => $user->id
@@ -281,7 +293,7 @@ class ChildRecordController extends Controller
             // Send notification to all healthcare workers about new child record
             $this->notifyHealthcareWorkers(
                 'New Child Record Created',
-                "A new child record has been created for '{$childRecord->child_name}' (Mother: {$mother->name}).",
+                "A new child record has been created for '{$childRecord->full_name}' (Mother: {$mother->name}).",
                 'success',
                 Auth::user()->role === 'midwife' 
                     ? route('midwife.childrecord.show', $childRecord->id)
@@ -563,7 +575,7 @@ public function update(Request $request, $id)
         }
 
         try {
-            $childName = $childRecord->child_name;
+            $childName = $childRecord->full_name;
             $childRecord->delete();
 
             if (request()->expectsJson()) {

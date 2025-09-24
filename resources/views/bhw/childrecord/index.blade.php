@@ -41,7 +41,7 @@
     
     .form-input:focus {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        box-shadow: 0 4px 12px rgba(236, 185, 158, 0.15); /* Peach shadow */
     }
 
     /* Error and Success Styles */
@@ -67,12 +67,12 @@
     }
     
     .btn-primary-clean {
-        background-color: #68727A;
+        background-color: #D4A373;
         color: white;
     }
-    
+
     .btn-primary-clean:hover {
-        background-color: #5a6269;
+        background-color: #B8956B;
     }
 
     .btn-action {
@@ -83,37 +83,48 @@
         transition: all 0.15s ease;
         border: 1px solid transparent;
     }
-    
+
+     /* Action Button Styles */
+     .btn-action {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+    }
+
     .btn-view {
         background-color: #f8fafc;
         color: #475569;
         border-color: #e2e8f0;
     }
-    
+
     .btn-view:hover {
         background-color: #68727A;
         color: white;
         border-color: #68727A;
     }
-    
+
     .btn-edit {
         background-color: #fef3c7;
         color: #92400e;
         border-color: #fde68a;
     }
-    
+
     .btn-edit:hover {
         background-color: #f59e0b;
         color: white;
         border-color: #f59e0b;
     }
-    
+
+    /* Delete button keeps red for safety */
     .btn-delete {
         background-color: #fee2e2;
         color: #dc2626;
         border-color: #fecaca;
     }
-    
+
     .btn-delete:hover {
         background-color: #dc2626;
         color: white;
@@ -189,7 +200,8 @@
 
 @section('content')
 <div class="space-y-6">
-    
+    <!-- Success/Error Messages -->
+    @include('components.flowbite-alert')
 
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
@@ -250,7 +262,7 @@
                 <table class="w-full table-container">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Child ID</th>
+                            <!--<th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Child ID</th>-->
                             <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'child_name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
                                     Child Name <i class="fas fa-sort ml-1 text-gray-400"></i>
@@ -270,11 +282,11 @@
                     <tbody class="divide-y divide-gray-200">
                         @foreach($childRecords as $record)
                         <tr class="table-row-hover">
-                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <div class="font-medium text-blue-600">{{ $record->formatted_child_id ?? 'CH-001' }}</div>
+                            <!--<td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div class="font-medium text-blue-600">{{ $record->formatted_child_id ?? 'CH-001' }}</div>-->
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $record->child_name ?? 'N/A' }}</div>
+                                <div class="font-medium text-gray-900">{{ $record->full_name ?? 'N/A' }}</div>
                                 <div class="text-sm text-gray-500 sm:hidden">{{ $record->mother_name ?? 'N/A' }}</div>
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
@@ -447,7 +459,7 @@ function validateField() {
     } else if (value) {
         // Field-specific validation
         switch (field.name) {
-            case 'child_name':
+            case 'full_name':
             case 'mother_name':
                 if (value.length < 2) {
                     isValid = false;
@@ -548,7 +560,7 @@ function openAddModal() {
             // Focus will be handled after mother selection
             return;
         } else {
-            firstInput = document.querySelector('#recordForm input[name="child_name"]');
+            firstInput = document.querySelector('#recordForm input[name="first_name"]');
         }
         
         if (firstInput) firstInput.focus();
@@ -932,7 +944,7 @@ function openViewRecordModal(record) {
         
         // Populate modal fields - safely handle null/undefined values
         const fieldMappings = [
-            { id: 'modalChildName', value: record.child_name },
+            { id: 'modalChildName', value: record.full_name },
             { id: 'modalChildGender', value: record.gender },
             { id: 'modalMotherName', value: record.mother_name },
             { id: 'modalFatherName', value: record.father_name },
@@ -1108,7 +1120,7 @@ function openEditRecordModal(record) {
     // Populate form fields
     const fieldMappings = [
         { id: 'edit-record-id', value: record.id },
-        { id: 'edit-child-name', value: record.child_name },
+        { id: 'edit-child-name', value: record.full_name },
         { id: 'edit-birthdate', value: formatDate(record.birthdate) },
         { id: 'edit-birth-height', value: record.birth_height },
         { id: 'edit-birth-weight', value: record.birth_weight },

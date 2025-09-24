@@ -18,13 +18,35 @@ class DatabaseSeeder extends Seeder
     
     public function run(): void
     {
-        $this->call([
-            // User accounts for healthcare workers
-            UserSeeder::class,
-             
-            PatientSeeder::class,
-            PrenatalRecordSeeder::class,
-            PrenatalCheckupSeeder::class,
-        ]);
+        $this->command->info('🌱 Starting Health Care System Database Seeding...');
+
+        try {
+            $this->call([
+                // Step 1: User accounts for healthcare workers
+                UserSeeder::class,
+
+                // Step 2: Vaccine data (must come before immunizations)
+                VaccineSeeder::class,
+
+                // Step 3: Patient and maternal health data
+                PatientSeeder::class,
+                PrenatalRecordSeeder::class,
+                PrenatalCheckupSeeder::class,
+
+                // Step 4: Child health data (depends on completed pregnancies)
+                ChildRecordSeeder::class,
+
+                // Step 5: Immunization data (depends on vaccines and children)
+                ImmunizationSeeder::class,
+            ]);
+
+            $this->command->info('✅ All seeders completed successfully!');
+            $this->command->info('🏥 Health Care System for Brgy. Mecolong is ready!');
+
+        } catch (\Exception $e) {
+            $this->command->error('❌ Seeding failed: ' . $e->getMessage());
+            $this->command->info('💡 Try running: php artisan migrate:fresh --seed');
+            throw $e;
+        }
     }
 }

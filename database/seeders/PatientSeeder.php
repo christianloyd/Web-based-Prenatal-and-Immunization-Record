@@ -3,70 +3,86 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\Patient;
 use Carbon\Carbon;
 
 class PatientSeeder extends Seeder
 {
     public function run()
     {
-        // Clear existing data
-        DB::table('patients')->delete();
+        $this->command->info('Creating patients for Brgy. Mecolong, Dumalinao, Zamboanga del Sur...');
 
-        // Sample Filipino names for patients
-        $femaleNames = [
-            'Maria Santos', 'Ana Cruz', 'Rosa Reyes', 'Carmen Garcia', 'Luz Hernandez',
-            'Elena Rodriguez', 'Sofia Martinez', 'Isabella Lopez', 'Camila Gonzales', 'Valeria Perez',
-            'Gabriela Rivera', 'Daniela Torres', 'Alejandra Flores', 'Victoria Morales', 'Natalia Gutierrez',
-            'Adriana Jimenez', 'Regina Castillo', 'Esperanza Vargas', 'Remedios Aguilar', 'Milagros Delgado'
+        // Filipino mother names with separate first, middle, last names
+        $motherNames = [
+            ['first' => 'Maria', 'middle' => 'Santos', 'last' => 'Cruz'],
+            ['first' => 'Ana', 'middle' => 'Garcia', 'last' => 'Reyes'],
+            ['first' => 'Rosa', 'middle' => 'Martinez', 'last' => 'Lopez'],
+            ['first' => 'Carmen', 'middle' => 'Rodriguez', 'last' => 'Gonzalez'],
+            ['first' => 'Luz', 'middle' => 'Hernandez', 'last' => 'Perez'],
+            ['first' => 'Elena', 'middle' => 'Torres', 'last' => 'Rivera'],
+            ['first' => 'Sofia', 'middle' => 'Flores', 'last' => 'Morales'],
+            ['first' => 'Isabella', 'middle' => 'Gutierrez', 'last' => 'Jimenez'],
+            ['first' => 'Camila', 'middle' => 'Vargas', 'last' => 'Herrera'],
+            ['first' => 'Valeria', 'middle' => 'Castillo', 'last' => 'Medina'],
+            ['first' => 'Gabriela', 'middle' => 'Ortega', 'last' => 'Aguilar'],
+            ['first' => 'Daniela', 'middle' => 'Ramos', 'last' => 'Delgado'],
+            ['first' => 'Alejandra', 'middle' => 'Vega', 'last' => 'Campos'],
+            ['first' => 'Victoria', 'middle' => 'Mendoza', 'last' => 'Fuentes'],
+            ['first' => 'Natalia', 'middle' => 'Silva', 'last' => 'Sandoval'],
+            ['first' => 'Adriana', 'middle' => 'Guerrero', 'last' => 'Navarro'],
+            ['first' => 'Regina', 'middle' => 'Paredes', 'last' => 'Cordova'],
+            ['first' => 'Esperanza', 'middle' => 'Rios', 'last' => 'Valdez'],
+            ['first' => 'Remedios', 'middle' => 'Salazar', 'last' => 'Espinoza'],
+            ['first' => 'Milagros', 'middle' => 'Cabrera', 'last' => 'Cervantes']
         ];
 
+        // Specific addresses within Brgy. Mecolong only
         $addresses = [
-            'Purok Crossing, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
-            'Purok Upper, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
-            'Purok Lower, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
-            'Purok Francisco, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
-            'Purok Makurat, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
-            'Purok Salinsing 1, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
-            'Purok Salinging 2, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
-
+            'Purok 1, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
+            'Purok 2, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
+            'Purok 3, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
+            'Purok 4, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
+            'Purok 5, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
+            'Upper Mecolong, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
+            'Lower Mecolong, Brgy. Mecolong, Dumalinao, Zamboanga del Sur',
+            'Sitio Crossing, Brgy. Mecolong, Dumalinao, Zamboanga del Sur'
         ];
 
         $occupations = [
-            'Housewife', 'Teacher', 'Nurse', 'Sales Associate', 'Office Worker',
-            'Cashier', 'Manager', 'Entrepreneur', 'Student', 'Freelancer'
+            'Housewife', 'Teacher', 'Nurse', 'Store Owner', 'Farmer', 'Seamstress',
+            'Barangay Health Worker', 'Day Care Worker', 'Cook', 'Laundrywoman',
+            'Market Vendor', 'Beautician', 'Midwife Assistant'
         ];
 
-        // Generate 20 patients
-        $patients = [];
-        for ($i = 1; $i <= 20; $i++) {
-            $createdAt = Carbon::now()->subDays(rand(30, 365));
-            
-            $patient = [
-                'formatted_patient_id' => 'P' . str_pad($i, 4, '0', STR_PAD_LEFT),
-                'name' => $femaleNames[$i - 1],
-                'age' => rand(18, 40),
-                'contact' => '09' . str_pad(rand(100000000, 999999999), 9, '0', STR_PAD_LEFT),
-                'emergency_contact' => '09' . str_pad(rand(100000000, 999999999), 9, '0', STR_PAD_LEFT),
+        // Create patients with realistic maternal health profiles
+        foreach ($motherNames as $index => $nameData) {
+            // More realistic age distribution for Filipino mothers
+            $ageWeighted = [
+                18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, // Common ages (18-30)
+                31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, // Less common (31-42)
+                16, 17, 43, 44 // Rare cases
+            ];
+            $age = $ageWeighted[array_rand($ageWeighted)];
+
+            // Registration dates should make sense with pregnancy timelines
+            $registrationDaysAgo = rand(30, 1095); // 1 month to 3 years ago
+            $createdAt = Carbon::now()->subDays($registrationDaysAgo);
+
+            Patient::create([
+                'first_name' => $nameData['first'],
+                'last_name' => $nameData['last'],
+                'name' => $nameData['first'] . ' ' . $nameData['last'], // For compatibility
+                'age' => $age,
+                'contact' => '+639' . str_pad(rand(100000000, 999999999), 9, '0', STR_PAD_LEFT),
+                'emergency_contact' => '+639' . str_pad(rand(100000000, 999999999), 9, '0', STR_PAD_LEFT),
                 'address' => $addresses[array_rand($addresses)],
                 'occupation' => $occupations[array_rand($occupations)],
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
-                'deleted_at' => null
-            ];
-
-            // Make 5 patients inactive (soft deleted) - last 5 patients
-            if ($i > 15) {
-                $patient['deleted_at'] = Carbon::now()->subDays(rand(1, 30));
-            }
-
-            $patients[] = $patient;
+            ]);
         }
 
-        // Insert patients
-        DB::table('patients')->insert($patients);
-
         $this->command->info('Patient seeder completed successfully!');
-        $this->command->info('Generated: 20 patients (15 active, 5 inactive)');
+        $this->command->info('Generated: ' . count($motherNames) . ' patients from Brgy. Mecolong');
     }
 }

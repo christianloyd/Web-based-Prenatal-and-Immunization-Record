@@ -10,8 +10,13 @@ export default {
   theme: {
       extend: {
           colors: {
-              primary: '#243b55',
-              secondary: '#141e30',
+              primary: '#D4A373', // Warm brown for sidebar
+              secondary: '#ecb99e', // Peach for buttons and accents
+              neutral: '#FFFFFF', // White for main content background
+              'header-color': '#FEFAE0', // Near-white ivory for header
+              'hover-color': '#e2e8f0', // Soft cream beige for hover states
+              'primary-dark': '#B8956A', // Darker brown for emphasis
+              // Keep old colors for reference
               'paynes-gray': '#68727A',
               'charcoal': '#36535E',
           }

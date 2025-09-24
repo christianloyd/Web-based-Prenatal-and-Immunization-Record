@@ -51,23 +51,43 @@
     <link rel="icon" type="{{ $faviconType }}" sizes="16x16" href="{{ asset($favicon) }}">
     <link rel="shortcut icon" href="{{ asset($favicon) }}">
 
-    <!-- Add Font Awesome -->
+    <!-- Preload Inter font for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Flowbite CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     
     <style>
-        /* Import Inter font for system-wide use - optimized weights only */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        /* Apply Inter font system-wide */
+        /* Apply Inter font system-wide with better fallbacks */
         * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+
+        /* CRITICAL FIX: Prevent layout shift during font loading */
+        @font-face {
+            font-family: 'Inter-fallback';
+            size-adjust: 108.5%;
+            ascent-override: 90%;
+            src: local('Arial');
+        }
+
+        body {
+            font-family: 'Inter', 'Inter-fallback', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* CRITICAL FIX: Ensure consistent text metrics */
+        * {
+            text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
         
-        /* Fix layout shaking by ensuring consistent scrollbar behavior */
+        /* CRITICAL FIX: Fix layout shaking by ensuring consistent scrollbar behavior */
         html {
             overflow-y: scroll; /* Always show vertical scrollbar space */
             scroll-behavior: smooth;
@@ -80,7 +100,7 @@
         /* Custom scrollbar styling - matches layout background colors */
         .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: #f9fafb #f9fafb; /* thumb and track same as layout background */
+            scrollbar-color: #f9fafb #f9fafb;
         }
 
         .custom-scrollbar::-webkit-scrollbar {
@@ -88,85 +108,50 @@
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f9fafb; /* matches bg-gray-50 layout background */
+            background: #f9fafb;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #f3f4f6; /* slightly darker gray for subtle visibility */
+            background: #f3f4f6;
             border-radius: 4px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #e5e7eb; /* slightly more visible on hover */
+            background: #e5e7eb;
         }
         
-        /* Ensure layout stability */
+        /* CRITICAL FIX: Ensure layout stability */
         .main-container {
             min-height: 100vh;
             overflow-x: hidden;
         }
-        
-        /* Prevent content jumping during navigation */
 
-        /* Navigation Group Styles */
-        .nav-group-toggle {
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .nav-submenu {
-            border-left: 2px solid #e5e7eb;
-            border-radius: 0 0.5rem 0.5rem 0;
-        }
-
-        .nav-submenu .nav-link {
-            font-size: 0.875rem;
-            padding: 0.5rem 0.75rem;
-            transition: all 0.2s ease;
-        }
-
-        .nav-submenu .nav-link.bg-primary {
-            background-color: var(--primary) !important;
-            color: white !important;
-            border-left: 3px solid #ffffff;
-        }
-
-        /* Smooth transition for chevron rotation */
-        .nav-group-toggle i {
-            transition: transform 0.3s ease;
-        }
-
-        /* Active group styling */
-        .nav-group:has(.nav-submenu .nav-link.bg-primary) .nav-group-toggle {
-            background-color: rgba(36, 59, 85, 0.1);
-            color: var(--primary);
-            font-weight: 500;
-        }
+        /* CRITICAL FIX: Prevent content jumping during navigation */
         .content-wrapper {
-            min-height: calc(100vh - 120px); /* Adjust based on header height */
+            min-height: calc(100vh - 120px);
         }
         
-        /* Prevent layout shifts during transitions */
+        /* CRITICAL FIX: Prevent layout shifts during transitions */
         * {
             box-sizing: border-box;
         }
         
-        /* Smooth transitions for all elements */
+        /* CRITICAL FIX: Remove all problematic animations and transforms */
         .transition-all {
-            transition-duration: 150ms !important;
+            transition: none !important;
         }
         
-        /* Prevent transform origin issues */
+        /* CRITICAL FIX: Prevent transform origin issues */
         [class*="transform"] {
-            transform-origin: center;
+            transform: none !important;
         }
         
-        /* Ensure consistent width calculations */
+        /* CRITICAL FIX: Ensure consistent width calculations */
         .w-64 {
             width: 16rem !important;
         }
         
-        /* Fix navigation menu button movements */
+        /* CRITICAL FIX: Fix navigation menu button movements - REMOVE ALL TRANSFORMS */
         .nav-link {
             position: relative !important;
             display: flex !important;
@@ -183,69 +168,82 @@
             outline: none !important;
         }
         
-        /* Prevent any button movement or jumping */
-        nav a, nav button {
+        /* CRITICAL FIX: Prevent any button movement or jumping */
+        nav a, nav button, .sidebar-nav a, .sidebar-nav button {
             transform: none !important;
             will-change: auto !important;
+            transition: background-color 0.15s ease, color 0.15s ease !important;
         }
         
-        /* Ensure sidebar stays fixed during navigation */
+        /* CRITICAL FIX: Ensure sidebar stays completely static */
         .sidebar-nav {
-            position: fixed !important;
             transform: none !important;
+            transition: none !important;
         }
         
-        /* Stop all transforms and animations on navigation */
-        nav *, nav i, .fas, .fa {
+        /* CRITICAL FIX: Stop ALL transforms and animations on navigation */
+        nav *, nav i, .fas, .fa, .sidebar-nav *, .sidebar-nav i {
             transform: none !important;
             animation: none !important;
             transition: background-color 0.15s ease, color 0.15s ease !important;
         }
         
-        /* Prevent flash of unstyled content */
+        /* CRITICAL FIX: Prevent flash of unstyled content */
         main {
             opacity: 1;
             visibility: visible;
         }
 
-        /* Ensure sidebar appears instantly on desktop without animation */
+        /* CRITICAL FIX: Ensure sidebar appears instantly on desktop without ANY animation */
         @media (min-width: 1024px) {
             .sidebar-nav {
                 position: static !important;
-                transform: translateX(0) !important;
+                transform: none !important;
                 opacity: 1 !important;
                 visibility: visible !important;
                 display: flex !important;
+                transition: none !important;
             }
         }
 
-        /* Prevent initial animation flash */
-        .sidebar-nav:not(.transition-transform) {
+        /* CRITICAL FIX: Remove ALL transitions from sidebar */
+        .sidebar-nav, .sidebar-nav * {
             transition: none !important;
         }
         
-        /* Force navigation text visibility */
-        .sidebar-nav a,
-        .sidebar-nav li a,
-        nav a,
-        nav ul li a {
-            color: white !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-        
-        /* Ensure text in navigation is always visible */
-        .w-64.bg-secondary a,
-        .bg-secondary a {
-            color: rgba(255, 255, 255, 1) !important;
+
+        /* CRITICAL FIX: Navigation Group Styles - Remove problematic animations */
+        .nav-group-toggle {
+            cursor: pointer;
+            user-select: none;
         }
 
-        /* ====================================
-           Global Modal Background Fix
-           ==================================== */
+        .nav-submenu {
+            border-left: 2px solid #e5e7eb;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .nav-submenu .nav-link {
+            font-size: 0.875rem;
+            padding: 0.5rem 0.75rem;
+            transition: background-color 0.2s ease, color 0.2s ease !important;
+        }
+
+        .nav-submenu .nav-link.bg-primary {
+            background-color: #D4A373 !important; /* Use explicit color instead of CSS variable */
+           
+        }
+
+        /* CRITICAL FIX: Remove chevron rotation animation */
+        .nav-group-toggle i {
+            transition: none !important;
+            transform: none !important;
+        }
+
+        /* CRITICAL FIX: Remove modal overlay animations that cause layout shifts */
         .modal-overlay {
-            transition: opacity 0.3s ease-out;
-            background-color: rgba(17, 24, 39, 0) !important; /* Override any background */
+            transition: none !important;
+            background-color: rgba(17, 24, 39, 0) !important;
         }
 
         .modal-overlay.hidden {
@@ -257,59 +255,151 @@
         .modal-overlay.show {
             opacity: 1;
             pointer-events: auto;
-            background-color: rgba(17, 24, 39, 0.5) !important; /* Semi-transparent dark overlay */
+            background-color: rgba(17, 24, 39, 0.5) !important;
         }
 
         .modal-content {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateY(-20px) scale(0.95);
-            opacity: 0;
-        }
-
-        .modal-overlay.show .modal-content {
-            transform: translateY(0) scale(1);
+            transition: none !important;
+            transform: none !important;
             opacity: 1;
         }
 
+        /* CRITICAL FIX: Laptop-specific optimizations - Remove transforms */
+        @media screen and (min-width: 1024px) {
+            .sidebar-nav {
+                position: static !important;
+                transform: none !important;
+                display: flex !important;
+                transition: none !important;
+            }
+
+            .lg\\:hidden {
+                display: none !important;
+            }
+        }
+
+        /* CRITICAL FIX: Prevent Alpine.js from causing layout shifts */
+        [x-cloak] { display: none !important; }
+
+        /* BHW Theme Colors for Midwife */
+        .bg-primary {
+            background-color: #D4A373 !important; /* Warm brown for sidebar */
+        }
+
+        .bg-secondary {
+            background-color: #D4A373 !important; /* Warm brown for sidebar */
+        }
+
+        .bg-header {
+            background-color: #FEFAE0 !important; /* Near-white ivory for header */
+        }
+
+        /* Custom hover states */
+        .hover-cream:hover {
+            background-color: #e2e8f0 !important; /* Soft cream beige for hover */
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Active state that matches hover - this stays persistent when clicked */
+        .nav-active {
+            background-color: #e2e8f0 !important; /* Same as hover color */
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+
+        /* All navigation text must be BLACK for consistency - but allow active states to override */
+        .sidebar-nav a:not(.bg-primary),
+        .sidebar-nav li a:not(.bg-primary),
+        .sidebar-nav .nav-link:not(.bg-primary),
+        .nav-group-toggle:not(.bg-primary):not(.bg-blue-100),
+        .nav-submenu .nav-link:not(.bg-primary) {
+            color: #000000 !important; /* Pure black text */
+            opacity: 1 !important;
+            visibility: visible !important;
+            font-weight: 500 !important;
+        }
+
+        /* Active navigation links - use consistent active styling */
+        .sidebar-nav .nav-link.bg-primary,
+        .nav-submenu .nav-link.bg-primary {
+            background-color: #e2e8f0 !important; /* Match hover color for consistency */
+            color: #000000 !important; /* Black text for readability */
+            font-weight: 600 !important;
+        }
+
+        /* Navigation group buttons - active state matches hover */
+        .nav-group-toggle.bg-blue-100 {
+            background-color: #e2e8f0 !important; /* Match hover color */
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Header text - black */
+        .sidebar-nav h1 {
+            color: #000000 !important;
+            font-weight: 700 !important;
+        }
+
+        .sidebar-nav p {
+            color: #000000 !important;
+            opacity: 0.8;
+        }
+
+        /* Icons should also be black - but allow active states to override */
+        .sidebar-nav i:not(.bg-primary i),
+        .nav-link:not(.bg-primary) i,
+        .nav-group-toggle:not(.bg-primary):not(.bg-blue-100) i {
+            color: #000000 !important;
+        }
+
+        
+        
+        /* CRITICAL FIX: Force stable layout during page transitions */
+        body.loading * {
+            pointer-events: none;
+        }
+
+        /* CRITICAL FIX: Remove all transitions during navigation */
+        body.navigating * {
+            transition: none !important;
+            transform: none !important;
+            animation: none !important;
+        }
     </style>
     
     @stack('styles')
 </head>
-<body class="bg-gray-50" x-data="{ sidebarOpen: window.innerWidth >= 1024, sidebarInitialized: false }">
+<body class="bg-gray-50" x-data="{ sidebarOpen: window.innerWidth >= 1024 }" x-cloak>
     <div class="flex h-screen overflow-hidden">
-        <!-- Mobile Overlay -->
+        <!-- Mobile Overlay - SIMPLIFIED -->
         <div x-show="sidebarOpen" 
-             x-transition:enter="transition-opacity ease-linear duration-300" 
-             x-transition:enter-start="opacity-0" 
-             x-transition:enter-end="opacity-100" 
-             x-transition:leave="transition-opacity ease-linear duration-300" 
-             x-transition:leave-start="opacity-100" 
-             x-transition:leave-end="opacity-0"
              class="fixed inset-0 z-40 lg:hidden bg-gray-600 bg-opacity-75"
              @click="sidebarOpen = false"
+             style="display: none;"
               ></div>
 
-        <!-- Left Sidebar Navigation -->
-        <div class="sidebar-nav fixed inset-y-0 left-0 z-50 w-64 bg-secondary text-white flex flex-col lg:static lg:inset-0"
-             :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen, 'transition-transform duration-300 ease-in-out': sidebarInitialized}"
+        <!-- Left Sidebar Navigation - SIMPLIFIED -->
+        <div class="sidebar-nav fixed inset-y-0 left-0 z-50 w-64 bg-secondary text-gray-800 flex flex-col lg:static lg:inset-0"
+             :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
              x-show="sidebarOpen"
-             x-init="setTimeout(() => sidebarInitialized = true, 100); window.addEventListener('resize', () => { sidebarOpen = window.innerWidth >= 1024; })"
+             style="display: flex;"
               >
             
             <div class="p-4 sm:p-6 border-b border-primary">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <!--<img src="{{ asset('images/logo1.webp') }}" 
-                             alt="Healthcare Logo" 
-                             class="w-8 h-8 sm:w-10 sm:h-10 mr-3 object-contain">-->
+                    <div class="flex flex-col items-center text-center">
+                        <img src="{{ asset('images/logoooo.jpg') }}"
+                             alt="Healthcare Logo"
+                             class="w-12 h-12 sm:w-16 sm:h-16 mb-2 object-cover rounded-full">
                         <div>
-                            <h1 class="text-lg sm:text-xl font-bold">Midwife Portal</h1>
-                            <p class="text-xs sm:text-sm text-gray-300 mt-1">Healthcare Dashboard</p>
+                            <h1 class="text-lg sm:text-xl font-bold">Barangay Mecolong Health Center</h1>
+                            <p class="text-xs sm:text-sm text-gray-300 mt-1">Midwife Portal</p>
                         </div>
                     </div>
                     <!-- Close button for mobile -->
-                    <button @click="sidebarInitialized = true; sidebarOpen = false"
-                            class="lg:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-primary transition-colors">
+                    <button @click="sidebarOpen = false"
+                            class="lg:hidden p-2 rounded-md text-gray-300 hover:text-white hover-cream">
                         <i class="fas fa-times w-5 h-5"></i>
                     </button>
                 </div>
@@ -320,9 +410,7 @@
                     <!-- Dashboard -->
                     <li>
                         <a href="{{ route('dashboard') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('dashboard') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                           data-section="dashboard"
-                           onclick="showNavigationLoading(event, this)">
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('dashboard') ? 'nav-active bg-primary' : 'hover-cream' }}">
                             <i class="fas fa-tachometer-alt w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             Dashboard
                         </a>
@@ -331,9 +419,7 @@
                     <!-- Patient Management -->
                     <li>
                         <a href="{{ route('midwife.patients.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.patients.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                           data-section="patients"
-                           onclick="showNavigationLoading(event, this)">
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.patients.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                             <i class="fas fa-user-plus w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             Patient Registration
                         </a>
@@ -342,31 +428,26 @@
                     <!-- Prenatal Care Group -->
                     <li>
                         <div class="nav-group">
-                            <button class="nav-group-toggle w-full flex items-center justify-between p-2 sm:p-3 rounded-lg text-sm sm:text-base hover:bg-primary transition-colors"
-                                    onclick="toggleNavGroup('prenatal-group')"
-                                    data-group="prenatal-group">
+                            <button class="nav-group-toggle w-full flex items-center justify-between p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.prenatalrecord.*', 'midwife.prenatalcheckup.*') ? 'nav-active bg-blue-100 font-medium' : 'hover-cream' }}"
+                                    onclick="toggleNavGroup('prenatal-group')">
                                 <div class="flex items-center">
                                     <i class="fas fa-baby w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                                     <span>Prenatal Care</span>
                                 </div>
-                                <i class="fas fa-chevron-down w-3 h-3 transition-transform duration-200" id="prenatal-group-icon"></i>
+                                <i class="fas fa-chevron-down w-3 h-3" id="prenatal-group-icon"></i>
                             </button>
                             <ul class="nav-submenu ml-6 sm:ml-8 mt-1 space-y-1 {{ request()->routeIs('midwife.prenatalrecord.*', 'midwife.prenatalcheckup.*') ? '' : 'hidden' }}"
                                 id="prenatal-group-menu">
                                 <li>
                                     <a href="{{ route('midwife.prenatalrecord.index') }}"
-                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.prenatalrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                                       data-section="prenatal"
-                                       onclick="showNavigationLoading(event, this)">
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.prenatalrecord.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                                         <i class="fas fa-file-medical w-4 h-4 mr-2"></i>
                                         Prenatal Records
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('midwife.prenatalcheckup.index') }}"
-                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.prenatalcheckup.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                                       data-section="prenatal-checkups"
-                                       onclick="showNavigationLoading(event, this)">
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.prenatalcheckup.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                                         <i class="fas fa-stethoscope w-4 h-4 mr-2"></i>
                                         Prenatal Check-up
                                     </a>
@@ -378,40 +459,33 @@
                     <!-- Child Health Group -->
                     <li>
                         <div class="nav-group">
-                            <button class="nav-group-toggle w-full flex items-center justify-between p-2 sm:p-3 rounded-lg text-sm sm:text-base hover:bg-primary transition-colors"
-                                    onclick="toggleNavGroup('child-group')"
-                                    data-group="child-group">
+                            <button class="nav-group-toggle w-full flex items-center justify-between p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.childrecord.*', 'midwife.immunization.*', 'midwife.vaccines.*') ? 'nav-active bg-blue-100 font-medium' : 'hover-cream' }}"
+                                    onclick="toggleNavGroup('child-group')">
                                 <div class="flex items-center">
                                     <i class="fas fa-child w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                                     <span>Immunization Tracking</span>
                                 </div>
-                                <i class="fas fa-chevron-down w-3 h-3 transition-transform duration-200" id="child-group-icon"></i>
+                                <i class="fas fa-chevron-down w-3 h-3" id="child-group-icon"></i>
                             </button>
-                            <ul class="nav-submenu ml-6 sm:ml-8 mt-1 space-y-1 {{ request()->routeIs('midwife.childrecord.*', 'midwife.immunizations.*', 'midwife.vaccines.*') ? '' : 'hidden' }}"
+                            <ul class="nav-submenu ml-6 sm:ml-8 mt-1 space-y-1 {{ request()->routeIs('midwife.childrecord.*', 'midwife.immunization.*', 'midwife.vaccines.*') ? '' : 'hidden' }}"
                                 id="child-group-menu">
                                 <li>
                                     <a href="{{ route('midwife.childrecord.index') }}"
-                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.childrecord.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                                       data-section="child-records"
-                                       onclick="showNavigationLoading(event, this)">
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.childrecord.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                                         <i class="fas fa-clipboard-list w-4 h-4 mr-2"></i>
                                         Child Records
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('midwife.immunization.index') }}"
-                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.immunizations.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                                       data-section="immunizations"
-                                       onclick="showNavigationLoading(event, this)">
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.immunization.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                                         <i class="fas fa-syringe w-4 h-4 mr-2"></i>
                                         Immunization Schedule
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('midwife.vaccines.index') }}"
-                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.vaccines.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                                       data-section="vaccines"
-                                       onclick="showNavigationLoading(event, this)">
+                                       class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.vaccines.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                                         <i class="fas fa-vial w-4 h-4 mr-2"></i>
                                         Vaccine
                                     </a>
@@ -423,62 +497,37 @@
                     <!-- User Management -->
                     <li>
                         <a href="{{ route('midwife.user.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.user.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                           data-section="user-management"
-                           onclick="showNavigationLoading(event, this)">
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.user.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                             <i class="fas fa-users-cog w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             User Management
-                        </a>
-                    </li>
-
-                    <!-- Cloud Backup -->
-                    <li>
-                        <a href="{{ route('midwife.cloudbackup.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.cloudbackup.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                           data-section="cloud-backup"
-                           onclick="showNavigationLoading(event, this)">
-                           <i class="fas fa-cloud-upload-alt w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            Cloud Backup
                         </a>
                     </li>
 
                     <!-- Reports -->
                     <li>
                         <a href="{{ route('midwife.report') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.report*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                           data-section="reports"
-                           onclick="showNavigationLoading(event, this)">
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.report*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                             <i class="fas fa-chart-bar w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             Reports
                         </a>
                     </li>
-
-                    <!-- Notifications 
-                    <li>
-                        <a href="{{ route('notifications.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('notifications.*') ? 'bg-primary text-white' : 'hover:bg-primary' }}"
-                           data-section="notifications">
-                            <i class="fas fa-bell w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3"></i>
-                            Notifications
-                        </a>
-                    </li>-->
                 </ul>
             </nav>
             
-            <div class="p-3 sm:p-4 border-t border-primary">
+            <div class="p-3 sm:p-4 border-t border-primary" style="border-color: #B8956A; background-color: #B8956A;">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center min-w-0">
                         <div class="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-xs sm:text-sm font-semibold">{{ strtoupper(substr(auth()->user()->name ?? 'MW', 0, 2)) }}</span>
+                            <span class="text-xs sm:text-sm font-semibold text-white">{{ strtoupper(substr(auth()->user()->name ?? 'MW', 0, 2)) }}</span>
                         </div>
                         <div class="ml-2 sm:ml-3 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium truncate">{{ auth()->user()->name ?? 'Midwife' }}</p>
-                            <p class="text-xs text-gray-400 truncate">{{ auth()->user()->role ?? 'Midwife' }}</p>
+                            <p class="text-xs sm:text-sm font-medium truncate text-white">{{ auth()->user()->name ?? 'Midwife' }}</p>
+                            <p class="text-xs text-gray-200 truncate">{{ auth()->user()->role ?? 'Midwife' }}</p>
                         </div>
                     </div>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="p-2 text-gray-300 hover:text-white hover:bg-primary rounded-lg transition-colors flex-shrink-0" title="Logout">
+                        <button type="submit" class="p-2 text-white hover:text-gray-200 hover-cream rounded-lg flex-shrink-0" title="Logout">
                             <i class="fas fa-sign-out-alt w-4 h-4 sm:w-5 sm:h-5"></i>
                         </button>
                     </form>
@@ -489,18 +538,21 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 lg:ml-0">
             <!-- Header -->
-            <header class="bg-white shadow-sm border-b p-3 sm:p-4">
+            <header class="shadow-sm border-b p-3 sm:p-4" style="background-color: #FEFAE0;">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center min-w-0">
                         <!-- Mobile menu button -->
-                        <button @click="sidebarInitialized = true; sidebarOpen = !sidebarOpen"
-                                class="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary mr-2 sm:mr-3">
+                        <button @click="sidebarOpen = !sidebarOpen"
+                                class="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none mr-2 sm:mr-3">
                             <i class="fas fa-bars w-5 h-5"></i>
                         </button>
-                        
+
                         <div class="min-w-0">
-                            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate" id="page-title">@yield('page-title', 'Dashboard Overview')</h2>
-                            <p class="text-gray-600 text-xs sm:text-sm truncate" id="page-subtitle">@yield('page-subtitle', 'Monitor patient care and health records')</p>
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-tachometer-alt text-blue-600 text-xl"></i>
+                                <h2 class="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent truncate">@yield('page-title', 'Dashboard Overview')</h2>
+                            </div>
+                            <p class="text-gray-600 text-xs sm:text-sm truncate ml-8">@yield('page-subtitle', 'Monitor patient care and health records')</p>
                         </div>
                     </div>
                     
@@ -513,18 +565,11 @@
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="p-2 text-gray-400 hover:text-gray-600 relative">
                                 <i class="fas fa-bell w-6 h-6 sm:w-8 sm:h-8"></i>
-                                <!-- Notification Badge -->
                                 <span id="notification-badge" class="notification-badge-count absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center hidden">0</span>
                             </button>
                             
                             <!-- Notifications Dropdown -->
                             <div x-show="open" @click.outside="open = false" 
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 transform scale-95"
-                                 x-transition:enter-end="opacity-100 transform scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="opacity-100 transform scale-100"
-                                 x-transition:leave-end="opacity-0 transform scale-95"
                                  class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                 <div class="p-4 border-b border-gray-200">
                                     <div class="flex justify-between items-center">
@@ -574,7 +619,6 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Flowbite JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
-    
     <!-- Notification System -->
     <script>
         // Enhanced notification system with toast integration
@@ -951,22 +995,32 @@
                     // Check if any submenu item is currently active
                     const hasActiveChild = menu.querySelector('.nav-link.bg-primary');
 
-                    if (hasActiveChild || savedState === 'open') {
-                        // Keep menu open if it has active children or was previously open
+                    if (hasActiveChild) {
+                        // Only open if there's an active child menu item
                         menu.classList.remove('hidden');
                         icon.style.transform = 'rotate(180deg)';
-                    } else if (savedState === 'closed') {
-                        // Keep menu closed if it was previously closed
+                        localStorage.setItem('nav-group-' + groupId, 'open');
+                    } else {
+                        // Keep menus closed by default
                         menu.classList.add('hidden');
                         icon.style.transform = 'rotate(0deg)';
+                        // Don't override saved state unless there's an active child
+                        if (savedState === 'open' && !hasActiveChild) {
+                            localStorage.setItem('nav-group-' + groupId, 'closed');
+                        }
                     }
-                    // If no saved state and no active children, use the default from the template
                 }
             });
         }
 
         // Load notifications on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Clear any existing localStorage for navigation groups on dashboard load
+            if (window.location.pathname.includes('dashboard')) {
+                localStorage.removeItem('nav-group-prenatal-group');
+                localStorage.removeItem('nav-group-child-group');
+            }
+
             // Initialize navigation groups
             initializeNavGroups();
             loadNotificationCount();
@@ -1030,8 +1084,17 @@
             }
         });
 
-        
-        
+        // Navigation Group Toggle Function
+        function toggleNavGroup(groupId) {
+            const menu = document.getElementById(groupId + '-menu');
+            const icon = document.getElementById(groupId + '-icon');
+
+            if (menu && icon) {
+                menu.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            }
+        }
+
     </script>
     
     <!-- Custom Scripts -->

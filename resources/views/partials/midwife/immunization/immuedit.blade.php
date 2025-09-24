@@ -50,7 +50,7 @@
                                     class="form-input input-clean w-full px-4 py-2.5 rounded-lg">
                                 <option value="">Choose a child...</option>
                                 @foreach($childRecords as $child)
-                                    <option value="{{ $child->id }}">{{ $child->formatted_child_id ?? 'CH-' . str_pad($child->id, 3, '0', STR_PAD_LEFT) }} - {{ $child->child_name }}</option>
+                                    <option value="{{ $child->id }}">{{ $child->formatted_child_id ?? 'CH-' . str_pad($child->id, 3, '0', STR_PAD_LEFT) }} - {{ $child->full_name }}</option>
                                 @endforeach
                             </select>
                         </div>

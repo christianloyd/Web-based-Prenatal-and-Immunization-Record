@@ -10,7 +10,7 @@
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
     <!-- Left Side - Healthcare Design -->
-    <div class="flex-1 bg-gradient-to-br from-charcoal to-paynes-gray flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div class="flex-1 bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-6 lg:p-8" style="background: linear-gradient(135deg, #D4A373 0%, #ecb99e 100%);">
         <div class="text-center text-white max-w-md w-full">
             <!-- Healthcare Icon -->
             <div class="mb-6 lg:mb-8">
@@ -59,37 +59,27 @@
     </div>
 
     <!-- Right Side - Login Form -->
-    <div class="flex-1 bg-gray-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8" style="background-color: #FEFAE0;">
         <div class="w-full max-w-md">
             <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
                 <div class="text-center mb-6 sm:mb-8">
-                    <h2 class="text-xl sm:text-2xl font-bold text-charcoal mb-2">Welcome Back</h2>
-                    <p class="text-sm sm:text-base text-paynes-gray">Sign in to access your healthcare portal</p>
+                    <h2 class="text-xl sm:text-2xl font-bold mb-2" style="color: #000000;">Welcome Back</h2>
+                    <p class="text-sm sm:text-base" style="color: #6b7280;">Sign in to access your healthcare portal</p>
                 </div>
 
                 <!-- Success/Error Messages -->
-                @if(session('success'))
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
-                        <p class="text-sm text-green-700 text-center">{{ session('success') }}</p>
-                    </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
-                        <p class="text-sm text-red-700 text-center">{{ session('error') }}</p>
-                    </div>
-                @endif 
+                @include('components.flowbite-alert') 
 
                 <form action="{{ route('login.authenticate') }}" method="POST" class="space-y-5 sm:space-y-6">
                     @csrf
                     <!-- Username Field -->
                     <div>
-                        <label for="username" class="block text-sm font-medium text-charcoal mb-2">
+                        <label for="username" class="block text-sm font-medium mb-2" style="color: #000000;">
                             Username
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-user h-4 w-4 sm:h-5 sm:w-5 text-paynes-gray"></i>
+                                <i class="fas fa-user h-4 w-4 sm:h-5 sm:w-5" style="color: #6b7280;"></i>
                             </div>
                             <input 
                                 type="text" 
@@ -97,7 +87,7 @@
                                 name="username"
                                 required
                                 value="{{ old('username') }}"
-                                class="block w-full pl-10 pr-3 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-charcoal focus:border-charcoal transition-colors @error('username') border-red-300 @enderror"
+                                class="block w-full pl-10 pr-3 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg transition-colors @error('username') border-red-300 @enderror" style="focus:ring-2; focus:ring-color: #D4A373; focus:border-color: #D4A373;"
                                 placeholder="Enter your username"
                             >
                         </div>
@@ -108,19 +98,19 @@
 
                     <!-- Password Field -->
                     <div>
-                        <label for="password" class="block text-sm font-medium text-charcoal mb-2">
+                        <label for="password" class="block text-sm font-medium mb-2" style="color: #000000;">
                             Password
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-lock h-4 w-4 sm:h-5 sm:w-5 text-paynes-gray"></i>
+                                <i class="fas fa-lock h-4 w-4 sm:h-5 sm:w-5" style="color: #6b7280;"></i>
                             </div>
                             <input 
                                 type="password" 
                                 id="password" 
                                 name="password"
                                 required
-                                class="block w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-charcoal focus:border-charcoal transition-colors @error('password') border-red-300 @enderror"
+                                class="block w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg transition-colors @error('password') border-red-300 @enderror" style="focus:ring-2; focus:ring-color: #D4A373; focus:border-color: #D4A373;"
                                 placeholder="Enter your password"
                             >
                             <!-- Show/Hide Password Toggle -->
@@ -144,14 +134,14 @@
                                 id="remember-me" 
                                 name="remember" 
                                 type="checkbox" 
-                                class="h-4 w-4 text-charcoal focus:ring-charcoal border-gray-300 rounded"
+                                class="h-4 w-4 border-gray-300 rounded" style="accent-color: #D4A373;"
                             >
-                            <label for="remember-me" class="ml-2 block text-sm text-paynes-gray">
+                            <label for="remember-me" class="ml-2 block text-sm" style="color: #6b7280;">
                                 Remember me
                             </label>
                         </div>
                         <div class="text-sm">
-                            <a href="#" class="font-medium text-charcoal hover:text-paynes-gray transition-colors">
+                            <a href="#" class="font-medium transition-colors" style="color: #D4A373;" onmouseover="this.style.color='#B8956A'" onmouseout="this.style.color='#D4A373'">
                                 Forgot password?
                             </a>
                         </div>
@@ -160,7 +150,7 @@
                     <!-- Submit Button -->
                     <button 
                         type="submit"
-                        class="w-full flex justify-center items-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-charcoal hover:bg-paynes-gray focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-charcoal transition-colors"
+                        class="w-full flex justify-center items-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors" style="background-color: #D4A373;" onmouseover="this.style.backgroundColor='#B8956A'" onmouseout="this.style.backgroundColor='#D4A373'"
                     >
                     <i class="fa-solid fa-right-to-bracket mr-3 sm:mr-5"></i>
                         Sign In

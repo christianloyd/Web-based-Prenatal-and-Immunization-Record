@@ -11,7 +11,9 @@ class ChildRecord extends Model
 
     protected $fillable = [
         'formatted_child_id',
-        'child_name',
+        'first_name',
+        'middle_name',
+        'last_name',
         'gender',
         'birth_height',
         'birth_weight',
@@ -101,6 +103,25 @@ class ChildRecord extends Model
         return $this->birth_height ? number_format($this->birth_height, 1) . ' cm' : null;
     }
 
+    // Accessor for full name (first + last only for display)
+    public function getFullNameAttribute()
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
+    }
+
+    // Accessor for complete name (including middle name)
+    public function getCompleteNameAttribute()
+    {
+        $name = $this->first_name;
+        if ($this->middle_name) {
+            $name .= ' ' . $this->middle_name;
+        }
+        if ($this->last_name) {
+            $name .= ' ' . $this->last_name;
+        }
+        return trim($name);
+    }
+
     // Accessor for child's age
     public function getAgeAttribute()
     {
@@ -124,7 +145,9 @@ class ChildRecord extends Model
     public function scopeSearch($query, $term)
     {
         return $query->where(function($q) use ($term) {
-            $q->where('child_name', 'like', "%{$term}%")
+            $q->where('first_name', 'like', "%{$term}%")
+              ->orWhere('middle_name', 'like', "%{$term}%")
+              ->orWhere('last_name', 'like', "%{$term}%")
               ->orWhere('formatted_child_id', 'like', "%{$term}%")
               ->orWhere('phone_number', 'like', "%{$term}%")
               ->orWhere('mother_name', 'like', "%{$term}%")

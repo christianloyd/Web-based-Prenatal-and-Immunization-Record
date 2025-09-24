@@ -11,10 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add formatted_child_id to child_records table
-        Schema::table('child_records', function (Blueprint $table) {
-            $table->string('formatted_child_id')->unique()->nullable()->after('id');
-        });
+        // Skip formatted_child_id for child_records table as it's already in the create table migration
 
         // Add formatted_prenatal_id to prenatal_records table
         Schema::table('prenatal_records', function (Blueprint $table) {
@@ -42,9 +39,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('child_records', function (Blueprint $table) {
-            $table->dropColumn('formatted_child_id');
-        });
+        // Skip dropping formatted_child_id for child_records table as it's part of the main table structure
 
         Schema::table('prenatal_records', function (Blueprint $table) {
             $table->dropColumn('formatted_prenatal_id');
