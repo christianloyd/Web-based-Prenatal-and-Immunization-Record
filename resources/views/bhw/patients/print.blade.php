@@ -172,7 +172,7 @@
             <div>
                 <div class="info-item">
                     <span class="info-label">Patient ID:</span>
-                    <span class="info-value">{{ $patient->formatted_patient_id ?? 'N/A' }}</span>
+                    <span class="info-value">{{ $patient->formatted_patient_id ?? 'P-' . str_pad($patient->id, 3, '0', STR_PAD_LEFT) }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Full Name:</span>
@@ -180,29 +180,37 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Age:</span>
-                    <span class="info-value">{{ $patient->age ?? 'N/A' }} years old</span>
+                    <span class="info-value">{{ $patient->age ? $patient->age . ' years old' : 'Age not specified' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Date of Birth:</span>
-                    <span class="info-value">{{ $patient->date_of_birth ? date('F j, Y', strtotime($patient->date_of_birth)) : 'N/A' }}</span>
+                    <span class="info-value">
+                        @if($patient->date_of_birth)
+                            {{ date('F j, Y', strtotime($patient->date_of_birth)) }}
+                        @elseif($patient->age)
+                            {{ date('F j, Y', strtotime(now()->subYears($patient->age)->format('Y-01-01'))) }}
+                        @else
+                            N/A
+                        @endif
+                    </span>
                 </div>
             </div>
             <div>
                 <div class="info-item">
                     <span class="info-label">Contact:</span>
-                    <span class="info-value">{{ $patient->contact ?? 'N/A' }}</span>
+                    <span class="info-value">{{ $patient->contact ?? 'Contact not provided' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Emergency Contact:</span>
-                    <span class="info-value">{{ $patient->emergency_contact ?? 'N/A' }}</span>
+                    <span class="info-value">{{ $patient->emergency_contact ?? 'Emergency contact not provided' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Address:</span>
-                    <span class="info-value">{{ $patient->address ?? 'N/A' }}</span>
+                    <span class="info-value">{{ $patient->address ?? 'Address not provided' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Occupation:</span>
-                    <span class="info-value">{{ $patient->occupation ?? 'N/A' }}</span>
+                    <span class="info-value">{{ $patient->occupation ?? 'Occupation not specified' }}</span>
                 </div>
             </div>
         </div>
@@ -272,7 +280,7 @@
                 @foreach($patient->prenatalCheckups as $checkup)
                 <tr>
                     <td>{{ $checkup->checkup_date ? date('M j, Y', strtotime($checkup->checkup_date)) : 'N/A' }}</td>
-                    <td>{{ $checkup->weight ?? 'N/A' }}</td>
+                    <td>{{ $checkup->weight_kg ?? $checkup->weight ?? 'Not recorded' }}</td>
                     <td>{{ $checkup->blood_pressure ?? 'N/A' }}</td>
                     <td>{{ $checkup->fundal_height_cm ?? 'N/A' }}</td>
                     <td>{{ $checkup->fetal_heart_rate ?? 'N/A' }}</td>
@@ -347,7 +355,40 @@
                             <td>{{ $immunization->vaccine->name ?? $immunization->vaccine_name ?? 'N/A' }}</td>
                             <td>{{ $immunization->dose ?? 'N/A' }}</td>
                             <td>{{ $immunization->schedule_date ? date('M j, Y', strtotime($immunization->schedule_date)) : 'Not scheduled' }}</td>
-                            <td>{{ $immunization->next_due_date ? date('M j, Y', strtotime($immunization->next_due_date)) : 'N/A' }}</td>
+                            <td>
+                                @if($immunization->next_due_date)
+                                    {{ date('M j, Y', strtotime($immunization->next_due_date)) }}
+                                @elseif($immunization->status === 'Done')
+                                    Completed
+                                @elseif($immunization->schedule_date)
+                                    @php
+                                        // Calculate approximate next due date based on typical vaccine schedules
+                                        $scheduleDate = Carbon\Carbon::parse($immunization->schedule_date);
+                                        $vaccineGap = [
+                                            'BCG' => null, // Single dose
+                                            'Hepatitis B' => 30, // 1 month gap
+                                            'DPT' => 30, // 1 month gap
+                                            'OPV' => 30, // 1 month gap
+                                            'MMR' => null, // Single dose typically
+                                            'PCV' => 60, // 2 month gap
+                                            'HIB' => 30, // 1 month gap
+                                            'Rotavirus' => 60, // 2 month gap
+                                        ];
+
+                                        $vaccineName = $immunization->vaccine->name ?? $immunization->vaccine_name ?? 'Unknown';
+                                        $daysToAdd = $vaccineGap[$vaccineName] ?? 30; // Default 1 month
+
+                                        if ($daysToAdd) {
+                                            $nextDue = $scheduleDate->addDays($daysToAdd);
+                                            echo $nextDue->format('M j, Y') . ' (Est.)';
+                                        } else {
+                                            echo 'Single dose';
+                                        }
+                                    @endphp
+                                @else
+                                    Not determined
+                                @endif
+                            </td>
                             <td>{{ ucfirst($immunization->status ?? 'Upcoming') }}</td>
                             <td>{{ $immunization->notes ?? 'No notes' }}</td>
                         </tr>

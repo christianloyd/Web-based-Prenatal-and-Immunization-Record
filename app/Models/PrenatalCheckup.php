@@ -42,12 +42,17 @@ class PrenatalCheckup extends Model
         'next_visit_date',
         'next_visit_time',
         'next_visit_notes',
-        'conducted_by'
+        'conducted_by',
+        // Missed checkup tracking fields
+        'missed_date',
+        'missed_reason',
+        'auto_missed'
     ];
 
     protected $dates = [
         'checkup_date',
         'next_visit_date',
+        'missed_date',
         'created_at',
         'updated_at'
     ];

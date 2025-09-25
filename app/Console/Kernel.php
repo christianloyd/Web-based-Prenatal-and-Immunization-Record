@@ -28,6 +28,18 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             \App\Services\NotificationService::sendBackupReminder();
         })->weekly()->mondays()->at('09:00');
+
+        // Mark today's missed prenatal checkups at 5 PM (end of business day)
+        $schedule->command('checkups:mark-todays-missed')
+                 ->dailyAt('17:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
+        // Also run at end of day as backup at 11:59 PM
+        $schedule->command('checkups:mark-todays-missed')
+                 ->dailyAt('23:59')
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**

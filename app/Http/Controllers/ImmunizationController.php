@@ -212,6 +212,43 @@ class ImmunizationController extends Controller
     }
 
     /**
+     * Display the specified immunization record
+     */
+    public function show($id)
+    {
+        if (!Auth::check()) {
+            abort(401, 'Authentication required');
+        }
+
+        $user = Auth::user();
+
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        try {
+            $immunization = Immunization::with(['childRecord', 'vaccine'])->findOrFail($id);
+
+            // View path based on role
+            $viewPath = $user->role === 'bhw'
+                ? 'bhw.immunization.show'
+                : 'midwife.immunization.show';
+
+            return view($viewPath, compact('immunization'));
+
+        } catch (\Exception $e) {
+            \Log::error('Error loading immunization record: ' . $e->getMessage());
+
+            $redirectRoute = $user->role === 'bhw'
+                ? 'bhw.immunization.index'
+                : 'midwife.immunization.index';
+
+            return redirect()->route($redirectRoute)
+                             ->with('error', 'Record not found.');
+        }
+    }
+
+    /**
      * Update an existing immunization record
      */
     public function update(Request $request, $id)
@@ -661,6 +698,52 @@ class ImmunizationController extends Controller
                 'success' => false,
                 'message' => 'Error updating status. Please try again.'
             ], 500);
+        }
+    }
+
+
+    /**
+     * Get all children for immunization search (simplified approach)
+     */
+    public function getChildrenForImmunization(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $user = Auth::user();
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $children = ChildRecord::with('mother')
+                ->select('id', 'formatted_child_id', 'first_name', 'middle_name', 'last_name', 'birthdate', 'gender', 'mother_id', 'mother_name')
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get()
+                ->map(function($child) {
+                    $motherName = $child->mother ? $child->mother->name : ($child->mother_name ?? 'Unknown');
+                    $age = $child->birthdate ?
+                        \Carbon\Carbon::parse($child->birthdate)->diffInYears(now()) . 'y ' .
+                        (\Carbon\Carbon::parse($child->birthdate)->diffInMonths(now()) % 12) . 'm' : 'Unknown age';
+
+                    return [
+                        'id' => $child->id,
+                        'name' => $child->full_name,
+                        'formatted_child_id' => $child->formatted_child_id,
+                        'mother_name' => $motherName,
+                        'age' => $age,
+                        'gender' => $child->gender,
+                        'search_text' => strtolower($child->full_name . ' ' . $child->formatted_child_id . ' ' . $motherName)
+                    ];
+                });
+
+            return response()->json($children);
+
+        } catch (\Exception $e) {
+            \Log::error('Error loading children for immunization: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to load children'], 500);
         }
     }
 

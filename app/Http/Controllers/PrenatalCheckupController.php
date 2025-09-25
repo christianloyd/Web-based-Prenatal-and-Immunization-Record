@@ -23,13 +23,16 @@ class PrenatalCheckupController extends Controller
             abort(403, 'Unauthorized access');
         }
 
+        // Auto-check for today's missed checkups (if after business hours)
+        $this->checkTodaysMissed();
+
         $query = PrenatalCheckup::with(['prenatalRecord.patient', 'patient'])
             ->where(function($query) {
                 // Show all 'done' checkups regardless of pregnancy status (for historical records)
                 $query->where('status', 'done')
-                      // OR show 'upcoming' checkups only for active, non-completed pregnancies
+                      // OR show 'upcoming'/'missed' checkups only for active, non-completed pregnancies
                       ->orWhere(function($subQuery) {
-                          $subQuery->where('status', 'upcoming')
+                          $subQuery->whereIn('status', ['upcoming', 'missed'])
                                    ->whereHas('prenatalRecord', function($q) {
                                        $q->where('is_active', 1)
                                          ->where('status', '!=', 'completed');
@@ -669,6 +672,171 @@ class PrenatalCheckupController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error updating prenatal checkup schedule: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to update appointment schedule. Please try again.');
+        }
+    }
+
+    /**
+     * Check for today's missed checkups and mark them automatically
+     * Called when loading the index page if after business hours (5 PM)
+     */
+    private function checkTodaysMissed()
+    {
+        // If it's after 5 PM, mark today's scheduled checkups as missed
+        if (now()->hour >= 17) {
+            $missedCheckups = PrenatalCheckup::where('status', 'scheduled')
+                ->whereDate('checkup_date', today())
+                ->get();
+
+            foreach ($missedCheckups as $checkup) {
+                $checkup->update([
+                    'status' => 'missed',
+                    'missed_date' => now(),
+                    'auto_missed' => true,
+                    'missed_reason' => 'Did not show up for scheduled appointment'
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Manually mark a checkup as missed
+     */
+    public function markAsMissed(Request $request, $id)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        try {
+            $checkup = PrenatalCheckup::with('prenatalRecord.patient')->findOrFail($id);
+
+            // Only allow marking scheduled checkups as missed
+            if ($checkup->status !== 'scheduled') {
+                return redirect()->back()
+                    ->with('error', 'Only scheduled checkups can be marked as missed.');
+            }
+
+            $checkup->update([
+                'status' => 'missed',
+                'missed_date' => now(),
+                'auto_missed' => false,
+                'missed_reason' => $request->reason ?? 'Patient did not show up'
+            ]);
+
+            // Get patient name
+            $patientName = $checkup->prenatalRecord->patient->first_name . ' ' .
+                          $checkup->prenatalRecord->patient->last_name;
+
+            // Send notification about missed checkup
+            $this->notifyHealthcareWorkers(
+                'Prenatal Checkup Missed',
+                "Prenatal checkup for patient '{$patientName}' scheduled for " .
+                $checkup->checkup_date->format('M j, Y') . " has been marked as missed.",
+                'warning',
+                Auth::user()->role === 'midwife'
+                    ? route('midwife.prenatalcheckup.show', $checkup->id)
+                    : route('bhw.prenatalcheckup.show', $checkup->id),
+                [
+                    'checkup_id' => $checkup->id,
+                    'action' => 'checkup_missed',
+                    'patient_name' => $patientName
+                ]
+            );
+
+            return redirect()->back()
+                ->with('success', 'Checkup marked as missed. Patient can now reschedule.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error marking checkup as missed: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error marking checkup as missed. Please try again.');
+        }
+    }
+
+    /**
+     * Reschedule a missed checkup
+     */
+    public function rescheduleMissed(Request $request, $id)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'new_checkup_date' => 'required|date|after:today',
+            'new_checkup_time' => 'required|date_format:H:i',
+            'reschedule_notes' => 'nullable|string|max:500'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            $checkup = PrenatalCheckup::with('prenatalRecord.patient')->findOrFail($id);
+
+            // Only allow rescheduling missed checkups
+            if ($checkup->status !== 'missed') {
+                return redirect()->back()
+                    ->with('error', 'Only missed checkups can be rescheduled.');
+            }
+
+            // Check if a checkup already exists on the new date
+            $existingCheckup = PrenatalCheckup::where('patient_id', $checkup->patient_id)
+                ->whereDate('checkup_date', $request->new_checkup_date)
+                ->where('id', '!=', $id)
+                ->first();
+
+            if ($existingCheckup) {
+                return redirect()->back()
+                    ->withErrors(['new_checkup_date' => 'A checkup already exists for this patient on the selected date.'])
+                    ->withInput();
+            }
+
+            // Update the checkup
+            $checkup->update([
+                'checkup_date' => $request->new_checkup_date,
+                'checkup_time' => $request->new_checkup_time,
+                'status' => 'scheduled',
+                'notes' => ($checkup->notes ?? '') . "\n\nRescheduled from " .
+                          $checkup->missed_date->format('M j, Y') . ". " .
+                          ($request->reschedule_notes ? "Reason: " . $request->reschedule_notes : ''),
+                'missed_date' => null,
+                'auto_missed' => false,
+                'missed_reason' => null
+            ]);
+
+            // Get patient name
+            $patientName = $checkup->prenatalRecord->patient->first_name . ' ' .
+                          $checkup->prenatalRecord->patient->last_name;
+
+            // Send notification about rescheduling
+            $formattedDate = Carbon::parse($request->new_checkup_date)->format('F j, Y');
+            $formattedTime = Carbon::parse($request->new_checkup_time)->format('g:i A');
+
+            $this->notifyHealthcareWorkers(
+                'Prenatal Checkup Rescheduled',
+                "Missed prenatal checkup for patient '{$patientName}' has been rescheduled to {$formattedDate} at {$formattedTime}.",
+                'info',
+                Auth::user()->role === 'midwife'
+                    ? route('midwife.prenatalcheckup.show', $checkup->id)
+                    : route('bhw.prenatalcheckup.show', $checkup->id),
+                [
+                    'checkup_id' => $checkup->id,
+                    'action' => 'checkup_rescheduled',
+                    'patient_name' => $patientName,
+                    'new_date' => $formattedDate,
+                    'new_time' => $formattedTime
+                ]
+            );
+
+            return redirect()->back()
+                ->with('success', "Checkup successfully rescheduled to {$formattedDate} at {$formattedTime}.");
+
+        } catch (\Exception $e) {
+            \Log::error('Error rescheduling missed checkup: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error rescheduling checkup. Please try again.');
         }
     }
 }

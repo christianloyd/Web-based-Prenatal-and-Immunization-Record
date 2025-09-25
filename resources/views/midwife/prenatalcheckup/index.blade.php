@@ -104,6 +104,30 @@
         border-color: #f59e0b;
     }
 
+    .btn-missed {
+        background-color: #fee2e2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .btn-missed:hover {
+        background-color: #dc2626;
+        color: white;
+        border-color: #dc2626;
+    }
+
+    .btn-reschedule {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .btn-reschedule:hover {
+        background-color: #1d4ed8;
+        color: white;
+        border-color: #1d4ed8;
+    }
+
     .btn-checkup {
         background-color: #d1fae5;
         color: #065f46;
@@ -592,10 +616,33 @@
                                     class="btn-action btn-view inline-flex items-center justify-center" title="View Checkup Details">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button onclick="openScheduleEditModal({{ $checkup->id }})"
-                                    class="btn-action btn-edit inline-flex items-center justify-center" title="Edit Schedule">
-                                <i class="fas fa-edit"></i>
-                            </button>
+
+                            @if($checkup->status === 'upcoming')
+                                <!-- For scheduled checkups today - show mark as missed button -->
+                                @if($checkup->checkup_date->isToday())
+                                    <button onclick="markAsMissed({{ $checkup->id }})"
+                                            class="btn-action btn-missed inline-flex items-center justify-center" title="Mark as Missed">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                @endif
+                                <!-- Always show edit for scheduled -->
+                                <button onclick="openScheduleEditModal({{ $checkup->id }})"
+                                        class="btn-action btn-edit inline-flex items-center justify-center" title="Edit Schedule">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            @elseif($checkup->status === 'missed')
+                                <!-- For missed checkups - show reschedule button -->
+                                <button onclick="openRescheduleModal({{ $checkup->id }})"
+                                        class="btn-action btn-reschedule inline-flex items-center justify-center" title="Reschedule">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </button>
+                            @else
+                                <!-- For completed checkups - only show edit -->
+                                <button onclick="openScheduleEditModal({{ $checkup->id }})"
+                                        class="btn-action btn-edit inline-flex items-center justify-center" title="Edit Schedule">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -1093,13 +1140,17 @@
     // Form submission with loading state (NO AJAX - just visual feedback)
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('#checkupModal form');
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalText = submitButton.innerHTML;
-        
-        form.addEventListener('submit', function() {
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-        });
+        if (form) {
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                const originalText = submitButton.innerHTML;
+
+                form.addEventListener('submit', function() {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+                });
+            }
+        }
 
         // Auto-hide alerts after 5 seconds
         const alerts = document.querySelectorAll('.alert');
@@ -1118,6 +1169,107 @@
         openCheckupModal();
         @endif
     });
+
+    // Mark checkup as missed
+    function markAsMissed(checkupId) {
+        if (!confirm('Are you sure you want to mark this checkup as missed?')) {
+            return;
+        }
+
+        // Create form data
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ url()->current() }}/../prenatalcheckup/${checkupId}/mark-missed`;
+
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+
+        // Add reason (optional)
+        const reason = document.createElement('input');
+        reason.type = 'hidden';
+        reason.name = 'reason';
+        reason.value = 'Patient did not show up';
+        form.appendChild(reason);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Open reschedule modal
+    function openRescheduleModal(checkupId) {
+        // Create modal HTML
+        const modalHtml = `
+            <div id="rescheduleModal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+                <div class="modal-content relative w-full max-w-2xl bg-white rounded-xl shadow-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Reschedule Missed Checkup</h2>
+                        <button onclick="closeRescheduleModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+
+                    <form method="POST" action="{{ url()->current() }}/../prenatalcheckup/${checkupId}/reschedule" class="space-y-4">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">New Checkup Date *</label>
+                                <input type="date" name="new_checkup_date" required
+                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       min="{{ date('Y-m-d', strtotime('+1 day')) }}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">New Checkup Time *</label>
+                                <input type="time" name="new_checkup_time" required
+                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reschedule Notes</label>
+                            <textarea name="reschedule_notes" rows="3"
+                                      class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Optional notes about the rescheduling..."></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4 border-t">
+                            <button type="button" onclick="closeRescheduleModal()"
+                                    class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-calendar-plus mr-2"></i>Reschedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Show modal with animation
+        setTimeout(() => {
+            document.getElementById('rescheduleModal').classList.add('show');
+        }, 10);
+    }
+
+    // Close reschedule modal
+    function closeRescheduleModal() {
+        const modal = document.getElementById('rescheduleModal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
 </script>
 
 <!-- Include Edit, Schedule Edit and View Partials -->

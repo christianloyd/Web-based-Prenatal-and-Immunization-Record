@@ -90,6 +90,8 @@ Route::middleware('auth')->group(function () {
             Route::get('prenatalcheckup/{id}/data', [PrenatalCheckupController::class, 'getData'])->name('prenatalcheckup.data');
             Route::post('prenatalcheckup/{id}/complete', [PrenatalCheckupController::class, 'markCompleted'])->name('prenatalcheckup.complete');
             Route::put('prenatalcheckup/{id}/schedule', [PrenatalCheckupController::class, 'updateSchedule'])->name('prenatalcheckup.schedule');
+            Route::post('prenatalcheckup/{id}/mark-missed', [PrenatalCheckupController::class, 'markAsMissed'])->name('prenatalcheckup.mark-missed');
+            Route::post('prenatalcheckup/{id}/reschedule', [PrenatalCheckupController::class, 'rescheduleMissed'])->name('prenatalcheckup.reschedule');
             Route::get('prenatalcheckup-patients/search', [PrenatalCheckupController::class, 'getPatientsWithActivePrenatalRecords'])->name('prenatalcheckup.patients.search');
 
             //Appointment Routes
@@ -115,11 +117,12 @@ Route::middleware('auth')->group(function () {
             Route::post('vaccines/stock-transaction', [VaccineController::class, 'stockTransaction'])
                  ->name('vaccines.stock-transaction');
 
-            //Immunization Routes
-            Route::resource('immunization', ImmunizationController::class);
-            Route::post('immunization/{id}/quick-status', [ImmunizationController::class, 'quickUpdateStatus'])->name('immunization.quick-status');
+            //Immunization Routes - Specific routes must come BEFORE resource routes
+            Route::get('immunization/children-data', [ImmunizationController::class, 'getChildrenForImmunization'])->name('immunization.children-data');
             Route::get('immunization/child/{childId}/vaccines', [ImmunizationController::class, 'getAvailableVaccinesForChild'])->name('immunization.child-vaccines');
             Route::get('immunization/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunization.child-doses');
+            Route::post('immunization/{id}/quick-status', [ImmunizationController::class, 'quickUpdateStatus'])->name('immunization.quick-status');
+            Route::resource('immunization', ImmunizationController::class);
 
             //Vaccine Routes
             Route::resource('vaccines', VaccineController::class);
@@ -163,14 +166,19 @@ Route::middleware('auth')->group(function () {
             Route::get('prenatalcheckup/{id}/data', [PrenatalCheckupController::class, 'getData'])->name('prenatalcheckup.data');
             Route::post('prenatalcheckup/{id}/complete', [PrenatalCheckupController::class, 'markCompleted'])->name('prenatalcheckup.complete');
             Route::put('prenatalcheckup/{id}/schedule', [PrenatalCheckupController::class, 'updateSchedule'])->name('prenatalcheckup.schedule');
+            Route::post('prenatalcheckup/{id}/mark-missed', [PrenatalCheckupController::class, 'markAsMissed'])->name('prenatalcheckup.mark-missed');
+            Route::post('prenatalcheckup/{id}/reschedule', [PrenatalCheckupController::class, 'rescheduleMissed'])->name('prenatalcheckup.reschedule');
             
 
             //Child Record Routes for BHW
             Route::resource('childrecord', ChildRecordController::class);
 
-            //Immunization Routes for BHW
-            Route::resource('immunizations', ImmunizationController::class);
+            //Immunization Routes for BHW - Specific routes must come BEFORE resource routes
+            Route::get('immunizations/children-data', [ImmunizationController::class, 'getChildrenForImmunization'])->name('immunizations.children-data');
+            Route::get('immunizations/child/{childId}/vaccines', [ImmunizationController::class, 'getAvailableVaccinesForChild'])->name('immunizations.child-vaccines');
+            Route::get('immunizations/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunizations.child-doses');
             Route::post('immunizations/{id}/quick-status', [ImmunizationController::class, 'quickUpdateStatus'])->name('immunizations.quick-status');
+            Route::resource('immunizations', ImmunizationController::class);
 
             //Appointment Routes for BHW
             Route::resource('appointments', AppointmentController::class);
@@ -179,8 +187,6 @@ Route::middleware('auth')->group(function () {
             Route::post('appointments/{id}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
             Route::get('appointments-data/upcoming', [AppointmentController::class, 'getUpcoming'])->name('appointments.upcoming');
             Route::get('appointments-data/today', [AppointmentController::class, 'getToday'])->name('appointments.today');
-            Route::get('immunizations/child/{childId}/vaccines', [ImmunizationController::class, 'getAvailableVaccinesForChild'])->name('immunizations.child-vaccines');
-            Route::get('immunizations/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunizations.child-doses');
             
             //Child Immunization Routes for BHW
             Route::post('childrecord/{childRecord}/immunizations', [App\Http\Controllers\ChildImmunizationController::class, 'store'])->name('childrecord.immunizations.store');

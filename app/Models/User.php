@@ -149,7 +149,7 @@ class User extends Authenticatable
             'username.unique' => 'This username is already taken.',
             'username.max' => 'Username cannot exceed 50 characters.',
             'gender.required' => 'Gender is required.',
-            'gender.in' => 'Gender must be male, female, or other.',
+            'gender.in' => 'Gender must be Male, Female, or other.',
             'age.required' => 'Age is required.',
             'age.integer' => 'Age must be a valid number.',
             'age.min' => 'Age must be at least 18 years old.',

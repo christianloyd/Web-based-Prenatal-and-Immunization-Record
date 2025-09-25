@@ -205,6 +205,8 @@
                             <span class="text-lg font-semibold">{{ $patient->total_prenatal_records }}</span>
                             @if($patient->has_active_prenatal_record)
                                 <span class="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Active</span>
+                            @else
+                                <span class="ml-2 text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">Inactive</span>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">

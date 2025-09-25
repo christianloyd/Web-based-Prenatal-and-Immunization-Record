@@ -388,8 +388,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccine</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dose</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Due</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th> 
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                         </tr>
                     </thead>
@@ -420,16 +419,7 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                                     <span class="status-{{ strtolower($immunization->status) }}">{{ $immunization->status }}</span>
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
-                                    @if($immunization->next_due_date)
-                                        <span class="text-yellow-600">
-                                            <i class="fas fa-calendar-plus mr-1"></i>
-                                            {{ \Carbon\Carbon::parse($immunization->next_due_date)->format('M d, Y') }}
-                                        </span>
-                                    @else
-                                        <span class="text-gray-400">N/A</span>
-                                    @endif
-                                </td>
+                                 
                                 <td class="px-4 py-3 text-xs text-gray-900">
                                     @if($immunization->notes)
                                         <div class="max-w-xs">

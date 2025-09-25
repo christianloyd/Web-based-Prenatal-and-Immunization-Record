@@ -228,42 +228,60 @@
     </div>
 
     
-    <!-- Search and Filters -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div class="p-4 sm:p-6">
-            <form method="GET" action="{{ route('midwife.immunization.index') }}" class="search-form">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <!-- Search and Filter -->
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <form method="GET" action="{{ route('midwife.immunization.index') }}">
+            <div class="grid grid-cols-1 md:grid-cols-8 gap-4">
+                <!-- Search Input - takes 4 columns -->
+                <div class="md:col-span-4">
                     <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" 
-                               placeholder="Search child name or vaccine..." 
-                               class="input-clean w-full pl-10 pr-4 py-2.5 rounded-lg">
-                    </div>
-                    <select name="status" class="input-clean px-3 py-2.5 rounded-lg">
-                        <option value="all" {{ $currentStatus == 'all' ? 'selected' : '' }}>All Status</option>
-                        <option value="Upcoming" {{ $currentStatus == 'Upcoming' ? 'selected' : '' }}>Upcoming</option>
-                        <option value="Done" {{ $currentStatus == 'Done' ? 'selected' : '' }}>Done</option>
-                        <option value="Missed" {{ $currentStatus == 'Missed' ? 'selected' : '' }}>Missed</option>
-                    </select>
-                    <select name="vaccine" class="input-clean px-3 py-2.5 rounded-lg">
-                        <option value="">All Vaccines</option>
-                        @foreach(\App\Models\Immunization::getVaccineTypes() as $key => $value)
-                            <option value="{{ $key }}" {{ request('vaccine') == $key ? 'selected' : '' }}>{{ $key }}</option>
-                        @endforeach
-                    </select>
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" 
-                           placeholder="From Date" class="input-clean px-3 py-2.5 rounded-lg">
-                    <div class="flex gap-2">
-                        <button type="submit" class="btn-minimal px-4 py-2.5 bg-[#68727A] text-white rounded-lg">
-                            <i class="fas fa-search mr-2"></i>Search
+                        <input type="text" name="search" id="searchInput" value="{{ request('search') }}"
+                               placeholder="Search by child name or vaccine"
+                               class="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                        </svg>
+                        <!-- Clear button (x) inside input -->
+                        @if(request('search'))
+                        <button type="button" onclick="clearSearch()" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
                         </button>
-                        <a href="{{ route('midwife.immunization.index') }}" class="btn-minimal px-4 py-2.5 text-gray-600 border border-gray-300 rounded-lg">
-                            <i class="fas fa-times"></i>Clear
-                        </a>
+                        @endif
                     </div>
                 </div>
-            </form>
-        </div>
+                <!-- Status Filter, Vaccine Filter, and Search Button grouped closer - takes 4 columns total -->
+                <div class="md:col-span-4 flex gap-2">
+                    <!-- Status Filter -->
+                    <div class="flex-1">
+                        <select name="status" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                            <option value="">All Status</option>
+                            <option value="Upcoming" {{ request('status') == 'Upcoming' ? 'selected' : '' }}>Upcoming</option>
+                            <option value="Done" {{ request('status') == 'Done' ? 'selected' : '' }}>Done</option>
+                            <option value="Missed" {{ request('status') == 'Missed' ? 'selected' : '' }}>Missed</option>
+                        </select>
+                    </div>
+                    <!-- Vaccine Filter -->
+                    <div class="flex-1">
+                        <select name="vaccine" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                            <option value="">All Vaccines</option>
+                            @foreach($availableVaccines ?? [] as $vaccine)
+                                <option value="{{ $vaccine->id }}" {{ request('vaccine') == $vaccine->id ? 'selected' : '' }}>
+                                    {{ $vaccine->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <!-- Search Button -->
+                    <div class="flex items-end">
+                        <button type="submit" class="bg-[#68727A] text-white px-4 py-2 rounded-lg hover:bg-[#5a6470] transition-all duration-200 btn-primary whitespace-nowrap">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- Records Table -->
@@ -1016,5 +1034,15 @@ window.testAlerts = function() {
     setTimeout(() => window.healthcareAlert.warning('This is an enhanced warning alert with better design'), 1500);
     setTimeout(() => window.healthcareAlert.info('This is an enhanced info alert with better design'), 2000);
 };
+
+// Clear search function
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        // Submit the form to clear the search
+        searchInput.form.submit();
+    }
+}
 </script>
 @endpush

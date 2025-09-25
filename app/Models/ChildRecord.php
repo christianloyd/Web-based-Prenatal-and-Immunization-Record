@@ -187,4 +187,5 @@ class ChildRecord extends Model
         
         return $array;
     }
+ 
 }

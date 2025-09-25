@@ -310,16 +310,16 @@ class PatientController extends Controller
         // Load patient with all related data (same as profile method)
         $patient = Patient::with([
             'prenatalRecords' => function($query) {
-                $query->orderBy('created_at', 'desc');
+                $query->orderBy('created_at', 'asc');
             },
             'prenatalCheckups' => function($query) {
-                $query->orderBy('checkup_date', 'desc');
+                $query->orderBy('checkup_date', 'asc');
             },
             'childRecords' => function($query) {
-                $query->orderBy('birthdate', 'desc');
+                $query->orderBy('birthdate', 'asc');
             },
             'childRecords.immunizations' => function($query) {
-                $query->with('vaccine')->orderBy('schedule_date', 'desc');
+                $query->with('vaccine')->orderBy('schedule_date', 'asc');
             },
             'activePrenatalRecord',
             'latestCheckup'

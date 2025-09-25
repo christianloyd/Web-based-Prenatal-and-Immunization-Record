@@ -194,9 +194,8 @@
             </td>
             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ ($user->role ?? '') === 'Midwife' ? 'role-badge-midwife' : 'role-badge-bhw' }}">
-                    <i class="fas {{ ($user->role ?? '') === 'Midwife' ? 'fa-user-md' : 'fa-hands-helping' }} mr-1"></i>
-                    <span class="hidden sm:inline">{{ $user->role ?? 'N/A' }}</span>
-                    <span class="sm:hidden">{{ substr($user->role ?? 'N', 0, 1) }}</span>
+                    <span class="hidden sm:inline">{{ ucfirst($user->role ?? 'N/A') }}</span>
+                    <span class="sm:hidden">{{ substr(ucfirst($user->role ?? 'N'), 0, 1) }}</span>
                 </span>
             </td>
             <!-- NEW STATUS COLUMN -->
@@ -208,8 +207,8 @@
                 </span>
             </td>
             <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs {{ ($user->gender ?? '') === 'Male' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' }}">
-                    {{ $user->gender ?? 'N/A' }}
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs {{ ucfirst($user->gender ?? '') === 'Male' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' }}">
+                    {{ ucfirst($user->gender ?? 'N/A') }}
                 </span>
             </td>
             <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
