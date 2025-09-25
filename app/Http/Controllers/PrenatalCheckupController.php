@@ -681,9 +681,9 @@ class PrenatalCheckupController extends Controller
      */
     private function checkTodaysMissed()
     {
-        // If it's after 5 PM, mark today's scheduled checkups as missed
+        // If it's after 5 PM, mark today's upcoming checkups as missed
         if (now()->hour >= 17) {
-            $missedCheckups = PrenatalCheckup::where('status', 'scheduled')
+            $missedCheckups = PrenatalCheckup::where('status', 'upcoming')
                 ->whereDate('checkup_date', today())
                 ->get();
 
@@ -692,7 +692,7 @@ class PrenatalCheckupController extends Controller
                     'status' => 'missed',
                     'missed_date' => now(),
                     'auto_missed' => true,
-                    'missed_reason' => 'Did not show up for scheduled appointment'
+                    'missed_reason' => 'Did not show up for upcoming appointment'
                 ]);
             }
         }
@@ -710,10 +710,10 @@ class PrenatalCheckupController extends Controller
         try {
             $checkup = PrenatalCheckup::with('prenatalRecord.patient')->findOrFail($id);
 
-            // Only allow marking scheduled checkups as missed
-            if ($checkup->status !== 'scheduled') {
+            // Only allow marking upcoming checkups as missed
+            if ($checkup->status !== 'upcoming') {
                 return redirect()->back()
-                    ->with('error', 'Only scheduled checkups can be marked as missed.');
+                    ->with('error', 'Only upcoming checkups can be marked as missed.');
             }
 
             $checkup->update([
@@ -797,7 +797,7 @@ class PrenatalCheckupController extends Controller
             $checkup->update([
                 'checkup_date' => $request->new_checkup_date,
                 'checkup_time' => $request->new_checkup_time,
-                'status' => 'scheduled',
+                'status' => 'upcoming',
                 'notes' => ($checkup->notes ?? '') . "\n\nRescheduled from " .
                           $checkup->missed_date->format('M j, Y') . ". " .
                           ($request->reschedule_notes ? "Reason: " . $request->reschedule_notes : ''),

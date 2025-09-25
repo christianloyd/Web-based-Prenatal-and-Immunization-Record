@@ -29,8 +29,8 @@ class MarkTodaysMissedCheckups extends Command
     {
         $this->info('Starting to check for missed prenatal checkups...');
 
-        // Get today's scheduled checkups that haven't been completed
-        $missedCheckups = PrenatalCheckup::where('status', 'scheduled')
+        // Get today's upcoming checkups that haven't been completed
+        $missedCheckups = PrenatalCheckup::where('status', 'upcoming')
             ->whereDate('checkup_date', today())
             ->with('patient')
             ->get();
@@ -48,7 +48,7 @@ class MarkTodaysMissedCheckups extends Command
                 'status' => 'missed',
                 'missed_date' => now(),
                 'auto_missed' => true,
-                'missed_reason' => 'Did not show up for scheduled appointment'
+                'missed_reason' => 'Did not show up for upcoming appointment'
             ]);
 
             // Create notification for the midwife/BHW who created the checkup

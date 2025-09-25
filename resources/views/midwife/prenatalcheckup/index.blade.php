@@ -618,13 +618,11 @@
                             </button>
 
                             @if($checkup->status === 'upcoming')
-                                <!-- For scheduled checkups today - show mark as missed button -->
-                                @if($checkup->checkup_date->isToday())
-                                    <button onclick="markAsMissed({{ $checkup->id }})"
-                                            class="btn-action btn-missed inline-flex items-center justify-center" title="Mark as Missed">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                @endif
+                                <!-- Mark as missed button - always available for upcoming checkups -->
+                                <button onclick="markAsMissed({{ $checkup->id }})"
+                                        class="btn-action btn-missed inline-flex items-center justify-center" title="Mark as Missed">
+                                    <i class="fas fa-times"></i>
+                                </button>
                                 <!-- Always show edit for scheduled -->
                                 <button onclick="openScheduleEditModal({{ $checkup->id }})"
                                         class="btn-action btn-edit inline-flex items-center justify-center" title="Edit Schedule">
