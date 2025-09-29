@@ -11,6 +11,7 @@ use App\Models\Vaccine;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\PrenatalCheckup;
 
 class DashboardController extends Controller

@@ -1,5 +1,5 @@
 {{-- Global Confirmation Modal Component --}}
-<div id="global-confirmation-modal" tabindex="-1" class="modal-transition hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex justify-center items-center w-full h-full">
+<div id="global-confirmation-modal" tabindex="-1" class="modal-transition hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-[9999] flex justify-center items-center w-full h-full">
     <div class="relative p-4 w-full max-w-md max-h-full">
         <div class="modal-content-transition relative bg-white rounded-lg shadow dark:bg-gray-700">
             <!-- Close button -->

@@ -86,6 +86,11 @@
                     <span class="hidden sm:inline">Restore Data</span>
                     <span class="sm:hidden">Restore</span>
                 </button>
+                <button onclick="syncGoogleDrive()" class="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
+                    <i class="fas fa-sync-alt w-4 h-4"></i>
+                    <span class="hidden sm:inline">Sync Drive</span>
+                    <span class="sm:hidden">Sync</span>
+                </button>
             </div>
         </div>
     </div>
@@ -520,9 +525,9 @@
                     <button type="button" onclick="closeBackupModal()" class="px-6 py-2 border rounded-lg text-gray-600 border-gray-300 hover:bg-gray-50 transition-colors">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    <button type="submit" id="backupSubmitBtn" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
                         <i class="fas fa-cloud-upload-alt mr-2"></i>
-                        Start Backup
+                        <span id="backupSubmitText">Start Backup</span>
                     </button>
                 </div>
             </form>
@@ -951,33 +956,55 @@
 
     function createBackup(event) {
         event.preventDefault();
-        
+
+        // Prevent duplicate submissions
+        if (window.backupInProgress) {
+            showError('Backup already in progress. Please wait...');
+            return;
+        }
+
+        // Disable submit button
+        const submitBtn = document.getElementById('backupSubmitBtn');
+        const submitText = document.getElementById('backupSubmitText');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            submitText.textContent = 'Creating...';
+        }
+
         const formData = new FormData(event.target);
         const selectedModules = Array.from(document.querySelectorAll('input[name="modules"]:checked'))
             .map(cb => cb.value);
-        
+
         if (selectedModules.length === 0) {
             showError('Please select at least one module to backup.');
             return;
         }
-        
+
         const backupData = {
             backup_name: formData.get('backup_name'),
             modules: selectedModules,
             options: Array.from(document.querySelectorAll('input[name="options"]:checked')).map(cb => cb.value)
         };
-        
+
         // Get backup name for confirmation
         const backupName = backupData.backup_name || generateBackupName(selectedModules);
         const moduleNames = selectedModules.map(m => formatModuleName(m)).join(', ');
-        
+
         // Use confirmation modal for backup creation
         showConfirmationModal({
             title: `Are you sure you want to create a backup named "${backupName}" for the following modules: ${moduleNames}? This process may take several minutes.`,
             type: 'info',
             confirmText: 'Yes, create backup',
             cancelText: 'Cancel',
+            onCancel: function() {
+                // Reset button state if user cancels
+                resetBackupButton();
+            },
             onConfirm: function() {
+            // Set flag to prevent duplicate submissions
+            window.backupInProgress = true;
+
             // Close the backup modal and start the backup process
             closeBackupModal();
 
@@ -1009,6 +1036,10 @@
                     currentBackupProgress = null;
                 }
 
+                // Reset backup flag and button state regardless of outcome
+                window.backupInProgress = false;
+                resetBackupButton();
+
                 if (data.success) {
                     // Complete the progress bar
                     document.getElementById('progressBar').style.width = '100%';
@@ -1037,6 +1068,10 @@
                     clearInterval(currentBackupProgress);
                     currentBackupProgress = null;
                 }
+
+                // Reset backup flag and button state on error
+                window.backupInProgress = false;
+                resetBackupButton();
 
                 progressContainer.classList.add('hidden');
                 console.error('Error:', error);
@@ -1119,23 +1154,42 @@
         // Filter backups to show only:
         // 1. Completed backups
         // 2. With valid size (not '0 B')
-        // 3. Available locally OR downloadable from Google Drive
+        // 3. Available locally OR from Google Drive (with better logic)
         const restorableBackups = backups.filter(b => {
             const isCompleted = b.status === 'completed';
-            const hasValidSize = b.size && b.size !== '0 B';
-            // A backup is restorable if it has either a local file path OR a Google Drive file ID
-            const isRestorable = (b.storage_location === 'local') ||
-                                (b.storage_location === 'google_drive' && b.google_drive_file_id);
+            const hasValidSize = b.size && b.size !== '0 B' && b.size !== '0 MB';
+
+            // FIXED: Better logic for restorable backups
+            // A backup is restorable if:
+            // 1. It's stored locally OR
+            // 2. It's stored in Google Drive (we can download it)
+            // 3. It has a valid file path or Google Drive file ID
+            const isRestorable = (b.storage_location === 'local' && b.file_path) ||
+                                (b.storage_location === 'google_drive') ||
+                                (b.google_drive_file_id); // Any backup with Google Drive ID
+
+            console.log('Backup restore check:', {
+                name: b.name,
+                isCompleted,
+                hasValidSize,
+                isRestorable,
+                storage_location: b.storage_location,
+                google_drive_file_id: b.google_drive_file_id,
+                file_path: b.file_path
+            });
 
             return isCompleted && hasValidSize && isRestorable;
         });
 
         if (restorableBackups.length === 0) {
+            console.log('No restorable backups found. Total backups:', backups.length);
+            console.log('All backups:', backups);
             backupList.innerHTML = `
                 <div class="text-center py-8">
                     <i class="fas fa-exclamation-circle text-gray-400 text-2xl mb-2"></i>
                     <p class="text-gray-600">No restorable backups available.</p>
                     <p class="text-sm text-gray-500 mt-1">Create a backup or ensure Google Drive connection for cloud backups.</p>
+                    <button onclick="loadBackupData()" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm">Refresh Backup List</button>
                 </div>
             `;
             return;
@@ -1433,6 +1487,43 @@
         } else {
             return `${sizeInMB.toFixed(1)} MB`;
         }
+    }
+
+    // Reset backup button state
+    function resetBackupButton() {
+        const submitBtn = document.getElementById('backupSubmitBtn');
+        const submitText = document.getElementById('backupSubmitText');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitText.textContent = 'Start Backup';
+        }
+    }
+
+    // Sync Google Drive backups
+    function syncGoogleDrive() {
+        showInfo('Syncing Google Drive backups...');
+
+        fetch('{{ route("admin.cloudbackup.sync") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(data.message);
+                loadBackupData(); // Reload backup data
+            } else {
+                showError(data.message || 'Failed to sync Google Drive');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to sync Google Drive');
+        });
     }
 
     // Click outside to close modals

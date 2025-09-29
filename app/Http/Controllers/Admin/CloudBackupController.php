@@ -58,6 +58,81 @@ class CloudBackupController extends Controller
     }
 
     /**
+     * Sync Google Drive backups with database
+     */
+    public function syncGoogleDrive()
+    {
+        $this->checkAdminAccess();
+
+        try {
+            $googleDriveService = app(\App\Services\GoogleDriveService::class);
+            if (!$googleDriveService || !$googleDriveService->isAuthenticated()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Drive not authenticated'
+                ]);
+            }
+
+            // Get all files from Google Drive backup folder
+            $driveFiles = $googleDriveService->listBackupFiles();
+            $syncedCount = 0;
+
+            foreach ($driveFiles as $driveFile) {
+                // Check if backup already exists in database
+                $existingBackup = CloudBackup::where('google_drive_file_id', $driveFile['id'])->first();
+
+                if (!$existingBackup) {
+                    // Create database entry for Google Drive backup
+                    CloudBackup::create([
+                        'name' => $driveFile['name'],
+                        'type' => str_contains($driveFile['name'], 'Full') ? 'full' : 'selective',
+                        'format' => 'sql_dump',
+                        'modules' => ['patient_records', 'prenatal_monitoring', 'child_records', 'immunization_records', 'vaccine_management'],
+                        'file_size' => $this->formatBytes($driveFile['size']),
+                        'status' => 'completed',
+                        'storage_location' => 'google_drive',
+                        'google_drive_file_id' => $driveFile['id'],
+                        'google_drive_link' => $driveFile['web_view_link'] ?? null,
+                        'verified' => true,
+                        'created_by' => Auth::id(),
+                        'started_at' => $driveFile['created_time'],
+                        'completed_at' => $driveFile['created_time']
+                    ]);
+                    $syncedCount++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Synced {$syncedCount} backups from Google Drive",
+                'synced_count' => $syncedCount
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to sync Google Drive: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Format bytes to human readable format
+     */
+    private function formatBytes($bytes)
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        } else {
+            return $bytes . ' B';
+        }
+    }
+
+    /**
      * Get backup data for AJAX requests
      */
     public function getData(Request $request)
@@ -89,10 +164,12 @@ class CloudBackupController extends Controller
                     'storage_location' => $backup->storage_location ?? 'local',
                     'encrypted' => $backup->encrypted ?? false,
                     'compressed' => $backup->compressed ?? false,
+                    'verified' => $backup->verified ?? false,
                     'error' => $backup->error_message,
                     'status_badge' => $backup->status_badge ?? '',
                     'google_drive_file_id' => $backup->google_drive_file_id,
                     'google_drive_link' => $backup->google_drive_link,
+                    'file_path' => $backup->file_path, // Include file path for local backups
                     'creator' => $backup->creator ? $backup->creator->name : 'Unknown'
                 ];
             });
@@ -166,6 +243,20 @@ class CloudBackupController extends Controller
         ]);
 
         try {
+            // Check for existing active backups to prevent duplicates
+            $existingBackup = CloudBackup::where('created_by', Auth::id())
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->where('created_at', '>', now()->subMinutes(5)) // Only check last 5 minutes
+                ->first();
+
+            if ($existingBackup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Another backup is already in progress. Please wait for it to complete.',
+                    'existing_backup_id' => $existingBackup->id
+                ], 409); // Conflict status code
+            }
+
             $modules = $request->modules;
             $options = $request->options ?? [];
 

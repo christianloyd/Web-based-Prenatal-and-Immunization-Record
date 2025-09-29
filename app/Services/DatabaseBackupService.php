@@ -104,9 +104,25 @@ class DatabaseBackupService
     private function generateFileName(CloudBackup $backup): string
     {
         $timestamp = now()->format('Y-m-d_H-i-s');
-        $prefix = $backup->type === 'full' ? 'full_backup' : 'selective_backup';
-        
-        return "{$prefix}_{$timestamp}.sql";
+
+        // Use custom backup name if provided, otherwise generate name
+        if (!empty($backup->name) && $backup->name !== 'Unnamed Backup') {
+            // Clean the backup name for file system (remove invalid characters)
+            $cleanName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $backup->name);
+            $cleanName = trim($cleanName, '_');
+
+            // If name becomes empty after cleaning, fallback to auto-generated
+            if (empty($cleanName)) {
+                $prefix = $backup->type === 'full' ? 'Full_Backup' : 'Selective_Backup';
+                return "{$prefix}_{$timestamp}.sql";
+            }
+
+            return "{$cleanName}_{$timestamp}.sql";
+        } else {
+            // Auto-generate name for unnamed backups
+            $prefix = $backup->type === 'full' ? 'Full_Backup' : 'Selective_Backup';
+            return "{$prefix}_{$timestamp}.sql";
+        }
     }
 
     /**

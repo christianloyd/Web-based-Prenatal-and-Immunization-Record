@@ -172,22 +172,27 @@ class Patient extends Model
     ---------------------------------------------------------- */
     
     /**
-     * Calculate weeks pregnant from prenatal record (WHOLE WEEKS ONLY)
+     * Calculate weeks pregnant from prenatal record (WHOLE WEEKS ONLY) - Cached version
      */
     public function getWeeksPregnantFromRecordAttribute()
     {
+        // Check if activePrenatalRecord is already loaded to avoid N+1
+        if (!$this->relationLoaded('activePrenatalRecord')) {
+            $this->load('activePrenatalRecord');
+        }
+
         $prenatalRecord = $this->activePrenatalRecord;
-        
+
         if (!$prenatalRecord || !$prenatalRecord->last_menstrual_period) {
             return null;
         }
-        
+
         // Calculate total days since LMP
         $totalDays = Carbon::parse($prenatalRecord->last_menstrual_period)->diffInDays(Carbon::now());
-        
+
         // Convert to whole weeks only (no decimals)
         $weeks = intval($totalDays / 7);
-        
+
         // Format properly
         return $weeks == 1 ? "1 week" : "{$weeks} weeks";
     }
@@ -225,12 +230,32 @@ class Patient extends Model
 
     public function getHasActivePrenatalRecordAttribute()
     {
+        // Check if activePrenatalRecord is already loaded to avoid N+1
+        if ($this->relationLoaded('activePrenatalRecord')) {
+            return $this->activePrenatalRecord !== null;
+        }
+
         return $this->activePrenatalRecord()->exists();
     }
 
     public function getTotalPrenatalRecordsAttribute()
     {
+        // Use loaded relationship if available, otherwise query
+        if ($this->relationLoaded('prenatalRecords')) {
+            return $this->prenatalRecords->count();
+        }
+
         return $this->prenatalRecords()->count();
+    }
+
+    public function getNameAttribute()
+    {
+        // If name field exists, use it; otherwise combine first_name and last_name
+        if (!empty($this->attributes['name'])) {
+            return $this->attributes['name'];
+        }
+
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 
     public function getFullNameWithIdAttribute()

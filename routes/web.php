@@ -229,6 +229,7 @@ Route::middleware('auth')->group(function () {
                 Route::post('/restore', [AdminCloudBackupController::class, 'restore'])->name('restore');
                 Route::delete('/{id}', [AdminCloudBackupController::class, 'destroy'])->name('destroy');
                 Route::post('/estimate-size', [AdminCloudBackupController::class, 'estimateSize'])->name('estimate-size');
+                Route::post('/sync', [AdminCloudBackupController::class, 'syncGoogleDrive'])->name('sync');
             });
          });
 
