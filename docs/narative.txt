@@ -1,0 +1,19 @@
+Table 7- Use Case Narrative for Set Schedule for Prenatal Check-up
+
+Use Case Name	Set Schedule for Prenatal Check-up
+Actor(s)	Midwife
+Description	This use case allows Midwife to set prenatal Check-up schedule. 
+Main Sequence	Actor Action	System Response
+	 
+Step 1: The actor clicks the “Prenatal Check-up” submenu.
+Step 3: The actor clicks the Add Check-up Schedule button.
+Step 5: The actor inputs the check-up details and sets the schedule.
+Step 6: The actor clicks the Save Check-up button.	
+Step 2: The system displays the list of scheduled check-ups.
+Step 4: The system displays the Add Schedule Form.
+Step 7: The system saves the schedule details to the database.
+Alternative 
+Sequence	Step 6: The actor clicks “Cancel” button.	
+Step 7: The System will return the actor back to the prenatal check-up schedule page.
+Precondition	The actor must access the system.
+Postcondition	Prenatal Check-up Schedule has successfully registered.

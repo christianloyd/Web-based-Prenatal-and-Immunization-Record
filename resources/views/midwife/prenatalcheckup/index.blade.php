@@ -1197,82 +1197,12 @@
         form.submit();
     }
 
-    // Open reschedule modal
-    function openRescheduleModal(checkupId) {
-        // Create modal HTML
-        const modalHtml = `
-            <div id="rescheduleModal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-                <div class="modal-content relative w-full max-w-2xl bg-white rounded-xl shadow-2xl p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-semibold text-gray-900">Reschedule Missed Checkup</h2>
-                        <button onclick="closeRescheduleModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
-                            <i class="fas fa-times text-lg"></i>
-                        </button>
-                    </div>
-
-                    <form method="POST" action="{{ url()->current() }}/../prenatalcheckup/${checkupId}/reschedule" class="space-y-4">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">New Checkup Date *</label>
-                                <input type="date" name="new_checkup_date" required
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                       min="{{ date('Y-m-d', strtotime('+1 day')) }}">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">New Checkup Time *</label>
-                                <input type="time" name="new_checkup_time" required
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Reschedule Notes</label>
-                            <textarea name="reschedule_notes" rows="3"
-                                      class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      placeholder="Optional notes about the rescheduling..."></textarea>
-                        </div>
-
-                        <div class="flex justify-end space-x-3 pt-4 border-t">
-                            <button type="button" onclick="closeRescheduleModal()"
-                                    class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors">
-                                Cancel
-                            </button>
-                            <button type="submit"
-                                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-calendar-plus mr-2"></i>Reschedule
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
-
-        // Add modal to body
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Show modal with animation
-        setTimeout(() => {
-            document.getElementById('rescheduleModal').classList.add('show');
-        }, 10);
-    }
-
-    // Close reschedule modal
-    function closeRescheduleModal() {
-        const modal = document.getElementById('rescheduleModal');
-        if (modal) {
-            modal.classList.remove('show');
-            setTimeout(() => {
-                modal.remove();
-            }, 300);
-        }
-    }
 </script>
 
-<!-- Include Edit, Schedule Edit and View Partials -->
+<!-- Include Edit, Schedule Edit, View and Reschedule Partials -->
 @include('partials.midwife.prenatalcheckup.prenatalcheckupedit')
 @include('partials.midwife.prenatalcheckup.schedule_edit')
 @include('partials.midwife.prenatalcheckup.prenatalcheckupview')
+@include('partials.midwife.prenatalcheckup.reschedule_modal')
 
 @endsection

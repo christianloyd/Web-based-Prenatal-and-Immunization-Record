@@ -386,12 +386,12 @@
              style="display: flex;"
               >
             
-            <div class="p-4 sm:p-6 border-b border-primary">
+            <div class="p-4 sm:p-6 border-b-2 border-gray-400" style="border-bottom: 2px solid #8B7355;">
                 <div class="flex items-center justify-between">
                     <div class="flex flex-col items-center text-center">
-                        <img src="{{ asset('images/logoooo.jpg') }}"
+                        <img src="{{ asset('images/logo_final.jpg') }}"
                              alt="Healthcare Logo"
-                             class="w-12 h-12 sm:w-16 sm:h-16 mb-2 object-cover rounded-full">
+                             class="w-16 h-16 sm:w-20 sm:h-20 mb-2 object-cover rounded-full">
                         <div>
                             <h1 class="text-lg sm:text-xl font-bold">Barangay Mecolong Health Center</h1>
                             <p class="text-xs sm:text-sm text-gray-300 mt-1">Midwife Portal</p>

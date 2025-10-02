@@ -270,12 +270,12 @@
              x-init="setTimeout(() => sidebarInitialized = true, 100); window.addEventListener('resize', () => { sidebarOpen = window.innerWidth >= 1024; })"
               >
 
-            <div class="p-4 sm:p-6 border-b border-primary">
+            <div class="p-4 sm:p-6 border-b-2 border-gray-400" style="border-bottom: 2px solid #1e3a5f;">
                 <div class="flex items-center justify-between">
                     <div class="flex flex-col items-center text-center">
-                        <img src="{{ asset('images/logoooo.jpg') }}"
+                        <img src="{{ asset('images/logo_final.jpg') }}"
                              alt="Healthcare Logo"
-                             class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-white shadow-lg mb-2 sm:mb-3">
+                             class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-white shadow-lg mb-2 sm:mb-3">
                         <h1 class="text-sm sm:text-lg font-bold text-white truncate">MATERNAL & CHILD CARE</h1>
                         <p class="text-xs sm:text-sm text-gray-300 mt-1">Healthcare Management System</p>
                         <div class="mt-2">
@@ -399,27 +399,7 @@
                         </div>
                     </div>
 
-                    <!-- Quick Actions for Admin -->
-                    <div class="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-                        <!-- System Status Indicator -->
-                        <div class="hidden md:flex items-center space-x-2">
-                            <div class="flex items-center space-x-1">
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span class="text-xs text-gray-600">System Online</span>
-                            </div>
-                        </div>
-
-                        <!-- Admin Profile Info -->
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                                <span class="text-xs font-semibold text-white">{{ strtoupper(substr(auth()->user()->name ?? 'AD', 0, 2)) }}</span>
-                            </div>
-                            <div class="hidden sm:block">
-                                <p class="text-xs font-medium text-gray-900">{{ auth()->user()->name ?? 'Administrator' }}</p>
-                                <p class="text-xs text-gray-500">System Admin</p>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </header>
 

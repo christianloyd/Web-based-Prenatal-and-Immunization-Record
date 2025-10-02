@@ -72,8 +72,8 @@
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div class="min-w-0">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">Cloud Backup Management</h2>
-                <p class="mt-1 text-sm text-gray-600 truncate">Secure backup and restore your healthcare data</p>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 truncate"> </h2>
+                <p class="mt-1 text-sm text-gray-600 truncate"> </p>
             </div>
             <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">
                 <button onclick="openBackupModal()" class="bg-secondary hover:bg-secondary/90 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">

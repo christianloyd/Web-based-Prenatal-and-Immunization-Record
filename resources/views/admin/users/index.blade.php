@@ -16,12 +16,7 @@
 
     <!-- Header Actions -->
 <div class="flex justify-end items-center mb-6">
-    <div class="flex space-x-3">
-        <span class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2 bg-gray-100 text-gray-600 cursor-not-allowed">
-            <i class="fas fa-eye text-sm"></i>
-            <span>View Only</span>
-        </span>
-    </div>
+     
 </div>
 
     <!-- Search and Filters -->

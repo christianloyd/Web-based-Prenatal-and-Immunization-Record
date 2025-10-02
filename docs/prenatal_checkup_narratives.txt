@@ -1,0 +1,66 @@
+PRENATAL CHECKUP USE CASE NARRATIVES
+=====================================
+
+Table 8 - Use Case Narrative for Add Prenatal Checkup
+
+Use Case Name	Add Prenatal Checkup
+Actor(s)	Midwife, BHW
+Description	This use case allows healthcare workers to conduct and record a prenatal checkup for a patient. This use case includes scheduling the next prenatal appointment as part of the standard care protocol.
+Main Sequence	Actor Action	System Response
+
+Step 1: The actor clicks the "Prenatal Check-up" submenu.
+Step 3: The actor clicks the "Add Checkup" button.
+Step 5: The actor searches and selects a patient from the dropdown list.
+Step 7: The actor enters checkup details (vital signs, health assessment, clinical notes).
+Step 9: The actor clicks the "Save Checkup" button.
+Step 2: The system displays the list of prenatal checkups.
+Step 4: The system displays the Add Checkup modal form.
+Step 6: The system displays selected patient details.
+Step 8: The system validates input data and shows feedback.
+Step 10: The system saves the checkup record and automatically includes scheduling next prenatal checkup.
+Step 11: The system displays success message and returns to checkup list.
+Alternative
+Sequence	Step 5: The actor cannot find the desired patient.
+Step 9: The actor clicks "Cancel" button.
+Step 6: The system displays "No patients found" and allows new search.
+Step 10: The system closes modal and returns to checkup list.
+Precondition	The actor must be authenticated as Midwife or BHW and patient must have an active prenatal record.
+Postcondition	Prenatal checkup has been successfully recorded and next appointment has been scheduled.
+
+=====================================
+
+Table 9 - Use Case Narrative for Schedule Next Prenatal Checkup
+
+Use Case Name	Schedule Next Prenatal Checkup
+Actor(s)	Midwife, BHW
+Description	This use case automatically schedules the next prenatal appointment based on gestational age and healthcare protocols. This is included as part of completing a prenatal checkup.
+Main Sequence	Actor Action	System Response
+
+Step 1: The system receives completed checkup data from Add Prenatal Checkup use case.
+Step 3: The actor confirms or adjusts the recommended next appointment date and time.
+Step 5: The actor adds any notes for the next visit.
+Step 2: The system calculates recommended next visit date based on gestational age.
+Step 4: The system validates the appointment slot availability.
+Step 6: The system creates the next appointment record.
+Step 7: The system sends notification about scheduled appointment.
+Alternative
+Sequence	Step 4: Selected appointment slot is not available.
+Step 3: The actor chooses to skip scheduling (emergency cases only).
+Step 5: The system suggests alternative available dates and times.
+Step 4: The system logs the decision and requires supervisor approval.
+Precondition	A prenatal checkup record must be in the process of being created or completed.
+Postcondition	Next prenatal appointment has been successfully scheduled and recorded in the system.
+
+=====================================
+
+RELATIONSHIP NOTE:
+These are separate use cases with <<include>> relationship where "Add Prenatal Checkup" includes "Schedule Next Prenatal Checkup" as part of the standard workflow.
+
+UML DIAGRAM REPRESENTATION:
+┌─────────────────────┐                 ┌──────────────────────┐
+│   Add Prenatal      │----<<include>>--│  Schedule Next       │
+│   Checkup           │                 │  Prenatal Checkup    │
+└─────────────────────┘                 └──────────────────────┘
+
+Arrow Direction: FROM "Add Prenatal Checkup" TO "Schedule Next Prenatal Checkup"
+Meaning: The base use case (Add Prenatal Checkup) includes the scheduling functionality as a mandatory part of the workflow.

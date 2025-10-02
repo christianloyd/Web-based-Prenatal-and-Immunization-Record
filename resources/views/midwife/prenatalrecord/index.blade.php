@@ -121,11 +121,23 @@
         color: #92400e;
         border-color: #fde68a;
     }
-    
+
     .btn-edit:hover {
         background-color: #f59e0b;
         color: white;
         border-color: #f59e0b;
+    }
+
+    .btn-complete {
+        background-color: #d1fae5;
+        color: #065f46;
+        border-color: #a7f3d0;
+    }
+
+    .btn-complete:hover {
+        background-color: #10b981;
+        color: white;
+        border-color: #10b981;
     }
 </style>
 @endpush
@@ -247,16 +259,24 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-4">
-                                <a href="{{ route('midwife.prenatalrecord.show', $record->id) }}" 
+                                <a href="{{ route('midwife.prenatalrecord.show', $record->id) }}"
                                 class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
                             <span class="hidden sm:inline">View Details</span>
                                 </a>
-                                <button onclick="openEditPrenatalModal({{ $record }})" 
+                                <button onclick="openEditPrenatalModal({{ $record }})"
                                 class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
                             <span class="hidden sm:inline">Edit</span>
                                 </button>
+                                @if($record->status !== 'completed')
+                                <button onclick="openCompletePregnancyModal({{ $record->id }}, '{{ $record->patient->name }}')"
+                                class="btn-action btn-complete inline-flex items-center justify-center"
+                                title="Mark pregnancy as completed">
+                                <i class="fas fa-check-circle mr-1"></i>
+                            <span class="hidden sm:inline">Complete</span>
+                                </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -291,6 +311,95 @@
 
 <!-- Edit Prenatal Record Modal -->
 @include('partials.midwife.prenatalrecord.prenataledit')
+
+<!-- Complete Pregnancy Confirmation Modal -->
+<div id="completePregnancyModal" class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="modal-content relative w-full max-w-md bg-white rounded-xl shadow-2xl p-6">
+        <div class="text-center">
+            <!-- Warning Icon -->
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-3xl text-yellow-600"></i>
+            </div>
+
+            <!-- Modal Title -->
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Complete Pregnancy Record?</h3>
+
+            <!-- Patient Name -->
+            <p class="text-gray-600 mb-4">
+                You are about to mark the pregnancy record for:<br>
+                <span class="font-semibold text-gray-900" id="completePatientName"></span>
+            </p>
+
+            <!-- Warning Message -->
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4 text-left">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700 font-semibold">
+                            ⚠️ Warning: This action cannot be reversed!
+                        </p>
+                        <p class="text-sm text-red-600 mt-1">
+                            Once completed, you will NOT be able to change the status back or edit this record.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmation Question -->
+            <p class="text-gray-700 font-medium mb-6">
+                Are you sure you want to proceed?
+            </p>
+
+            <!-- Buttons -->
+            <form id="completePregnancyForm" method="POST" action="">
+                @csrf
+                <div class="flex space-x-3">
+                    <button type="button" onclick="closeCompletePregnancyModal()"
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors font-medium">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        <i class="fas fa-check-circle mr-2"></i>Yes, Complete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Open Complete Pregnancy Modal
+function openCompletePregnancyModal(recordId, patientName) {
+    // Set patient name
+    document.getElementById('completePatientName').textContent = patientName;
+
+    // Set form action
+    const form = document.getElementById('completePregnancyForm');
+    form.action = `/midwife/prenatalrecord/${recordId}/complete`;
+
+    // Show modal
+    const modal = document.getElementById('completePregnancyModal');
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+// Close Complete Pregnancy Modal
+function closeCompletePregnancyModal() {
+    const modal = document.getElementById('completePregnancyModal');
+    modal.classList.remove('show');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+// Close modal when clicking outside
+document.getElementById('completePregnancyModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCompletePregnancyModal();
+    }
+});
+</script>
 
 @endsection
 

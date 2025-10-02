@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
 
             /* --- NEW: complete resource for PrenatalRecord --- */
             Route::resource('prenatalrecord', PrenatalRecordController::class);
+            Route::post('prenatalrecord/{id}/complete', [PrenatalRecordController::class, 'completePregnancy'])->name('prenatalrecord.complete');
 
             //Prenatal Checkup Routes
             Route::resource('prenatalcheckup', PrenatalCheckupController::class);

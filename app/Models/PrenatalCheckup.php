@@ -60,6 +60,7 @@ class PrenatalCheckup extends Model
     protected $casts = [
         'checkup_date' => 'date',
         'next_visit_date' => 'date',
+        'missed_date' => 'datetime',
         'weight_kg' => 'decimal:2',
         'fundal_height_cm' => 'decimal:1',
         'swelling' => 'json',

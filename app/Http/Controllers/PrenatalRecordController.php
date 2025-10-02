@@ -294,21 +294,76 @@ class PrenatalRecordController extends Controller
             $prenatal = PrenatalRecord::findOrFail($id);
             $prenatal->delete();
 
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.prenatalrecord.index' 
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.prenatalrecord.index'
                 : 'bhw.prenatalrecord.index';
-                
+
             return redirect()->route($redirectRoute)
                 ->with('success', 'Prenatal record deleted successfully.');
 
         } catch (\Exception $e) {
             \Log::error('Error deleting prenatal record: ' . $e->getMessage());
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.prenatalrecord.index' 
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.prenatalrecord.index'
                 : 'bhw.prenatalrecord.index';
-                
+
             return redirect()->route($redirectRoute)
                 ->with('error', 'Error deleting record. Please try again.');
+        }
+    }
+
+    /**
+     * Complete pregnancy - Change status to completed
+     * Only accessible by midwife
+     * Irreversible action
+     */
+    public function completePregnancy($id)
+    {
+        // Only midwife can complete pregnancies
+        if (Auth::user()->role !== 'midwife') {
+            abort(403, 'Unauthorized. Only midwives can complete pregnancy records.');
+        }
+
+        try {
+            $prenatal = PrenatalRecord::findOrFail($id);
+
+            // Check if already completed
+            if ($prenatal->status === 'completed') {
+                return redirect()->route('midwife.prenatalrecord.index')
+                    ->with('info', 'This pregnancy record is already completed.');
+            }
+
+            // Update status to completed
+            $prenatal->status = 'completed';
+            $prenatal->save();
+
+            // Send notification to relevant users
+            try {
+                $notificationData = [
+                    'type' => 'success',
+                    'title' => 'Pregnancy Completed',
+                    'message' => 'Prenatal record for ' . $prenatal->patient->name . ' has been marked as completed.',
+                    'action_url' => route('midwife.prenatalrecord.index'),
+                    'notified_by' => Auth::user()->name,
+                    'notified_by_role' => Auth::user()->role
+                ];
+
+                // Notify admin
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(new HealthcareNotification($notificationData));
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error sending completion notification: ' . $e->getMessage());
+            }
+
+            return redirect()->route('midwife.prenatalrecord.index')
+                ->with('success', 'Pregnancy record completed successfully. This action cannot be reversed.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error completing pregnancy record: ' . $e->getMessage());
+            return redirect()->route('midwife.prenatalrecord.index')
+                ->with('error', 'Error completing pregnancy record. Please try again.');
         }
     }
 
