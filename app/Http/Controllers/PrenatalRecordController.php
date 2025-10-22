@@ -12,9 +12,18 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Notifications\HealthcareNotification;
 use Illuminate\Support\Facades\Cache;
+use App\Services\PrenatalRecordService;
+use App\Http\Requests\StorePrenatalRecordRequest;
+use App\Http\Requests\UpdatePrenatalRecordRequest;
 
 class PrenatalRecordController extends Controller
 {
+    protected $prenatalRecordService;
+
+    public function __construct(PrenatalRecordService $prenatalRecordService)
+    {
+        $this->prenatalRecordService = $prenatalRecordService;
+    }
     // Display a listing of prenatal records
     public function index(Request $request)
     {
@@ -72,96 +81,24 @@ class PrenatalRecordController extends Controller
     }
 
     // Store new prenatal record
-    public function store(Request $request)
+    public function store(StorePrenatalRecordRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'patient_id' => 'required|exists:patients,id',
-            'last_menstrual_period' => 'required|date|before_or_equal:today',
-            'expected_due_date' => 'nullable|date|after:last_menstrual_period',
-            'gravida' => 'nullable|integer|min:1|max:10',
-            'para' => 'nullable|integer|min:0|max:10',
-            'medical_history' => 'nullable|string|max:1000',
-            'notes' => 'nullable|string|max:500',
-            'blood_pressure' => 'nullable|string|max:20',
-            'weight' => 'nullable|numeric|min:30|max:200',
-            'height' => 'nullable|numeric|min:120|max:200',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        // Check if patient already has an active prenatal record
-        $existingRecord = PrenatalRecord::where('patient_id', $request->patient_id)
-                                       ->whereIn('status', ['normal', 'monitor', 'high-risk', 'due'])
-                                       ->first();
-
-        if ($existingRecord) {
-            return redirect()->back()
-                ->with('error', 'This patient already has an active prenatal record.')
-                ->withInput();
-        }
-
         try {
-            $lmp = Carbon::parse($request->last_menstrual_period);
-            
-            // Calculate gestational age in weeks and days format
-            $totalDays = $lmp->diffInDays(now());
-            $weeks = intval($totalDays / 7);
-            $days = $totalDays % 7;
-            
-            // Format gestational age
-            if ($weeks == 0) {
-                $gestationalAge = $days == 1 ? "1 day" : "{$days} days";
-            } elseif ($days == 0) {
-                $gestationalAge = $weeks == 1 ? "1 week" : "{$weeks} weeks";
-            } else {
-                $weekText = $weeks == 1 ? "1 week" : "{$weeks} weeks";
-                $dayText = $days == 1 ? "1 day" : "{$days} days";
-                $gestationalAge = "{$weekText} {$dayText}";
-            }
+            // Create prenatal record using service
+            $prenatalRecord = $this->prenatalRecordService->createPrenatalRecord($request->validated());
 
-            $prenatalRecord = PrenatalRecord::create([
-                'patient_id' => $request->patient_id,
-                'last_menstrual_period' => $request->last_menstrual_period,
-                'expected_due_date' => $request->expected_due_date ?? $lmp->copy()->addDays(280)->toDateString(),
-                'gestational_age' => $gestationalAge,
-                'trimester' => $weeks <= 12 ? 1 : ($weeks <= 26 ? 2 : 3),
-                'gravida' => $request->gravida,
-                'para' => $request->para,
-                'medical_history' => $request->medical_history,
-                'notes' => $request->notes,
-                'blood_pressure' => $request->blood_pressure,
-                'weight' => $request->weight,
-                'height' => $request->height,
-                'status' => 'normal',
-            ]);
-
-            // Get patient name for notification
-            $patient = Patient::find($request->patient_id);
-            
-            // Send notification to all healthcare workers about new prenatal record
-            $this->notifyHealthcareWorkers(
-                'New Prenatal Record Created',
-                "A new prenatal record has been created for patient '{$patient->name}' (Gestational Age: {$gestationalAge}).",
-                'info',
-                Auth::user()->role === 'midwife' 
-                    ? route('midwife.prenatalrecord.show', $prenatalRecord->id)
-                    : route('bhw.prenatalrecord.show', $prenatalRecord->id),
-                ['prenatal_record_id' => $prenatalRecord->id, 'patient_id' => $patient->id, 'action' => 'prenatal_record_created']
-            );
-
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.prenatalrecord.index' 
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.prenatalrecord.index'
                 : 'bhw.prenatalrecord.index';
-                
+
             return redirect()->route($redirectRoute)
                 ->with('success', 'Prenatal record created successfully!');
 
         } catch (\Exception $e) {
-            \Log::error('Error creating prenatal record: ' . $e->getMessage());
+            $errorMessage = $e->getMessage();
+
             return redirect()->back()
-                ->with('error', 'Error creating record.')
+                ->with('error', $errorMessage)
                 ->withInput();
         }
     }
@@ -201,88 +138,26 @@ class PrenatalRecordController extends Controller
     }
 
     // Update prenatal record
-    public function update(Request $request, $id)
+    public function update(UpdatePrenatalRecordRequest $request, $id)
     {
-        $prenatal = PrenatalRecord::with('patient')->findOrFail($id);
-
-        $validator = Validator::make($request->all(), [
-            'patient_id' => 'required|exists:patients,id',
-            'last_menstrual_period' => 'required|date|before_or_equal:today',
-            'expected_due_date' => 'nullable|date|after:last_menstrual_period',
-            'gravida' => 'nullable|integer|min:1|max:10',
-            'para' => 'nullable|integer|min:0|max:10',
-            'medical_history' => 'nullable|string|max:1000',
-            'notes' => 'nullable|string|max:500',
-            'status' => 'nullable|in:normal,monitor,high-risk,due,completed',
-            'blood_pressure' => 'nullable|string|max:20',
-            'weight' => 'nullable|numeric|min:30|max:200',
-            'height' => 'nullable|numeric|min:120|max:200',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        // If changing patient, check if the new patient already has an active record
-        if ($request->patient_id != $prenatal->patient_id) {
-            $existingRecord = PrenatalRecord::where('patient_id', $request->patient_id)
-                                           ->whereIn('status', ['normal', 'monitor', 'high-risk', 'due'])
-                                           ->where('id', '!=', $id)
-                                           ->first();
-
-            if ($existingRecord) {
-                return redirect()->back()
-                    ->with('error', 'The selected patient already has an active prenatal record.')
-                    ->withInput();
-            }
-        }
-
         try {
-            // Calculate gestational age in weeks and days format
-            $lmp = Carbon::parse($request->last_menstrual_period);
-            $totalDays = $lmp->diffInDays(now());
-            $weeks = intval($totalDays / 7);
-            $days = $totalDays % 7;
-            
-            // Format gestational age
-            if ($weeks == 0) {
-                $gestationalAge = $days == 1 ? "1 day" : "{$days} days";
-            } elseif ($days == 0) {
-                $gestationalAge = $weeks == 1 ? "1 week" : "{$weeks} weeks";
-            } else {
-                $weekText = $weeks == 1 ? "1 week" : "{$weeks} weeks";
-                $dayText = $days == 1 ? "1 day" : "{$days} days";
-                $gestationalAge = "{$weekText} {$dayText}";
-            }
+            $prenatal = PrenatalRecord::with('patient')->findOrFail($id);
 
-            // Update prenatal record
-            $prenatal->update([
-                'patient_id' => $request->patient_id,
-                'last_menstrual_period' => $request->last_menstrual_period,
-                'expected_due_date' => $request->expected_due_date ?? $lmp->copy()->addDays(280)->toDateString(),
-                'gestational_age' => $gestationalAge,
-                'trimester' => $weeks <= 12 ? 1 : ($weeks <= 26 ? 2 : 3),
-                'gravida' => $request->gravida,
-                'para' => $request->para,
-                'medical_history' => $request->medical_history,
-                'notes' => $request->notes,
-                'status' => $request->status ?? 'normal',
-                'blood_pressure' => $request->blood_pressure,
-                'weight' => $request->weight,
-                'height' => $request->height,
-            ]);
+            // Update prenatal record using service
+            $prenatal = $this->prenatalRecordService->updatePrenatalRecord($prenatal, $request->validated());
 
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.prenatalrecord.index' 
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.prenatalrecord.index'
                 : 'bhw.prenatalrecord.index';
-                
+
             return redirect()->route($redirectRoute)
                 ->with('success', 'Prenatal record updated successfully!');
 
         } catch (\Exception $e) {
-            \Log::error('Error updating prenatal record: ' . $e->getMessage());
+            $errorMessage = $e->getMessage();
+
             return redirect()->back()
-                ->with('error', 'Error updating record.')
+                ->with('error', $errorMessage)
                 ->withInput();
         }
     }
@@ -327,43 +202,15 @@ class PrenatalRecordController extends Controller
         try {
             $prenatal = PrenatalRecord::findOrFail($id);
 
-            // Check if already completed
-            if ($prenatal->status === 'completed') {
-                return redirect()->route('midwife.prenatalrecord.index')
-                    ->with('info', 'This pregnancy record is already completed.');
-            }
-
-            // Update status to completed
-            $prenatal->status = 'completed';
-            $prenatal->save();
-
-            // Send notification to relevant users
-            try {
-                $notificationData = [
-                    'type' => 'success',
-                    'title' => 'Pregnancy Completed',
-                    'message' => 'Prenatal record for ' . $prenatal->patient->name . ' has been marked as completed.',
-                    'action_url' => route('midwife.prenatalrecord.index'),
-                    'notified_by' => Auth::user()->name,
-                    'notified_by_role' => Auth::user()->role
-                ];
-
-                // Notify admin
-                $admins = User::where('role', 'admin')->get();
-                foreach ($admins as $admin) {
-                    $admin->notify(new HealthcareNotification($notificationData));
-                }
-            } catch (\Exception $e) {
-                \Log::error('Error sending completion notification: ' . $e->getMessage());
-            }
+            // Complete pregnancy using service
+            $this->prenatalRecordService->completePregnancy($prenatal);
 
             return redirect()->route('midwife.prenatalrecord.index')
                 ->with('success', 'Pregnancy record completed successfully. This action cannot be reversed.');
 
         } catch (\Exception $e) {
-            \Log::error('Error completing pregnancy record: ' . $e->getMessage());
             return redirect()->route('midwife.prenatalrecord.index')
-                ->with('error', 'Error completing pregnancy record. Please try again.');
+                ->with('error', $e->getMessage());
         }
     }
 
@@ -406,28 +253,4 @@ class PrenatalRecordController extends Controller
         ]);
     }
 
-    /**
-     * Helper method to notify all healthcare workers about healthcare events
-     */
-    private function notifyHealthcareWorkers($title, $message, $type = 'info', $actionUrl = null, $data = [])
-    {
-        // Get all healthcare workers (midwives and BHWs)
-        $healthcareWorkers = User::whereIn('role', ['midwife', 'bhw'])
-            ->where('id', '!=', Auth::id()) // Exclude the current user
-            ->get();
-
-        foreach ($healthcareWorkers as $worker) {
-            $worker->notify(new HealthcareNotification(
-                $title,
-                $message,
-                $type,
-                $actionUrl,
-                array_merge($data, ['notified_by' => Auth::user()->name])
-            ));
-            
-            // Clear notification cache for the recipient
-            Cache::forget("unread_notifications_count_{$worker->id}");
-            Cache::forget("recent_notifications_{$worker->id}");
-        }
-    }
 }

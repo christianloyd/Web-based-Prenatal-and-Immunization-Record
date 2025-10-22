@@ -1257,16 +1257,27 @@ function setupFormHandling() {
 document.addEventListener('DOMContentLoaded', function() {
     // Make closeEditChildModal globally available
     window.closeEditChildModal = closeEditChildModal;
-    
+
     // Setup form handling
     setupFormHandling();
-    
+
     // Set date constraints
     setDateConstraints();
-    
+
     // Setup mother selection if available
     setupMotherSelection();
-    
+
+    // Ensure modals are closed when there's a success message
+    const hasSuccessMessage = document.querySelector('.healthcare-alert-success');
+    if (hasSuccessMessage) {
+        const allModals = document.querySelectorAll('.modal-overlay');
+        allModals.forEach(modal => {
+            modal.classList.remove('show');
+            modal.classList.add('hidden');
+        });
+        document.body.style.overflow = '';
+    }
+
     // Close modals on Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {

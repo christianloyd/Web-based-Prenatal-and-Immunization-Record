@@ -22,7 +22,7 @@
         </div>
 
         <!-- Form -->
-        <form action="{{ route('bhw.prenatalrecord.store') }}" method="POST" id="prenatal-form" class="space-y-4 sm:space-y-6" novalidate>
+        <form action="{{ route('bhw.prenatalrecord.store') }}" method="POST" id="prenatal-form" class="space-y-4 sm:space-y-6" novalidate onsubmit="return validatePrenatalForm(event)">
             @csrf
 
             <!-- Show server-side validation errors -->
@@ -126,17 +126,19 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Blood Pressure</label>
-                        <input type="text" name="blood_pressure" placeholder="e.g., 120/80"
+                        <input type="text" name="blood_pressure" placeholder="e.g., 120/80" pattern="[0-9]{2,3}\/[0-9]{2,3}"
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-                        <input type="number" name="weight" step="0.1" min="30" max="200" placeholder="e.g., 65.5"
+                        <input type="number" name="weight" step="0.1" min="30" max="200" placeholder="e.g., 65.5" inputmode="decimal"
+                               onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 46"
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-                        <input type="number" name="height" min="120" max="200" placeholder="e.g., 165"
+                        <input type="number" name="height" min="120" max="200" placeholder="e.g., 165" inputmode="numeric"
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
@@ -145,16 +147,18 @@
             <!-- Medical Information Section -->
             <div class="space-y-3 sm:space-y-4">
                 <div>
-                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Medical History</label>
-                    <textarea name="medical_history" rows="2" sm:rows="3"
+                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Medical History *</label>
+                    <textarea name="medical_history" id="medical-history" rows="2" sm:rows="3" required
                               placeholder="Any relevant medical history, previous pregnancies, complications, etc."
                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    <p class="text-red-500 text-xs mt-1 hidden" id="medical-history-error">Please enter valid medical history (cannot be N/A or empty)</p>
                 </div>
                 <div>
-                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
-                    <textarea name="notes" rows="2" 
+                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Additional Notes *</label>
+                    <textarea name="notes" id="notes" rows="2" required
                               placeholder="Any additional notes or observations..."
                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    <p class="text-red-500 text-xs mt-1 hidden" id="notes-error">Please enter valid notes (cannot be N/A or empty)</p>
                 </div>
             </div>
 
@@ -176,16 +180,85 @@
 
 <!-- JavaScript for this modal -->
 <script>
+// Validation function
+function validatePrenatalForm(event) {
+    const patientSelect = document.getElementById('patient-select');
+    const lmpInput = document.getElementById('lmp-input');
+    const medicalHistory = document.getElementById('medical-history');
+    const notes = document.getElementById('notes');
+
+    let isValid = true;
+    let errorMessages = [];
+
+    // Validate patient selection
+    if (!patientSelect || !patientSelect.value) {
+        if (patientSelect) patientSelect.classList.add('border-red-500');
+        isValid = false;
+        errorMessages.push('Please select a patient');
+    } else {
+        patientSelect.classList.remove('border-red-500');
+    }
+
+    // Validate LMP
+    if (!lmpInput || !lmpInput.value) {
+        if (lmpInput) lmpInput.classList.add('border-red-500');
+        isValid = false;
+        errorMessages.push('Please enter Last Menstrual Period');
+    } else {
+        lmpInput.classList.remove('border-red-500');
+    }
+
+    // Validate Medical History - cannot be empty, N/A, null, etc.
+    if (medicalHistory) {
+        const medicalValue = medicalHistory.value.trim().toLowerCase();
+        const medicalError = document.getElementById('medical-history-error');
+
+        if (!medicalValue || medicalValue === 'n/a' || medicalValue === 'na' || medicalValue === 'null' || medicalValue === 'none') {
+            medicalHistory.classList.add('border-red-500');
+            if (medicalError) medicalError.classList.remove('hidden');
+            isValid = false;
+            errorMessages.push('Please enter valid medical history (cannot be N/A or empty)');
+        } else {
+            medicalHistory.classList.remove('border-red-500');
+            if (medicalError) medicalError.classList.add('hidden');
+        }
+    }
+
+    // Validate Notes - cannot be empty, N/A, null, etc.
+    if (notes) {
+        const notesValue = notes.value.trim().toLowerCase();
+        const notesError = document.getElementById('notes-error');
+
+        if (!notesValue || notesValue === 'n/a' || notesValue === 'na' || notesValue === 'null' || notesValue === 'none') {
+            notes.classList.add('border-red-500');
+            if (notesError) notesError.classList.remove('hidden');
+            isValid = false;
+            errorMessages.push('Please enter valid notes (cannot be N/A or empty)');
+        } else {
+            notes.classList.remove('border-red-500');
+            if (notesError) notesError.classList.add('hidden');
+        }
+    }
+
+    if (!isValid) {
+        event.preventDefault();
+        alert('Please correct the following errors:\n\n- ' + errorMessages.join('\n- '));
+        return false;
+    }
+
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-calculate EDD when LMP is selected
     const lmpInput = document.getElementById('lmp-input');
     const eddInput = document.getElementById('edd-input');
-    
+
     if (lmpInput && eddInput) {
         // Set max date for LMP to today
         const today = new Date().toISOString().split('T')[0];
         lmpInput.setAttribute('max', today);
-        
+
         lmpInput.addEventListener('change', function() {
             if (this.value && !eddInput.value) {
                 const lmp = new Date(this.value);
@@ -195,35 +268,37 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Form validation
-    const prenatalForm = document.getElementById('prenatal-form');
-    if (prenatalForm) {
-        prenatalForm.addEventListener('submit', function(e) {
-            const patientSelect = document.getElementById('patient-select');
-            const lmpInput = document.getElementById('lmp-input');
-            
-            let isValid = true;
-            
-            // Validate patient selection
-            if (!patientSelect.value) {
-                patientSelect.classList.add('border-red-500');
-                isValid = false;
+
+    // Real-time validation for medical history
+    const medicalHistory = document.getElementById('medical-history');
+    if (medicalHistory) {
+        medicalHistory.addEventListener('input', function() {
+            const value = this.value.trim().toLowerCase();
+            const error = document.getElementById('medical-history-error');
+
+            if (!value || value === 'n/a' || value === 'na' || value === 'null' || value === 'none') {
+                this.classList.add('border-red-500');
+                if (error) error.classList.remove('hidden');
             } else {
-                patientSelect.classList.remove('border-red-500');
+                this.classList.remove('border-red-500');
+                if (error) error.classList.add('hidden');
             }
-            
-            // Validate LMP
-            if (!lmpInput.value) {
-                lmpInput.classList.add('border-red-500');
-                isValid = false;
+        });
+    }
+
+    // Real-time validation for notes
+    const notes = document.getElementById('notes');
+    if (notes) {
+        notes.addEventListener('input', function() {
+            const value = this.value.trim().toLowerCase();
+            const error = document.getElementById('notes-error');
+
+            if (!value || value === 'n/a' || value === 'na' || value === 'null' || value === 'none') {
+                this.classList.add('border-red-500');
+                if (error) error.classList.remove('hidden');
             } else {
-                lmpInput.classList.remove('border-red-500');
-            }
-            
-            if (!isValid) {
-                e.preventDefault();
-                alert('Please fill in all required fields (Patient and Last Menstrual Period).');
+                this.classList.remove('border-red-500');
+                if (error) error.classList.add('hidden');
             }
         });
     }

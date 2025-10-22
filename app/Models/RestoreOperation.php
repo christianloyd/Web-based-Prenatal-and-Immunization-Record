@@ -15,8 +15,12 @@ class RestoreOperation extends Model
         'backup_name',
         'modules_restored',
         'status',
+        'progress',
+        'current_step',
         'restore_options',
         'error_message',
+        'started_at',
+        'completed_at',
         'restored_at',
         'restored_by'
     ];
@@ -24,6 +28,9 @@ class RestoreOperation extends Model
     protected $casts = [
         'modules_restored' => 'array',
         'restore_options' => 'array',
+        'progress' => 'integer',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
         'restored_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -69,6 +76,8 @@ class RestoreOperation extends Model
     public function getStatusBadgeAttribute()
     {
         return match ($this->status) {
+            'pending' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'icon' => 'fa-clock'],
+            'in_progress' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'icon' => 'fa-spinner fa-spin'],
             'completed' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => 'fa-check-circle'],
             'failed' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'icon' => 'fa-times-circle'],
             default => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'icon' => 'fa-question-circle']

@@ -457,10 +457,11 @@
             <i class="fas fa-file-excel"></i>
             Export Excel
         </button>
-        <button class="btn btn-success" onclick="scheduleReport()">
-            <i class="fas fa-clock"></i>
-            Schedule Report
-        </button>
+        <!-- BHW Accomplishment Report Button -->
+        <a href="{{ route('bhw.report.accomplishment') }}" target="_blank" class="btn btn-success" style="text-decoration: none;">
+            <i class="fas fa-file-alt"></i>
+            BHW Accomplishment Report
+        </a>
     </div>
 </div>
 

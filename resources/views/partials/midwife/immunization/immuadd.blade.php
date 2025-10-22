@@ -109,8 +109,11 @@
                                     class="form-input input-clean w-full px-4 py-2.5 rounded-lg">
                                 <option value="">Choose a vaccine...</option>
                                 @foreach($availableVaccines ?? [] as $vaccine)
-                                    <option value="{{ $vaccine->id }}" data-category="{{ $vaccine->category }}">
-                                        {{ $vaccine->name }} (Stock: {{ $vaccine->current_stock }})
+                                    <option value="{{ $vaccine->id }}"
+                                            data-category="{{ $vaccine->category }}"
+                                            data-dose-count="{{ $vaccine->dose_count ?? 1 }}"
+                                            data-vaccine-name="{{ $vaccine->name }}">
+                                        {{ $vaccine->name }} ({{ $vaccine->dose_count ?? 1 }} {{ ($vaccine->dose_count ?? 1) > 1 ? 'doses' : 'dose' }})
                                     </option>
                                 @endforeach
                             </select>
@@ -299,7 +302,54 @@ document.addEventListener('DOMContentLoaded', function() {
         // Remove any error styling
         searchInput.classList.remove('error-border');
 
+        // Filter vaccines based on completion status for this child
+        filterVaccinesForChild(child.id);
+
         console.log('Selected child:', child);
+    }
+
+    // Filter vaccines to hide completed ones and show only available doses
+    function filterVaccinesForChild(childId) {
+        const vaccineSelect = document.getElementById('vaccine_id');
+        if (!vaccineSelect) return;
+
+        const completionData = @json($vaccineCompletionData ?? []);
+        const childData = completionData[childId] || {};
+
+        // Reset vaccine select and clear dose select
+        vaccineSelect.value = '';
+        const doseSelect = document.getElementById('dose');
+        if (doseSelect) {
+            doseSelect.innerHTML = '<option value="">Select dose...</option>';
+        }
+
+        // Loop through all vaccine options
+        Array.from(vaccineSelect.options).forEach(option => {
+            if (!option.value) return; // Skip the "Choose a vaccine..." option
+
+            const vaccineId = option.value;
+            const vaccineCompletion = childData[vaccineId];
+
+            if (vaccineCompletion) {
+                if (vaccineCompletion.completed) {
+                    // Hide completed vaccines
+                    option.style.display = 'none';
+                    option.disabled = true;
+                    option.setAttribute('data-completed', 'true');
+                } else {
+                    // Show vaccines with remaining doses
+                    option.style.display = '';
+                    option.disabled = false;
+                    option.removeAttribute('data-completed');
+
+                    // Update option text to show remaining doses
+                    const vaccineName = option.getAttribute('data-vaccine-name');
+                    const doseCount = parseInt(option.getAttribute('data-dose-count')) || 1;
+                    const remaining = vaccineCompletion.remaining;
+                    option.textContent = `${vaccineName} (${remaining} of ${doseCount} ${doseCount > 1 ? 'doses' : 'dose'} remaining)`;
+                }
+            }
+        });
     }
 
     function clearSelection() {
@@ -382,5 +432,97 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
         }
     @endif
+
+    // Handle vaccine selection and load available doses
+    const vaccineSelect = document.getElementById('vaccine_id');
+    const doseSelect = document.getElementById('dose');
+    const vaccineInfo = document.getElementById('vaccineInfo');
+    const vaccineDetails = document.getElementById('vaccineDetails');
+
+    if (vaccineSelect) {
+        vaccineSelect.addEventListener('change', function() {
+            const vaccineId = this.value;
+            const childId = selectedChildId.value;
+
+            // Clear dose dropdown
+            doseSelect.innerHTML = '<option value="">Select dose...</option>';
+            vaccineInfo.classList.add('hidden');
+
+            if (!vaccineId) {
+                return;
+            }
+
+            if (!childId) {
+                alert('Please select a child first');
+                this.value = '';
+                return;
+            }
+
+            // Get selected option attributes
+            const selectedOption = this.options[this.selectedIndex];
+            const category = selectedOption.getAttribute('data-category') || 'N/A';
+            const doseCount = parseInt(selectedOption.getAttribute('data-dose-count')) || 1;
+
+            // Get completion data for this child and vaccine
+            const completionData = @json($vaccineCompletionData ?? []);
+            const childData = completionData[childId] || {};
+            const vaccineCompletion = childData[vaccineId];
+
+            // Generate doses based on what's remaining
+            let doses = [];
+            let nextDoseText = '';
+
+            if (vaccineCompletion && vaccineCompletion.next_dose) {
+                // Only show the next dose that needs to be administered
+                doses = [vaccineCompletion.next_dose];
+                nextDoseText = ` - Next: ${vaccineCompletion.next_dose}`;
+            } else {
+                // Show all doses if no completion data
+                if (doseCount === 1) {
+                    doses = ['1st Dose'];
+                } else if (doseCount === 2) {
+                    doses = ['1st Dose', '2nd Dose'];
+                } else if (doseCount === 3) {
+                    doses = ['1st Dose', '2nd Dose', '3rd Dose'];
+                } else if (doseCount >= 4) {
+                    for (let i = 1; i <= doseCount; i++) {
+                        doses.push(i + (i === 1 ? 'st' : i === 2 ? 'nd' : i === 3 ? 'rd' : 'th') + ' Dose');
+                    }
+                }
+            }
+
+            // Populate dose dropdown
+            doses.forEach(dose => {
+                const option = document.createElement('option');
+                option.value = dose;
+                option.textContent = dose;
+                doseSelect.appendChild(option);
+            });
+
+            // Auto-select if only one dose available
+            if (doses.length === 1) {
+                doseSelect.value = doses[0];
+            }
+
+            // Show vaccine info
+            const vaccineName = selectedOption.getAttribute('data-vaccine-name');
+            let completionInfo = '';
+            if (vaccineCompletion) {
+                completionInfo = `
+                    <p><strong>Completed Doses:</strong> ${doseCount - vaccineCompletion.remaining} of ${doseCount}</p>
+                    <p><strong>Remaining:</strong> ${vaccineCompletion.remaining} ${vaccineCompletion.remaining > 1 ? 'doses' : 'dose'}</p>
+                `;
+            }
+
+            vaccineDetails.innerHTML = `
+                <p><strong>Vaccine:</strong> ${vaccineName}</p>
+                <p><strong>Category:</strong> ${category}</p>
+                <p><strong>Total Doses:</strong> ${doseCount}</p>
+                ${completionInfo}
+                <p><strong>Next Dose:</strong> ${doses.join(', ')}</p>
+            `;
+            vaccineInfo.classList.remove('hidden');
+        });
+    }
 });
 </script>

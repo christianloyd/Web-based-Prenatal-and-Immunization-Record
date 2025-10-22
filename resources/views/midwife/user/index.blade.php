@@ -225,11 +225,11 @@
                     <!-- UPDATED ACTION BUTTONS -->
                     @if($user->is_active)
                         <button onclick="confirmDeactivate('{{ $user->name }}', function() { deactivateUser({{ $user->id }}) })" class="btn-action btn-deactivate inline-flex items-center justify-center bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500">
-                            <i class="fas fa-user-slash mr-1"></i><span class="hidden sm:inline">Deactivate</span>
+                            <i class="fas fa-user-slash mr-1"></i><span class="hidden sm:inline"> </span>
                         </button>
                     @else
                         <button onclick="confirmActivate('{{ $user->name }}', function() { activateUser({{ $user->id }}) })" class="btn-action btn-activate inline-flex items-center justify-center bg-green-100 text-green-700 border-green-200 hover:bg-green-500 hover:text-white hover:border-green-500">
-                            <i class="fas fa-user-check mr-1"></i><span class="hidden sm:inline">Activate</span>
+                            <i class="fas fa-user-check mr-1"></i><span class="hidden sm:inline"> </span>
                         </button>
                     @endif
                 </div>
@@ -273,7 +273,8 @@
 <!-- View User Modal -->
 @include('partials.user.userview')
 
-{{-- Activation/Deactivation now uses the global confirmation modal --}}
+<!-- Confirmation Modal for Deactivate/Activate -->
+@include('components.confirmation-modal')
 
 @endsection
 

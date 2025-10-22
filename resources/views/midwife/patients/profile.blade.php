@@ -147,8 +147,8 @@
                                 <div class="text-sm text-gray-600">Prenatal Records</div>
                             </div>
                             <div class="text-center">
-                                <div class="text-2xl font-bold text-green-600">{{ $patient->prenatalCheckups->count() }}</div>
-                                <div class="text-sm text-gray-600">Checkups</div>
+                                <div class="text-2xl font-bold text-green-600">{{ $patient->prenatalCheckups->where('status', 'done')->count() }}</div>
+                                <div class="text-sm text-gray-600">Completed Checkups</div>
                             </div>
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-purple-600">{{ $patient->childRecords->count() }}</div>
@@ -156,12 +156,10 @@
                             </div>
                             <div class="text-center">
                                 @php
-                                    $totalImmunizations = $patient->childRecords->sum(function($child) {
-                                        return $child->immunizations->count();
-                                    });
+                                    $missedCheckups = $patient->prenatalCheckups->where('status', 'missed')->count();
                                 @endphp
-                                <div class="text-2xl font-bold text-orange-600">{{ $totalImmunizations }}</div>
-                                <div class="text-sm text-gray-600">Immunizations</div>
+                                <div class="text-2xl font-bold {{ $missedCheckups > 0 ? 'text-red-600' : 'text-gray-400' }}">{{ $missedCheckups }}</div>
+                                <div class="text-sm text-gray-600">Missed Checkups</div>
                             </div>
                         </div>
                     </div>
@@ -291,9 +289,11 @@
                                                             Checkup - {{ $checkup->checkup_date ? date('M j, Y', strtotime($checkup->checkup_date)) : 'Date not set' }}
                                                             @if($checkup->status)
                                                                 <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                                    @if($checkup->status === 'completed') bg-green-100 text-green-800
+                                                                    @if($checkup->status === 'done' || $checkup->status === 'completed') bg-green-100 text-green-800
                                                                     @elseif($checkup->status === 'upcoming') bg-blue-100 text-blue-800
+                                                                    @elseif($checkup->status === 'missed') bg-red-100 text-red-800
                                                                     @else bg-gray-100 text-gray-800 @endif">
+                                                                    <i class="fas {{ $checkup->status === 'done' || $checkup->status === 'completed' ? 'fa-check-circle' : ($checkup->status === 'missed' ? 'fa-times-circle' : 'fa-clock') }} mr-1"></i>
                                                                     {{ ucfirst($checkup->status) }}
                                                                 </span>
                                                             @endif
@@ -330,6 +330,30 @@
                                                         </div>
                                                     @endif
                                                 </div>
+
+                                                @if($checkup->status === 'missed')
+                                                    <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                        <div class="flex items-start">
+                                                            <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 mr-2"></i>
+                                                            <div class="text-sm">
+                                                                <span class="text-red-800 font-medium">Missed Appointment</span>
+                                                                @if($checkup->missed_date)
+                                                                    <p class="text-red-700">Marked as missed on {{ date('M j, Y g:i A', strtotime($checkup->missed_date)) }}</p>
+                                                                @endif
+                                                                @if($checkup->missed_reason)
+                                                                    <p class="text-red-700 mt-1">Reason: {{ $checkup->missed_reason }}</p>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                @if($checkup->notes)
+                                                    <div class="mt-3">
+                                                        <span class="text-gray-600 text-sm">Notes:</span>
+                                                        <p class="text-gray-900 text-sm mt-1 whitespace-pre-line">{{ $checkup->notes }}</p>
+                                                    </div>
+                                                @endif
 
                                                 @if($checkup->findings)
                                                     <div class="mt-3">

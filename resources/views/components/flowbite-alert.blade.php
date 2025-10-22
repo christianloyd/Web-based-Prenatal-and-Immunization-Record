@@ -1,4 +1,9 @@
 {{-- Centered Overlay Alert Component --}}
+{{-- Debug: Check if session exists --}}
+@if(config('app.debug'))
+<!-- Debug: Success={{ session('success') ? 'YES' : 'NO' }}, Error={{ session('error') ? 'YES' : 'NO' }} -->
+@endif
+
 @if(session('success'))
 <div class="healthcare-alert-overlay" id="alert-overlay-success">
     <div class="healthcare-alert healthcare-alert-success flex items-center justify-center p-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-200" role="alert" data-alert-type="success">
@@ -86,7 +91,7 @@
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 9999;
+    z-index: 99999 !important;
     pointer-events: none;
 }
 
@@ -256,7 +261,7 @@ window.healthcareAlert = {
             top: 20px;
             left: 50%;
             transform: translate(-50%, -100px);
-            z-index: 9999;
+            z-index: 99999;
             pointer-events: none;
             opacity: 0;
             transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);

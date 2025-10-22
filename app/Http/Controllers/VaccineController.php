@@ -15,8 +15,24 @@ use App\Notifications\HealthcareNotification;
 
 class VaccineController extends Controller
 {
+    /**
+     * Check if user is authorized to access vaccine management
+     */
+    private function checkAuthorization()
+    {
+        if (!auth()->check()) {
+            abort(401, 'Unauthorized access. Please login.');
+        }
+        
+        if (!in_array(auth()->user()->role, ['midwife', 'admin'])) {
+            abort(403, 'Forbidden. Only midwives and admins can access vaccine management.');
+        }
+    }
+    
     public function index(Request $request)
     {
+        $this->checkAuthorization();
+        
         $query = Vaccine::query();
         
         // Search functionality
@@ -49,9 +65,21 @@ class VaccineController extends Controller
         
         return view('midwife.vaccines.index', compact('vaccines', 'stats', 'categories'));
     }
+    
+    /**
+     * Show the form for creating a new vaccine
+     */
+    public function create()
+    {
+        $this->checkAuthorization();
+        
+        return view('midwife.vaccines.create');
+    }
 
     public function store(Request $request)
     {
+        $this->checkAuthorization();
+        
         $request->validate([
             'name' => 'required|string|max:255|unique:vaccines,name',
             'category' => 'required|string|in:Routine Immunization,COVID-19,Seasonal,Travel',
@@ -113,6 +141,8 @@ class VaccineController extends Controller
 
     public function update(Request $request, Vaccine $vaccine)
     {
+        $this->checkAuthorization();
+        
         $request->validate([
             'name' => 'required|string|max:255|unique:vaccines,name,' . $vaccine->id,
             'category' => 'required|string|in:Routine Immunization,COVID-19,Seasonal,Travel',
@@ -158,9 +188,12 @@ class VaccineController extends Controller
 
     public function show(Vaccine $vaccine)
     {
-        $vaccine->load(['stockTransactions' => function($query) {
-            $query->latest()->limit(10);
-        }]);
+        $this->checkAuthorization();
+        
+        // Load latest stock transactions if needed
+        // $vaccine->load(['stockTransactions' => function ($query) {
+        //     $query->latest()->limit(10);
+        // }]);
         
         return response()->json($vaccine);
     }

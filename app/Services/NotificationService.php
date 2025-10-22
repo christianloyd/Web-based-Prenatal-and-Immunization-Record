@@ -23,35 +23,112 @@ class NotificationService
         Cache::forget("recent_notifications_{$userId}");
     }
     /**
-     * Send appointment reminder notification
+     * Send appointment confirmation (when created) - IMMEDIATE SMS
+     * Sends for NEXT VISIT DATE, not current checkup date
      */
-    public static function sendAppointmentReminder(PrenatalCheckup $checkup)
+    public static function sendAppointmentConfirmation(PrenatalCheckup $checkup)
     {
         try {
-            // Find all midwives to notify
-            $midwives = User::where('role', 'Midwife')->where('is_active', true)->get();
-            
             $patient = $checkup->prenatalRecord->patient ?? null;
             $patientName = $patient ? $patient->full_name : 'Unknown Patient';
-            
+
+            // Use NEXT VISIT DATE for SMS (not current checkup date)
+            $appointmentDate = $checkup->next_visit_date ?? $checkup->checkup_date;
+
+            // Send SMS confirmation to patient
+            if ($patient && !empty($patient->contact)) {
+                $patient->notify(new HealthcareNotification(
+                    'Next Appointment Scheduled',
+                    "Hi {$patientName}! Your next prenatal checkup has been scheduled for " .
+                    \Carbon\Carbon::parse($appointmentDate)->format('F d, Y') . ". You will receive a reminder 1 day before. - HealthCare System",
+                    'info',
+                    null,
+                    [
+                        'checkup_id' => $checkup->id,
+                        'next_visit_date' => $appointmentDate,
+                        'type' => 'confirmation'
+                    ],
+                    true // Enable SMS
+                ));
+
+                Log::info("SMS confirmation sent to patient: {$patientName} ({$patient->contact}) for next visit: {$appointmentDate}");
+            }
+
+            // Send in-app notification to midwives
+            $midwives = User::where('role', 'Midwife')->where('is_active', true)->get();
             foreach ($midwives as $midwife) {
                 $midwife->notify(new HealthcareNotification(
-                    'Prenatal Appointment Reminder',
+                    'New Appointment Scheduled',
                     "Prenatal checkup scheduled for {$patientName} on " . $checkup->checkup_date->format('M d, Y'),
-                    'warning',
+                    'info',
                     route('midwife.prenatalcheckup.index'),
                     [
                         'checkup_id' => $checkup->id,
                         'patient_id' => $checkup->prenatal_record_id,
                         'checkup_date' => $checkup->checkup_date->toDateString()
-                    ]
+                    ],
+                    false // No SMS for staff
                 ));
-                
-                // Clear notification cache for the recipient
                 self::clearUserNotificationCache($midwife->id);
             }
-            
-            Log::info("Appointment reminder sent for checkup ID: {$checkup->id}");
+
+            Log::info("Appointment confirmation sent for checkup ID: {$checkup->id}");
+        } catch (\Exception $e) {
+            Log::error("Failed to send appointment confirmation: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send appointment reminder (1 day before) - SCHEDULED SMS
+     * Sends for NEXT VISIT DATE
+     */
+    public static function sendAppointmentReminder(PrenatalCheckup $checkup)
+    {
+        try {
+            $patient = $checkup->prenatalRecord->patient ?? null;
+            $patientName = $patient ? $patient->full_name : 'Unknown Patient';
+
+            // Use NEXT VISIT DATE for reminder
+            $appointmentDate = $checkup->next_visit_date ?? $checkup->checkup_date;
+
+            // Send SMS reminder to patient
+            if ($patient && !empty($patient->contact)) {
+                $patient->notify(new HealthcareNotification(
+                    'Appointment Reminder',
+                    "REMINDER: Hi {$patientName}! Your prenatal checkup is TOMORROW, " .
+                    \Carbon\Carbon::parse($appointmentDate)->format('F d, Y') . ". Please arrive on time. - HealthCare System",
+                    'warning',
+                    null,
+                    [
+                        'checkup_id' => $checkup->id,
+                        'next_visit_date' => $appointmentDate,
+                        'type' => 'reminder'
+                    ],
+                    true // Enable SMS
+                ));
+
+                Log::info("SMS reminder sent to patient: {$patientName} ({$patient->contact}) for next visit: {$appointmentDate}");
+            }
+
+            // Send in-app notification to midwives
+            $midwives = User::where('role', 'Midwife')->where('is_active', true)->get();
+            foreach ($midwives as $midwife) {
+                $midwife->notify(new HealthcareNotification(
+                    'Appointment Reminder - Tomorrow',
+                    "Prenatal checkup for {$patientName} is tomorrow " . \Carbon\Carbon::parse($appointmentDate)->format('M d, Y'),
+                    'warning',
+                    route('midwife.prenatalcheckup.index'),
+                    [
+                        'checkup_id' => $checkup->id,
+                        'patient_id' => $checkup->prenatal_record_id,
+                        'next_visit_date' => $appointmentDate
+                    ],
+                    false // No SMS for staff
+                ));
+                self::clearUserNotificationCache($midwife->id);
+            }
+
+            Log::info("Appointment reminder sent for checkup ID: {$checkup->id} for next visit: {$appointmentDate}");
         } catch (\Exception $e) {
             Log::error("Failed to send appointment reminder: " . $e->getMessage());
         }
@@ -65,7 +142,8 @@ class NotificationService
         try {
             // Find all midwives to notify
             $midwives = User::where('role', 'Midwife')->where('is_active', true)->get();
-            
+
+            // Send notification to midwives (in-app only)
             foreach ($midwives as $midwife) {
                 $midwife->notify(new HealthcareNotification(
                     'Vaccination Due Reminder',
@@ -76,13 +154,32 @@ class NotificationService
                         'child_id' => $child->id,
                         'child_name' => $child->full_name,
                         'birth_date' => $child->date_of_birth
-                    ]
+                    ],
+                    false // No SMS for staff
                 ));
-                
+
                 // Clear notification cache for the recipient
                 self::clearUserNotificationCache($midwife->id);
             }
-            
+
+            // Send SMS to the mother/guardian if contact is available
+            $mother = $child->mother ?? null;
+            if ($mother && !empty($mother->contact)) {
+                $mother->notify(new HealthcareNotification(
+                    'Vaccination Reminder',
+                    "Hi! Your child {$child->full_name} is due for vaccination. Please visit the health center soon. - HealthCare System",
+                    'warning',
+                    null,
+                    [
+                        'child_id' => $child->id,
+                        'child_name' => $child->full_name
+                    ],
+                    true // Enable SMS for mother
+                ));
+
+                Log::info("SMS vaccination reminder sent to mother of {$child->full_name} ({$mother->contact})");
+            }
+
             Log::info("Vaccination reminder sent for child ID: {$child->id}");
         } catch (\Exception $e) {
             Log::error("Failed to send vaccination reminder: " . $e->getMessage());
@@ -218,15 +315,16 @@ class NotificationService
 
     /**
      * Check for upcoming appointments and send reminders
+     * Checks NEXT VISIT DATE (not current checkup date)
      */
     public static function checkUpcomingAppointments()
     {
         try {
             $tomorrow = Carbon::tomorrow();
-            
-            // Find appointments due tomorrow
-            $upcomingCheckups = PrenatalCheckup::where('checkup_date', $tomorrow->toDateString())
-                ->where('status', '!=', 'Completed')
+
+            // Find appointments with NEXT VISIT DATE tomorrow
+            $upcomingCheckups = PrenatalCheckup::where('next_visit_date', $tomorrow->toDateString())
+                ->whereNotNull('next_visit_date')
                 ->with(['prenatalRecord.patient'])
                 ->get();
 
@@ -234,7 +332,7 @@ class NotificationService
                 self::sendAppointmentReminder($checkup);
             }
 
-            Log::info("Checked upcoming appointments: " . $upcomingCheckups->count() . " reminders sent");
+            Log::info("Checked upcoming appointments (next visit): " . $upcomingCheckups->count() . " reminders sent");
         } catch (\Exception $e) {
             Log::error("Failed to check upcoming appointments: " . $e->getMessage());
         }

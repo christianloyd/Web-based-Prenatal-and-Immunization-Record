@@ -38,17 +38,9 @@
         border-color: #16a34a;
     }
 
-    .btn-delete {
-        background-color: #fef2f2;
-        color: #dc2626;
-        border-color: #fecaca;
-    }
+    
 
-    .btn-delete:hover {
-        background-color: #dc2626;
-        color: white;
-        border-color: #dc2626;
-    }
+    
 
     .tab-button.active {
         border-color: #0ea5e9;
@@ -85,6 +77,11 @@
                     <i class="fas fa-cloud-download-alt w-4 h-4"></i>
                     <span class="hidden sm:inline">Restore Data</span>
                     <span class="sm:hidden">Restore</span>
+                </button>
+                <button onclick="syncGoogleDrive()" class="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
+                    <i class="fas fa-sync-alt w-4 h-4"></i>
+                    <span class="hidden sm:inline">Sync Drive</span>
+                    <span class="sm:hidden">Sync</span>
                 </button>
             </div>
         </div>
@@ -236,6 +233,28 @@
         <div class="flex justify-between text-sm mt-2 text-gray-600">
             <span id="progressText">0%</span>
             <span id="progressETA">Calculating...</span>
+        </div>
+    </div>
+
+    <!-- Active Restore Progress -->
+    <div id="restoreProgress" class="hidden bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-3">
+                <div class="animate-spin">
+                    <i class="fas fa-cloud-download-alt text-2xl text-green-600"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900">Restore in Progress</h3>
+                    <p id="restoreProgressStatus" class="text-sm text-gray-600">Initializing restore...</p>
+                </div>
+            </div>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="restoreProgressBar" class="bg-green-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-sm mt-2 text-gray-600">
+            <span id="restoreProgressText">0%</span>
+            <span id="restoreBackupName" class="text-xs"></span>
         </div>
     </div>
 
@@ -749,9 +768,7 @@
                                     <i class="fas fa-history mr-1"></i><span class="hidden sm:inline">Restore</span>
                                 </button>
                             ` : ''}
-                            <button onclick="deleteBackup(${backup.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors w-full sm:w-auto">
-                                <i class="fas fa-trash-alt mr-1"></i><span class="hidden sm:inline">Delete</span>
-                            </button>
+                             
                         </div>
                     </td>
                 </tr>
@@ -1211,7 +1228,8 @@
             }
             window.restoreInProgress = true;
 
-            showInfo(`Starting restore from "${backup.name}". This may take several minutes...`);
+            // Show progress modal similar to backup progress
+            showRestoreProgressModal(backup.name);
 
             fetch('{{ route("midwife.cloudbackup.restore") }}', {
                 method: 'POST',
@@ -1223,18 +1241,20 @@
             })
             .then(response => response.json())
             .then(data => {
-                window.restoreInProgress = false; // Reset flag
-                if (data.success) {
-                    showSuccess(data.message);
-                    loadBackupData(); // Reload data
+                if (data.success && data.restore_id) {
+                    // Start tracking restore progress
+                    trackRestoreProgress(data.restore_id);
                 } else {
-                    showError(data.message || 'Failed to restore backup');
+                    window.restoreInProgress = false;
+                    hideRestoreProgressModal();
+                    showError(data.message || 'Failed to start restore');
                 }
             })
             .catch(error => {
-                window.restoreInProgress = false; // Reset flag on error
+                window.restoreInProgress = false;
+                hideRestoreProgressModal();
                 console.error('Error:', error);
-                showError('Failed to restore backup');
+                showError('Failed to start restore: ' + error.message);
             });
             }
         });
@@ -1262,36 +1282,7 @@
         }
     }
 
-    function deleteBackup(id) {
-        const backup = backups.find(b => b.id === id);
-        if (!backup) {
-            showError('Backup not found.');
-            return;
-        }
-        
-        // Use confirmation modal for delete operation
-        confirmDelete(backup.name, function() {
-            fetch('/midwife/cloudbackup/' + id, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccess(data.message);
-                    loadBackupData(); // Reload data
-                } else {
-                    showError(data.message || 'Failed to delete backup');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showError('Failed to delete backup');
-            });
-        });
-    }
+    
 
     function updateStats() {
         const totalBackups = backups.length;
@@ -1435,6 +1426,34 @@
         }
     }
 
+    // Sync Google Drive backups with database
+    function syncGoogleDrive() {
+        // Show loading message
+        showInfo('Syncing with Google Drive...');
+
+        fetch('{{ route("midwife.cloudbackup.sync") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(data.message || `Successfully synced ${data.synced_count || 0} backups from Google Drive`);
+                // Reload backup data to show newly synced backups
+                loadBackupData();
+            } else {
+                showError(data.message || 'Failed to sync with Google Drive');
+            }
+        })
+        .catch(error => {
+            console.error('Error syncing Google Drive:', error);
+            showError('Failed to sync with Google Drive: ' + error.message);
+        });
+    }
+
     // Click outside to close modals
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
@@ -1445,6 +1464,87 @@
             }
         }
     });
+
+    // Restore Progress Functions
+    let restoreProgressInterval = null;
+
+    function showRestoreProgressModal(backupName) {
+        const progressContainer = document.getElementById('restoreProgress');
+        progressContainer.classList.remove('hidden');
+        document.getElementById('restoreProgressStatus').textContent = 'Initializing restore...';
+        document.getElementById('restoreProgressBar').style.width = '0%';
+        document.getElementById('restoreProgressText').textContent = '0%';
+        document.getElementById('restoreBackupName').textContent = `Restoring from: ${backupName}`;
+    }
+
+    function hideRestoreProgressModal() {
+        const progressContainer = document.getElementById('restoreProgress');
+        progressContainer.classList.add('hidden');
+        if (restoreProgressInterval) {
+            clearInterval(restoreProgressInterval);
+            restoreProgressInterval = null;
+        }
+    }
+
+    function trackRestoreProgress(restoreId) {
+        const progressBar = document.getElementById('restoreProgressBar');
+        const progressText = document.getElementById('restoreProgressText');
+        const progressStatus = document.getElementById('restoreProgressStatus');
+
+        // Poll for progress updates
+        restoreProgressInterval = setInterval(() => {
+            fetch(`{{ route("midwife.cloudbackup.restore-progress", ":id") }}`.replace(':id', restoreId))
+                .then(response => response.json())
+                .then(data => {
+                    // Update progress
+                    const progress = data.progress || 0;
+                    progressBar.style.width = progress + '%';
+                    progressText.textContent = Math.round(progress) + '%';
+                    progressStatus.textContent = data.current_step || 'Processing...';
+
+                    // Check if completed
+                    if (data.status === 'completed') {
+                        clearInterval(restoreProgressInterval);
+                        restoreProgressInterval = null;
+                        window.restoreInProgress = false;
+
+                        // Show completion
+                        progressBar.classList.remove('bg-green-600');
+                        progressBar.classList.add('bg-green-500');
+                        progressStatus.textContent = 'Restore completed successfully!';
+
+                        // Hide progress after delay and show success message
+                        setTimeout(() => {
+                            hideRestoreProgressModal();
+                            showSuccess(data.message || 'Data restored successfully!');
+                            loadBackupData(); // Reload data
+                        }, 2000);
+                    } else if (data.status === 'failed') {
+                        clearInterval(restoreProgressInterval);
+                        restoreProgressInterval = null;
+                        window.restoreInProgress = false;
+
+                        // Show error
+                        progressBar.classList.remove('bg-green-600');
+                        progressBar.classList.add('bg-red-600');
+                        progressStatus.textContent = 'Restore failed';
+
+                        setTimeout(() => {
+                            hideRestoreProgressModal();
+                            showError(data.error || 'Restore failed. Please try again.');
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error tracking restore progress:', error);
+                    clearInterval(restoreProgressInterval);
+                    restoreProgressInterval = null;
+                    window.restoreInProgress = false;
+                    hideRestoreProgressModal();
+                    showError('Failed to track restore progress');
+                });
+        }, 1000); // Poll every second
+    }
 </script>
 @endpush
 

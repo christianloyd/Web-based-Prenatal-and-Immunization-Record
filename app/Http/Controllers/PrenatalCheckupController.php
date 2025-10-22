@@ -13,9 +13,20 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Notifications\HealthcareNotification;
 use Illuminate\Support\Facades\Cache;
+use App\Rules\ValidBloodPressure;
+use App\Services\PrenatalCheckupService;
+use App\Services\SmsService;
+use App\Http\Requests\StorePrenatalCheckupRequest;
+use App\Http\Requests\UpdatePrenatalCheckupRequest;
 
 class PrenatalCheckupController extends Controller
 {
+    protected $prenatalCheckupService;
+
+    public function __construct(PrenatalCheckupService $prenatalCheckupService)
+    {
+        $this->prenatalCheckupService = $prenatalCheckupService;
+    }
     // Display a listing of prenatal checkups
     public function index(Request $request)
     {
@@ -26,7 +37,8 @@ class PrenatalCheckupController extends Controller
         // Auto-check for today's missed checkups (if after business hours)
         $this->checkTodaysMissed();
 
-        $query = PrenatalCheckup::with(['prenatalRecord.patient', 'patient'])
+        // Optimize: Load only necessary relationships (removed redundant 'patient')
+        $query = PrenatalCheckup::with(['prenatalRecord.patient'])
             ->where(function($query) {
                 // Show all 'done' checkups regardless of pregnancy status (for historical records)
                 $query->where('status', 'done')
@@ -84,16 +96,17 @@ class PrenatalCheckupController extends Controller
                 });
         }
 
-        // Get patients with active prenatal records for the view (exclude completed pregnancies)
-        $patients = Patient::with(['prenatalRecords' => function($query) {
+        // Optimize: Removed duplicate WHERE clause (was in both with() and whereHas())
+        $patients = Patient::whereHas('prenatalRecords', function($query) {
             $query->where('is_active', true)
                   ->where('status', '!=', 'completed');
+        })->with(['prenatalRecords' => function($query) {
+            $query->where('is_active', true)
+                  ->where('status', '!=', 'completed')
+                  ->latest();
         }, 'prenatalCheckups' => function($query) {
-            $query->orderBy('checkup_date', 'desc');
-        }])->whereHas('prenatalRecords', function($query) {
-            $query->where('is_active', true)
-                  ->where('status', '!=', 'completed');
-        })->get();
+            $query->orderBy('checkup_date', 'desc')->limit(5); // Limit to recent checkups only
+        }])->get();
 
         // Get prenatal records for the modal dropdown (exclude completed pregnancies)
         $prenatalRecords = PrenatalRecord::with('patient')
@@ -132,137 +145,33 @@ class PrenatalCheckupController extends Controller
     }
 
     // Store new prenatal checkup
-    public function store(Request $request)
+    public function store(StorePrenatalCheckupRequest $request)
     {
-        // Check for duplicate checkups - but allow updating existing 'upcoming' checkups
-        $existingCheckup = PrenatalCheckup::where('patient_id', $request->patient_id)
-            ->whereDate('checkup_date', $request->checkup_date)
-            ->first();
-
-        // If there's an existing checkup and it's already 'done', prevent duplicate
-        if ($existingCheckup && $existingCheckup->status === 'done') {
+        // Check for duplicate completed checkups
+        if ($this->prenatalCheckupService->checkupExists($request->patient_id, $request->checkup_date)) {
             return redirect()->back()
                 ->withErrors(['checkup_date' => 'A completed prenatal checkup already exists for this patient on the selected date.'])
                 ->withInput();
         }
 
-        $validator = Validator::make($request->all(), [
-            'patient_id' => 'required|exists:patients,id',
-            'checkup_date' => 'required|date',
-            'checkup_time' => 'required|date_format:H:i',
-            'gestational_age_weeks' => 'nullable|integer|min:1|max:45',
-            'weight_kg' => 'nullable|numeric|min:30|max:200',
-            'blood_pressure_systolic' => 'nullable|integer|min:70|max:250',
-            'blood_pressure_diastolic' => 'nullable|integer|min:40|max:150',
-            'fetal_heart_rate' => 'nullable|integer|min:100|max:180',
-            'fundal_height_cm' => 'nullable|numeric|min:10|max:50',
-            'presentation' => 'nullable|string|max:50',
-            'baby_movement' => 'nullable|in:active,normal,less,none',
-            'symptoms' => 'nullable|string|max:500',
-            'notes' => 'nullable|string|max:1000',
-            'next_visit_date' => 'nullable|date|after:checkup_date',
-            'next_visit_time' => 'nullable|date_format:H:i',
-            'next_visit_notes' => 'nullable|string|max:500',
-            'conducted_by' => 'nullable|exists:users,id',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+        // Check blood pressure and add warning if needed
+        $bpWarning = null;
+        if ($request->blood_pressure_systolic && $request->blood_pressure_diastolic) {
+            $bpWarning = ValidBloodPressure::getWarningLevel(
+                $request->blood_pressure_systolic,
+                $request->blood_pressure_diastolic
+            );
         }
 
         try {
-            // Get patient and their active prenatal record
+            // Create checkup using service
+            $checkup = $this->prenatalCheckupService->createCheckup($request->validated());
+
+            // Get patient for notification
             $patient = Patient::findOrFail($request->patient_id);
-            $prenatalRecord = $patient->prenatalRecords()->where('is_active', true)->first();
 
-            // Determine status based on whether medical data is provided
-            $hasmedicalData = $request->weight_kg || $request->blood_pressure_systolic ||
-                             $request->fetal_heart_rate || $request->fundal_height_cm ||
-                             $request->symptoms || $request->notes;
-
-            $status = $hasmedicalData ? 'done' : 'upcoming';
-
-            // If there's an existing 'upcoming' checkup, update it instead of creating new
-            if ($existingCheckup && $existingCheckup->status === 'upcoming') {
-                $checkup = $existingCheckup;
-                $checkup->update([
-                    'checkup_time' => $request->checkup_time,
-                    'gestational_age_weeks' => $request->gestational_age_weeks,
-                    'weight_kg' => $request->weight_kg,
-                    'blood_pressure_systolic' => $request->blood_pressure_systolic,
-                    'blood_pressure_diastolic' => $request->blood_pressure_diastolic,
-                    'fetal_heart_rate' => $request->fetal_heart_rate,
-                    'fundal_height_cm' => $request->fundal_height_cm,
-                    'baby_movement' => $request->baby_movement,
-                    'symptoms' => $request->symptoms,
-                    'notes' => $request->notes,
-                    'status' => $status,
-                    'next_visit_date' => $request->next_visit_date,
-                    'next_visit_time' => $request->next_visit_time,
-                    'next_visit_notes' => $request->next_visit_notes,
-                    'conducted_by' => $request->conducted_by ?? Auth::id(),
-                    // Legacy fields for backward compatibility
-                    'bp_high' => $request->blood_pressure_systolic,
-                    'bp_low' => $request->blood_pressure_diastolic,
-                    'weight' => $request->weight_kg,
-                    'baby_heartbeat' => $request->fetal_heart_rate,
-                    'belly_size' => $request->fundal_height_cm,
-                ]);
-            } else {
-                // Create new prenatal checkup
-                $checkup = PrenatalCheckup::create([
-                    'patient_id' => $request->patient_id,
-                    'prenatal_record_id' => $prenatalRecord ? $prenatalRecord->id : null,
-                    'checkup_date' => $request->checkup_date,
-                    'checkup_time' => $request->checkup_time,
-                    'gestational_age_weeks' => $request->gestational_age_weeks,
-                    'weight_kg' => $request->weight_kg,
-                    'blood_pressure_systolic' => $request->blood_pressure_systolic,
-                    'blood_pressure_diastolic' => $request->blood_pressure_diastolic,
-                    'fetal_heart_rate' => $request->fetal_heart_rate,
-                    'fundal_height_cm' => $request->fundal_height_cm,
-                    'baby_movement' => $request->baby_movement,
-                    'symptoms' => $request->symptoms,
-                    'notes' => $request->notes,
-                    'status' => $status,
-                    'next_visit_date' => $request->next_visit_date,
-                    'next_visit_time' => $request->next_visit_time,
-                    'next_visit_notes' => $request->next_visit_notes,
-                    'conducted_by' => $request->conducted_by ?? Auth::id(),
-                    // Legacy fields for backward compatibility
-                    'bp_high' => $request->blood_pressure_systolic,
-                    'bp_low' => $request->blood_pressure_diastolic,
-                    'weight' => $request->weight_kg,
-                    'baby_heartbeat' => $request->fetal_heart_rate,
-                    'belly_size' => $request->fundal_height_cm,
-                ]);
-            }
-
-            // If scheduling next visit, create another upcoming checkup
-            // This creates a separate future appointment record
-            if ($request->next_visit_date && $request->schedule_next) {
-                // Check if a checkup already exists for this patient on the next visit date
-                $existingNextCheckup = PrenatalCheckup::where('patient_id', $request->patient_id)
-                    ->whereDate('checkup_date', $request->next_visit_date)
-                    ->first();
-
-                if (!$existingNextCheckup) {
-                    PrenatalCheckup::create([
-                        'patient_id' => $request->patient_id,
-                        'prenatal_record_id' => $prenatalRecord ? $prenatalRecord->id : null,
-                        'checkup_date' => $request->next_visit_date, // This will be the checkup date for the FUTURE appointment
-                        'checkup_time' => $request->next_visit_time ?? '09:00',
-                        'status' => 'upcoming',
-                        'notes' => $request->next_visit_notes,
-                        'conducted_by' => Auth::id(),
-                        'next_visit_date' => null, // Future appointment doesn't have a next visit yet
-                    ]);
-                }
-            }
-
-            // Send notification to all healthcare workers about checkup
-            $actionType = ($existingCheckup && $existingCheckup->status === 'upcoming') ? 'updated' : 'created';
-            $statusMessage = $status === 'done' ? 'completed' : 'scheduled';
+            // Send notification to all healthcare workers
+            $statusMessage = $checkup->status === 'done' ? 'completed' : 'scheduled';
 
             $this->notifyHealthcareWorkers(
                 "Prenatal Checkup {$statusMessage}",
@@ -271,19 +180,26 @@ class PrenatalCheckupController extends Controller
                 Auth::user()->role === 'midwife'
                     ? route('midwife.prenatalcheckup.show', $checkup->id)
                     : route('bhw.prenatalcheckup.show', $checkup->id),
-                ['checkup_id' => $checkup->id, 'prenatal_record_id' => $prenatalRecord ? $prenatalRecord->id : null, 'action' => "checkup_{$actionType}"]
+                ['checkup_id' => $checkup->id, 'action' => 'checkup_created']
             );
 
+            // Prepare redirect with success message
             $redirectRoute = Auth::user()->role === 'midwife'
                 ? 'midwife.prenatalcheckup.index'
                 : 'bhw.prenatalcheckup.index';
 
-            $successMessage = $status === 'done'
+            $successMessage = $checkup->status === 'done'
                 ? 'Prenatal checkup completed and recorded successfully!'
                 : 'Prenatal checkup scheduled successfully!';
 
-            return redirect()->route($redirectRoute)
-                ->with('success', $successMessage);
+            $redirect = redirect()->route($redirectRoute)->with('success', $successMessage);
+
+            // Add blood pressure warning if exists
+            if ($bpWarning) {
+                $redirect->with($bpWarning['level'], $bpWarning['message']);
+            }
+
+            return $redirect;
 
         } catch (\Exception $e) {
             \Log::error('Error creating prenatal checkup: ' . $e->getMessage());
@@ -327,63 +243,31 @@ class PrenatalCheckupController extends Controller
     }
 
     // Update prenatal checkup
-    public function update(Request $request, $id)
+    public function update(UpdatePrenatalCheckupRequest $request, $id)
     {
         $checkup = PrenatalCheckup::with('prenatalRecord.patient')->findOrFail($id);
 
-        // Check for duplicate checkups (excluding current checkup) - only prevent if other checkup is 'done'
-        $existingCheckup = PrenatalCheckup::where('patient_id', $checkup->patient_id)
-            ->whereDate('checkup_date', $request->checkup_date)
-            ->where('id', '!=', $id)
-            ->first();
-
-        if ($existingCheckup && $existingCheckup->status === 'done') {
+        // Check for duplicate completed checkups (excluding current)
+        if ($this->prenatalCheckupService->checkupExists($checkup->patient_id, $request->checkup_date, $id)) {
             return redirect()->back()
                 ->withErrors(['checkup_date' => 'A completed prenatal checkup already exists for this patient on the selected date.'])
                 ->withInput();
         }
 
-        $validator = Validator::make($request->all(), [
-            'prenatal_record_id' => 'required|exists:prenatal_records,id',
-            'checkup_date' => 'required|date',
-            'gestational_age_weeks' => 'nullable|integer|min:1|max:45',
-            'weight_kg' => 'nullable|numeric|min:30|max:200',
-            'blood_pressure_systolic' => 'nullable|integer|min:70|max:250',
-            'blood_pressure_diastolic' => 'nullable|integer|min:40|max:150',
-            'fetal_heart_rate' => 'nullable|integer|min:100|max:180',
-            'fundal_height_cm' => 'nullable|numeric|min:10|max:50',
-            'presentation' => 'nullable|string|max:50',
-            'symptoms' => 'nullable|string|max:500',
-            'notes' => 'nullable|string|max:1000',
-            'next_visit_date' => 'nullable|date|after:checkup_date',
-            'conducted_by' => 'nullable|exists:users,id',
-            'status' => 'required|in:scheduled,completed,cancelled,rescheduled',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+        // Check blood pressure and add warning if needed
+        $bpWarning = null;
+        if ($request->blood_pressure_systolic && $request->blood_pressure_diastolic) {
+            $bpWarning = ValidBloodPressure::getWarningLevel(
+                $request->blood_pressure_systolic,
+                $request->blood_pressure_diastolic
+            );
         }
 
         try {
             $oldStatus = $checkup->status;
-            
-            // Update checkup
-            $checkup->update([
-                'prenatal_record_id' => $request->prenatal_record_id,
-                'checkup_date' => $request->checkup_date,
-                'gestational_age_weeks' => $request->gestational_age_weeks,
-                'weight_kg' => $request->weight_kg,
-                'blood_pressure_systolic' => $request->blood_pressure_systolic,
-                'blood_pressure_diastolic' => $request->blood_pressure_diastolic,
-                'fetal_heart_rate' => $request->fetal_heart_rate,
-                'fundal_height_cm' => $request->fundal_height_cm,
-                'presentation' => $request->presentation,
-                'symptoms' => $request->symptoms,
-                'notes' => $request->notes,
-                'next_visit_date' => $request->next_visit_date,
-                'conducted_by' => $request->conducted_by,
-                'status' => $request->status,
-            ]);
+
+            // Update checkup using service
+            $this->prenatalCheckupService->updateCheckup($checkup, $request->validated());
 
             // Send notification if status changed significantly
             if ($oldStatus !== $request->status && in_array($request->status, ['completed', 'cancelled', 'rescheduled'])) {
@@ -392,24 +276,31 @@ class PrenatalCheckupController extends Controller
                     'cancelled' => 'cancelled',
                     'rescheduled' => 'rescheduled'
                 ];
-                
+
                 $this->notifyHealthcareWorkers(
                     'Prenatal Checkup Status Updated',
                     "Prenatal checkup for patient '{$checkup->prenatalRecord->patient->first_name} {$checkup->prenatalRecord->patient->last_name}' has been {$statusMessages[$request->status]}.",
                     'info',
-                    Auth::user()->role === 'midwife' 
+                    Auth::user()->role === 'midwife'
                         ? route('midwife.prenatalcheckup.show', $checkup->id)
                         : route('bhw.prenatalcheckup.show', $checkup->id),
                     ['checkup_id' => $checkup->id, 'action' => 'checkup_updated']
                 );
             }
 
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.prenatalcheckup.index' 
+            // Prepare redirect
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.prenatalcheckup.index'
                 : 'bhw.prenatalcheckup.index';
-                
-            return redirect()->route($redirectRoute)
-                ->with('success', 'Prenatal checkup updated successfully!');
+
+            $redirect = redirect()->route($redirectRoute)->with('success', 'Prenatal checkup updated successfully!');
+
+            // Add blood pressure warning if exists
+            if ($bpWarning) {
+                $redirect->with($bpWarning['level'], $bpWarning['message']);
+            }
+
+            return $redirect;
 
         } catch (\Exception $e) {
             \Log::error('Error updating prenatal checkup: ' . $e->getMessage());
@@ -755,6 +646,7 @@ class PrenatalCheckupController extends Controller
 
     /**
      * Reschedule a missed checkup
+     * IMPORTANT: This creates a NEW upcoming checkup and keeps the missed record as history
      */
     public function rescheduleMissed(Request $request, $id)
     {
@@ -773,18 +665,18 @@ class PrenatalCheckupController extends Controller
         }
 
         try {
-            $checkup = PrenatalCheckup::with('prenatalRecord.patient')->findOrFail($id);
+            $missedCheckup = PrenatalCheckup::with('prenatalRecord.patient')->findOrFail($id);
 
             // Only allow rescheduling missed checkups
-            if ($checkup->status !== 'missed') {
+            if ($missedCheckup->status !== 'missed') {
                 return redirect()->back()
                     ->with('error', 'Only missed checkups can be rescheduled.');
             }
 
             // Check if a checkup already exists on the new date
-            $existingCheckup = PrenatalCheckup::where('patient_id', $checkup->patient_id)
+            $existingCheckup = PrenatalCheckup::where('patient_id', $missedCheckup->patient_id)
                 ->whereDate('checkup_date', $request->new_checkup_date)
-                ->where('id', '!=', $id)
+                ->whereIn('status', ['upcoming', 'done'])
                 ->first();
 
             if ($existingCheckup) {
@@ -793,22 +685,32 @@ class PrenatalCheckupController extends Controller
                     ->withInput();
             }
 
-            // Update the checkup
-            $checkup->update([
+            // Create a NEW checkup record for the rescheduled appointment
+            // This preserves the original missed checkup record as history
+            $newCheckup = PrenatalCheckup::create([
+                'patient_id' => $missedCheckup->patient_id,
+                'prenatal_record_id' => $missedCheckup->prenatal_record_id,
                 'checkup_date' => $request->new_checkup_date,
                 'checkup_time' => $request->new_checkup_time,
                 'status' => 'upcoming',
-                'notes' => ($checkup->notes ?? '') . "\n\nRescheduled from " .
-                          $checkup->missed_date->format('M j, Y') . ". " .
-                          ($request->reschedule_notes ? "Reason: " . $request->reschedule_notes : ''),
-                'missed_date' => null,
-                'auto_missed' => false,
-                'missed_reason' => null
+                'conducted_by' => Auth::id(),
+                'notes' => "Rescheduled from missed appointment on " .
+                          $missedCheckup->checkup_date->format('M j, Y') .
+                          ($request->reschedule_notes ? ".\nReason: " . $request->reschedule_notes : ''),
+            ]);
+
+            // Update the missed checkup to indicate it has been rescheduled
+            // Keep it as 'missed' status so it remains in the history
+            $missedCheckup->update([
+                'notes' => ($missedCheckup->notes ?? '') . "\n\n[RESCHEDULED] This appointment was rescheduled to " .
+                          Carbon::parse($request->new_checkup_date)->format('M j, Y') . " at " .
+                          Carbon::parse($request->new_checkup_time)->format('g:i A') .
+                          " (New Checkup ID: " . $newCheckup->id . ")"
             ]);
 
             // Get patient name
-            $patientName = $checkup->prenatalRecord->patient->first_name . ' ' .
-                          $checkup->prenatalRecord->patient->last_name;
+            $patientName = $missedCheckup->prenatalRecord->patient->first_name . ' ' .
+                          $missedCheckup->prenatalRecord->patient->last_name;
 
             // Send notification about rescheduling
             $formattedDate = Carbon::parse($request->new_checkup_date)->format('F j, Y');
@@ -819,10 +721,11 @@ class PrenatalCheckupController extends Controller
                 "Missed prenatal checkup for patient '{$patientName}' has been rescheduled to {$formattedDate} at {$formattedTime}.",
                 'info',
                 Auth::user()->role === 'midwife'
-                    ? route('midwife.prenatalcheckup.show', $checkup->id)
-                    : route('bhw.prenatalcheckup.show', $checkup->id),
+                    ? route('midwife.prenatalcheckup.show', $newCheckup->id)
+                    : route('bhw.prenatalcheckup.show', $newCheckup->id),
                 [
-                    'checkup_id' => $checkup->id,
+                    'checkup_id' => $newCheckup->id,
+                    'original_missed_checkup_id' => $missedCheckup->id,
                     'action' => 'checkup_rescheduled',
                     'patient_name' => $patientName,
                     'new_date' => $formattedDate,
@@ -830,8 +733,30 @@ class PrenatalCheckupController extends Controller
                 ]
             );
 
+            // Send SMS reminder to patient
+            $patient = $missedCheckup->prenatalRecord->patient;
+            if ($patient->contact_number) {
+                try {
+                    $smsService = new SmsService();
+                    $smsService->sendAppointmentReminder(
+                        $patient->contact_number,
+                        $patientName,
+                        $formattedDate . ' at ' . $formattedTime,
+                        'prenatal checkup'
+                    );
+                    \Log::info('SMS reminder sent for rescheduled prenatal checkup', [
+                        'patient_id' => $patient->id,
+                        'checkup_id' => $newCheckup->id,
+                        'phone' => $patient->contact_number
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send SMS for rescheduled checkup: ' . $e->getMessage());
+                    // Don't fail the reschedule if SMS fails
+                }
+            }
+
             return redirect()->back()
-                ->with('success', "Checkup successfully rescheduled to {$formattedDate} at {$formattedTime}.");
+                ->with('success', "Checkup successfully rescheduled to {$formattedDate} at {$formattedTime}. The missed appointment record has been preserved for tracking." . ($patient->contact_number ? " SMS reminder sent to patient." : ""));
 
         } catch (\Exception $e) {
             \Log::error('Error rescheduling missed checkup: ' . $e->getMessage());

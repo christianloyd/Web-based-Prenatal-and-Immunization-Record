@@ -21,7 +21,7 @@
         <!-- Modal Body Form -->
         <!-- ADD & EDIT FORM-->
 
-<form id="userForm" action="{{ route('midwife.user.store') }}" method="POST" class="space-y-5" novalidate>
+<form id="userForm" action="{{ route((Auth::user()->role === 'admin' ? 'admin' : 'midwife') . '.user.store') }}" method="POST" class="space-y-5" novalidate>
             @csrf
             <input type="hidden" id="userId" name="id">
             
@@ -106,8 +106,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Role *</label>
                             <select id="role" name="role" required class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('role') error-border @enderror">
                                 <option value="">Select Role</option>
-                                <option value="Midwife" {{ old('role') == 'Midwife' ? 'selected' : '' }}>Midwife</option>
-                                <option value="BHW" {{ old('role') == 'BHW' ? 'selected' : '' }}>Barangay Health Worker (BHW)</option>
+                                <option value="midwife" {{ old('role') == 'midwife' ? 'selected' : '' }}>Midwife</option>
+                                <option value="bhw" {{ old('role') == 'bhw' ? 'selected' : '' }}>Barangay Health Worker (BHW)</option>
+                                @if(Auth::user()->role === 'admin')
+                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                @endif
                             </select>
                             @error('role')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

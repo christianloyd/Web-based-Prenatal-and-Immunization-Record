@@ -131,6 +131,18 @@
         border-color: #dc2626;
     }
 
+    .btn-reschedule {
+        background-color: #dbeafe;
+        color: #1e40af;
+        border-color: #bfdbfe;
+    }
+    
+    .btn-reschedule:hover {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+
     /* Input styles */
     .input-clean {
         transition: all 0.15s ease;
@@ -350,15 +362,60 @@
                                 </span>
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center align-middle">
-                            <div class="flex items-center justify-center gap-2">
-                            <button onclick="openViewModal({{ json_encode($immunization->toArray()) }})" class="btn-action btn-view inline-flex items-center justify-center">
-                                <i class="fas fa-eye mr-1"></i>
-                            <span class="hidden sm:inline"><!--View--></span>
-                            </button>
-                            <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})" class="btn-action btn-edit inline-flex items-center justify-center">
-                                <i class="fas fa-edit mr-1"></i>
-                            <span class="hidden sm:inline"><!--Edit --></span>
-                            </button>
+                            <div class="flex items-center justify-center gap-1 flex-wrap">
+                                @php
+                                    $immunizationData = [
+                                        'id' => $immunization->id,
+                                        'child_record' => ['full_name' => $immunization->childRecord->full_name ?? 'Unknown'],
+                                        'vaccine' => ['name' => $immunization->vaccine->name ?? $immunization->vaccine_name],
+                                        'vaccine_name' => $immunization->vaccine_name,
+                                        'dose' => $immunization->dose,
+                                        'schedule_date' => $immunization->schedule_date,
+                                        'status' => $immunization->status,
+                                        'notes' => $immunization->notes,
+                                        'batch_number' => $immunization->batch_number,
+                                        'administered_by' => $immunization->administered_by,
+                                        'child_record_id' => $immunization->child_record_id,
+                                        'vaccine_id' => $immunization->vaccine_id
+                                    ];
+                                @endphp
+
+                                <!-- View Button -->
+                                <button onclick='openViewModal(@json($immunizationData))'
+                                        class="btn-action btn-view inline-flex items-center justify-center"
+                                        title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                @if($immunization->status === 'Upcoming')
+                                    <!-- Mark as Missed Button -->
+                                    <button onclick='openConfirmMissedModal(@json($immunizationData))'
+                                            class="btn-action btn-missed inline-flex items-center justify-center"
+                                            title="Mark as Missed">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+
+                                    <!-- Edit Button -->
+                                    <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})"
+                                            class="btn-action btn-edit inline-flex items-center justify-center"
+                                            title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                @elseif($immunization->status === 'Missed')
+                                    <!-- Reschedule Button for Missed Immunizations -->
+                                    <button onclick='openImmunizationRescheduleModal(@json($immunizationData))'
+                                            class="btn-action btn-reschedule inline-flex items-center justify-center"
+                                            title="Reschedule">
+                                        <i class="fas fa-calendar-plus"></i>
+                                    </button>
+                                @else
+                                    <!-- For completed immunizations - only show edit -->
+                                    <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})"
+                                            class="btn-action btn-edit inline-flex items-center justify-center"
+                                            title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                @endif
                             </div>
                         </td>
                         </tr>
@@ -401,6 +458,12 @@
 
 <!-- Edit Immunization Modal -->
  @include ('partials.midwife.immunization.immuedit')
+
+<!-- Confirm Missed Modal -->
+ @include ('partials.midwife.immunization.confirm-missed-modal')
+
+<!-- Reschedule Modal -->
+ @include ('partials.midwife.immunization.reschedule_modal')
 
 @endsection
 
@@ -863,6 +926,7 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModal();
             closeEditModal();
             closeViewModal();
+            closeImmunizationRescheduleModal();
         }
     });
     
@@ -873,19 +937,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle Laravel session messages using the global healthcare alert system
     @if(session('success'))
-        window.healthcareAlert.success('{{ addslashes(session("success")) }}');
+        if (window.healthcareAlert) {
+            window.healthcareAlert.success('{{ addslashes(session("success")) }}');
+        }
     @endif
 
     @if(session('error'))
-        window.healthcareAlert.error('{{ addslashes(session("error")) }}');
+        if (window.healthcareAlert) {
+            window.healthcareAlert.error('{{ addslashes(session("error")) }}');
+        }
     @endif
 
     @if(session('warning'))
-        window.healthcareAlert.warning('{{ addslashes(session("warning")) }}');
+        if (window.healthcareAlert) {
+            window.healthcareAlert.warning('{{ addslashes(session("warning")) }}');
+        }
     @endif
 
     @if(session('info'))
-        window.healthcareAlert.info('{{ addslashes(session("info")) }}');
+        if (window.healthcareAlert) {
+            window.healthcareAlert.info('{{ addslashes(session("info")) }}');
+        }
     @endif
 
     // Enhanced form submission with toast notifications
@@ -1044,5 +1116,92 @@ function clearSearch() {
         searchInput.form.submit();
     }
 }
+
+// Reschedule Modal Functions
+let currentRescheduleImmunization = null;
+
+function openImmunizationRescheduleModal(immunization) {
+    console.log('Opening reschedule modal with data:', immunization);
+
+    if (!immunization) {
+        console.error('No immunization data provided');
+        return;
+    }
+
+    currentRescheduleImmunization = immunization;
+
+    // Populate immunization details
+    const childNameEl = document.getElementById('reschedule-child-name');
+    const vaccineNameEl = document.getElementById('reschedule-vaccine-name');
+    const doseEl = document.getElementById('reschedule-dose');
+    const originalDateEl = document.getElementById('reschedule-original-date');
+
+    if (childNameEl) childNameEl.textContent = immunization.child_record?.full_name || 'Unknown';
+    if (vaccineNameEl) vaccineNameEl.textContent = immunization.vaccine?.name || immunization.vaccine_name || 'Unknown';
+    if (doseEl) doseEl.textContent = immunization.dose || 'N/A';
+
+    if (originalDateEl) {
+        const scheduleDate = new Date(immunization.schedule_date);
+        originalDateEl.textContent = scheduleDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    // Reset form
+    const form = document.getElementById('rescheduleForm');
+    if (form) form.reset();
+
+    // Show modal
+    const modal = document.getElementById('rescheduleModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus on date input after a small delay
+        setTimeout(() => {
+            const dateInput = document.getElementById('reschedule-date');
+            if (dateInput) dateInput.focus();
+        }, 100);
+    } else {
+        console.error('Reschedule modal not found');
+    }
+}
+
+function closeImmunizationRescheduleModal() {
+    const modal = document.getElementById('rescheduleModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    currentRescheduleImmunization = null;
+
+    const form = document.getElementById('rescheduleForm');
+    if (form) form.reset();
+}
+
+// Handle reschedule form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const rescheduleForm = document.getElementById('rescheduleForm');
+    if (rescheduleForm) {
+        rescheduleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!currentRescheduleImmunization) {
+                if (window.healthcareAlert) {
+                    window.healthcareAlert.error('No immunization selected for rescheduling');
+                }
+                return;
+            }
+
+            const userRole = '{{ auth()->user()->role }}';
+            const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
+            this.action = `/${userRole}/${endpoint}/${currentRescheduleImmunization.id}/reschedule`;
+            this.submit();
+        });
+    }
+});
 </script>
 @endpush

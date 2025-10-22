@@ -534,6 +534,12 @@
             <i class="fas fa-clock"></i>
             Schedule Report
         </button>-->
+
+        <!-- BHW Accomplishment Report Button -->
+        <a href="{{ route('midwife.report.bhw.accomplishment') }}" target="_blank" class="btn btn-success" style="padding: 12px 16px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+            <i class="fas fa-file-alt"></i>
+            BHW Accomplishment Report
+        </a>
     </div>
 </div>
 

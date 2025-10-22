@@ -127,18 +127,19 @@
                 <h4 class="font-semibold text-gray-800 mb-3 sm:mb-4 text-sm sm:text-base">Physical Measurements</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     <div>
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Blood Pressure</label>
-                        <input type="text" name="blood_pressure" id="edit-blood-pressure" placeholder="e.g., 120/80"
+                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Blood Pressure *</label>
+                        <input type="text" name="blood_pressure" id="edit-blood-pressure" placeholder="e.g., 120/80" required
+                               pattern="\d{2,3}/\d{2,3}" title="Please enter blood pressure in format XXX/XXX (e.g., 120/80)"
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-                        <input type="number" name="weight" id="edit-weight" step="0.1" min="30" max="200" placeholder="e.g., 65.5"
+                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Weight (kg) *</label>
+                        <input type="number" name="weight" id="edit-weight" step="0.1" min="30" max="200" placeholder="e.g., 65.5" required
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-                        <input type="number" name="height" id="edit-height" min="120" max="200" placeholder="e.g., 165"
+                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Height (cm) *</label>
+                        <input type="number" name="height" id="edit-height" min="120" max="200" placeholder="e.g., 165" required
                                class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
@@ -147,14 +148,14 @@
             <!-- Medical Information Section -->
             <div class="space-y-3 sm:space-y-4">
                 <div>
-                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Medical History</label>
-                    <textarea name="medical_history" id="edit-medical-history" rows="2" sm:rows="3"
+                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Medical History *</label>
+                    <textarea name="medical_history" id="edit-medical-history" rows="2" sm:rows="3" required
                               placeholder="Any relevant medical history, previous pregnancies, complications, etc."
                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
-                    <textarea name="notes" id="edit-notes" rows="2" 
+                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Additional Notes *</label>
+                    <textarea name="notes" id="edit-notes" rows="2" required
                               placeholder="Any additional notes or observations..."
                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
                 </div>

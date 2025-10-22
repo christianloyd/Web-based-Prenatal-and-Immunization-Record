@@ -126,18 +126,19 @@ class ChildRecord extends Model
     public function getAgeAttribute()
     {
         if (!$this->birthdate) return null;
-        
-        $birthDate = $this->birthdate;
+
+        $birthDate = \Carbon\Carbon::parse($this->birthdate);
         $today = now();
-        
-        $years = $birthDate->diffInYears($today);
-        $months = $birthDate->diffInMonths($today) % 12;
-        
+
+        $years = (int) $birthDate->diffInYears($today);
+        $totalMonths = (int) $birthDate->diffInMonths($today);
+        $months = $totalMonths % 12;
+
         if ($years > 0) {
-            return $years . ' year' . ($years > 1 ? 's' : '') . 
+            return $years . ' year' . ($years > 1 ? 's' : '') .
                    ($months > 0 ? ' ' . $months . ' month' . ($months > 1 ? 's' : '') : '');
         }
-        
+
         return $months . ' month' . ($months > 1 ? 's' : '');
     }
 

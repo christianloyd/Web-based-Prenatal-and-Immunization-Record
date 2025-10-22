@@ -1,6 +1,6 @@
     <!-- partials/midwife/patient_add.blade.php -->
     <div id="patient-modal"
-        class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-4"
+        class="modal-overlay {{ $errors->any() ? '' : 'hidden' }} fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-modal-title"

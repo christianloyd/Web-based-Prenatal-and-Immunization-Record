@@ -1,0 +1,53 @@
+.btn-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.btn-view {
+    background-color: #f8fafc;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.btn-view:hover {
+    background-color: #68727A;
+    color: white;
+    border-color: #68727A;
+}
+
+.btn-edit {
+    background-color: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+.btn-edit:hover {
+    background-color: #16a34a;
+    color: white;
+    border-color: #16a34a;
+}
+
+.btn-delete {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+
+.tab-button.active {
+    border-color: #0ea5e9;
+    color: #0ea5e9;
+}
+
+.tab-content.hidden {
+    display: none;
+}

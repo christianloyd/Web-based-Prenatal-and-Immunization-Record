@@ -1,0 +1,202 @@
+
+/* Import Inter font for system-wide use - optimized weights only */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Apply Inter font system-wide */
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fix layout shaking by ensuring consistent scrollbar behavior */
+html {
+    overflow-y: scroll; /* Always show vertical scrollbar space */
+    scroll-behavior: smooth;
+}
+
+body {
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Custom scrollbar styling */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Ensure layout stability */
+.main-container {
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Prevent content jumping during navigation */
+.content-wrapper {
+    min-height: calc(100vh - 120px); /* Adjust based on header height */
+}
+
+/* Prevent layout shifts during transitions */
+* {
+    box-sizing: border-box;
+}
+
+/* Smooth transitions for all elements */
+.transition-all {
+    transition-duration: 150ms !important;
+}
+
+/* Prevent transform origin issues */
+[class*="transform"] {
+    transform-origin: center;
+}
+
+/* Ensure consistent width calculations */
+.w-64 {
+    width: 16rem !important;
+}
+
+/* Fix navigation menu button movements */
+.nav-link {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+    transform: none !important;
+}
+
+.nav-link:hover,
+.nav-link:focus,
+.nav-link:active {
+    transform: none !important;
+    outline: none !important;
+}
+
+/* Prevent any button movement or jumping */
+nav a, nav button {
+    transform: none !important;
+    will-change: auto !important;
+}
+
+/* Ensure sidebar stays fixed during navigation */
+.sidebar-nav {
+    position: fixed !important;
+    transform: none !important;
+}
+
+/* Stop all transforms and animations on navigation */
+nav *, nav i, .fas, .fa {
+    transform: none !important;
+    animation: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+/* Prevent flash of unstyled content */
+main {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Ensure sidebar appears instantly on desktop without animation */
+@media (min-width: 1024px) {
+    .sidebar-nav {
+        position: static !important;
+        transform: translateX(0) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+    }
+}
+
+/* Prevent initial animation flash */
+.sidebar-nav:not(.transition-transform) {
+    transition: none !important;
+}
+
+/* All navigation text must be BLACK for consistency - but allow active states to override */
+.sidebar-nav a:not(.bg-primary),
+.sidebar-nav li a:not(.bg-primary),
+.sidebar-nav .nav-link:not(.bg-primary),
+nav a:not(.bg-primary),
+nav ul li a:not(.bg-primary) {
+    color: #000000 !important; /* Pure black text */
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-weight: 500 !important;
+}
+
+/* Icons should also be black - but allow active states to override */
+.sidebar-nav i:not(.bg-primary i),
+.nav-link:not(.bg-primary) i,
+nav i:not(.bg-primary i) {
+    color: #000000 !important;
+}
+
+/* Active icons stay white */
+.sidebar-nav .nav-link.bg-primary i,
+nav .nav-link.bg-primary i {
+    color: white !important;
+}
+
+/* BHW Theme Colors for Admin */
+.bg-primary {
+    background-color: #D4A373 !important; /* Warm brown for sidebar */
+}
+
+.bg-secondary {
+    background-color: #D4A373 !important; /* Warm brown for sidebar */
+}
+
+.bg-header {
+    background-color: #FEFAE0 !important; /* Near-white ivory for header */
+}
+
+/* Custom hover states */
+.hover-cream:hover {
+    background-color: #e2e8f0 !important; /* Soft cream beige for hover */
+    color: #000000 !important;
+    font-weight: 600 !important;
+}
+
+/* Active state that matches hover - this stays persistent when clicked */
+.nav-active {
+    background-color: #e2e8f0 !important; /* Same as hover color */
+    color: #000000 !important;
+    font-weight: 600 !important;
+}
+
+/* Override the bg-primary for active nav links to use consistent styling */
+.nav-link.bg-primary {
+    background-color: #e2e8f0 !important; /* Match hover color for consistency */
+    color: #000000 !important; /* Black text for readability */
+    font-weight: 600 !important;
+}
+
+/* Admin text colors for better visibility on warm brown */
+.sidebar-nav a,
+.sidebar-nav li a,
+nav a,
+nav ul li a {
+    color: #1f2937 !important; /* Dark gray text on warm brown sidebar */
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-weight: 600 !important;
+} 

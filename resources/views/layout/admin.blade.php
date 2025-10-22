@@ -309,7 +309,7 @@
 
                     <!-- Users -->
                     <li>
-                        <a href="{{ route('admin.users.index') }}"
+                        <a href="{{ route('admin.user.index') }}"
                            class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('admin.users.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
                            data-section="users"
                            onclick="showNavigationLoading(event, this)">

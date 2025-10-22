@@ -71,6 +71,27 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'Error loading users: ' . $e->getMessage());
         }
     }
+    
+    /**
+     * Show the form for creating a new user
+     */
+    public function create()
+    {
+        // Check authorization first
+        if (!Auth::check()) {
+            abort(401, 'Authentication required');
+        }
+
+        $user = Auth::user();
+        
+        // Only Midwives can access user creation
+        if ($user->role !== 'midwife') {
+            abort(403, 'Forbidden. Only Midwives can create users.');
+        }
+        
+        return view('midwife.user.create');
+    }
+    
     /**
      * Store a newly created user
      */

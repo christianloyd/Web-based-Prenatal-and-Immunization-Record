@@ -257,13 +257,6 @@
         <div id="table-content">
             @include('midwife.childrecord.table', ['childRecords' => $childRecords])
         </div>
-
-        <!-- Pagination -->
-        <div id="pagination-content" class="px-4 py-3 bg-gray-50 border-t border-gray-200 overflow-x-auto">
-            @if($childRecords->hasPages())
-                {{ $childRecords->links() }}
-            @endif
-        </div>
     </div>
 </div>
 
@@ -1093,9 +1086,15 @@ function setupFormHandling() {
 
 // Check for validation errors and reopen modal if needed
 function checkAndReopenModalOnErrors() {
-    // Check if there are validation errors in the add form
-    const addFormErrors = document.querySelector('#recordModal .bg-red-100');
-    if (addFormErrors) {
+    // IMPORTANT: Only reopen modal if there are validation ERRORS, not on success
+    // This ensures success/error alerts are visible
+
+    // Check if there are validation errors in the add form (NOT success messages)
+    const addFormErrors = document.querySelector('#recordModal .bg-red-100, #recordModal .text-red-700');
+    const hasSuccessMessage = document.querySelector('.healthcare-alert-success');
+
+    // Only reopen modal if there are errors AND no success message
+    if (addFormErrors && !hasSuccessMessage) {
         // Reopen the add modal
         const modal = document.getElementById('recordModal');
         const childRecordForm = document.getElementById('childRecordForm');
@@ -1103,6 +1102,7 @@ function checkAndReopenModalOnErrors() {
 
         if (modal && childRecordForm) {
             modal.classList.remove('hidden');
+            modal.classList.add('show');
             document.body.style.overflow = 'hidden';
 
             // Skip confirmation step and show form directly
@@ -1116,22 +1116,43 @@ function checkAndReopenModalOnErrors() {
             } else if (motherExistsValue === 'no') {
                 showMotherForm(false);
             } else {
-                // Default to showing confirmation step if unclear
-                motherConfirmationStep.classList.remove('hidden');
-                childRecordForm.classList.add('hidden');
+                // Check old form values to determine which form was shown
+                const motherNameValue = document.querySelector('input[name="mother_name"]')?.value;
+                const motherIdValue = document.querySelector('select[name="mother_id"]')?.value;
+
+                if (motherIdValue) {
+                    showMotherForm(true);
+                } else if (motherNameValue) {
+                    showMotherForm(false);
+                } else {
+                    // Default to showing confirmation step if unclear
+                    motherConfirmationStep.classList.remove('hidden');
+                    childRecordForm.classList.add('hidden');
+                }
             }
         }
     }
 
     // Check if there are validation errors in the edit form
-    const editFormErrors = document.querySelector('#editChildModal .bg-red-100');
-    if (editFormErrors) {
+    const editFormErrors = document.querySelector('#edit-child-modal .bg-red-100, #edit-child-modal .text-red-700');
+    if (editFormErrors && !hasSuccessMessage) {
         // Reopen the edit modal
-        const editModal = document.getElementById('editChildModal');
+        const editModal = document.getElementById('edit-child-modal');
         if (editModal) {
             editModal.classList.remove('hidden');
+            editModal.classList.add('show');
             document.body.style.overflow = 'hidden';
         }
+    }
+
+    // If there's a success message, ensure all modals are closed
+    if (hasSuccessMessage) {
+        const allModals = document.querySelectorAll('.modal-overlay');
+        allModals.forEach(modal => {
+            modal.classList.remove('show');
+            modal.classList.add('hidden');
+        });
+        document.body.style.overflow = '';
     }
 }
 

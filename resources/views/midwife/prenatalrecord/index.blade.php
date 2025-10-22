@@ -301,11 +301,9 @@
         </div>
         
         <!-- Pagination -->
-        @if($prenatalRecords->hasPages())
-            <div class="px-6 py-3 border-t border-gray-200">
-                {{ $prenatalRecords->links() }}
-            </div>
-        @endif
+        <div class="px-6 py-3 border-t border-gray-200">
+            {{ $prenatalRecords->links() }}
+        </div>
     </div>
 </div>
 

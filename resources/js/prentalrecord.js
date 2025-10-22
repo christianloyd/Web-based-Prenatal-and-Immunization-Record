@@ -353,16 +353,38 @@ document.addEventListener('DOMContentLoaded', function() {
             closeViewPatientModal();
         }
     });
-    
-    
-    
-    // Setup form validation and submission handling
+
+    // Auto-open add patient modal if there are validation errors
+    const addPatientModal = document.getElementById('patient-modal');
     const addPatientForm = document.getElementById('patient-form');
-    if (addPatientForm) {
-        setupFormHandling(addPatientForm, 'submit-btn', 'Saving...');
+    if (addPatientModal && addPatientForm) {
+        const hasErrors = addPatientForm.querySelector('.bg-red-100, .error-border, .text-red-500');
+        if (hasErrors) {
+            openPatientModal();
+        }
     }
-    
+
+    // Auto-open edit patient modal if there are validation errors
+    const editPatientModal = document.getElementById('edit-patient-modal');
     const editPatientForm = document.getElementById('edit-patient-form');
+    if (editPatientModal && editPatientForm) {
+        const hasErrors = editPatientForm.querySelector('.bg-red-100, .error-border, .text-red-500');
+        if (hasErrors) {
+            // Need to get patient data from old input to reopen modal
+            const patientIdInput = editPatientForm.querySelector('#edit-patient-id');
+            if (patientIdInput && patientIdInput.value) {
+                editPatientModal.classList.remove('hidden');
+                editPatientModal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+    }
+
+    // Setup form validation and submission handling
+    if (addPatientForm) {
+        setupFormHandling(addPatientForm, 'add-submit-btn', 'Saving...');
+    }
+
     if (editPatientForm) {
         setupFormHandling(editPatientForm, 'edit-submit-btn', 'Updating...');
     }

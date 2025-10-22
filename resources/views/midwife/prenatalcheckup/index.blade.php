@@ -151,6 +151,11 @@
         color: #1d4ed8;
     }
 
+    .status-missed {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
     /* Alert Styles */
     .alert {
         padding: 1rem;
@@ -545,6 +550,7 @@
                         <option value="">All Status</option>
                         <option value="upcoming" {{ request('status') == 'upcoming' ? 'selected' : '' }}>Upcoming</option>
                         <option value="done" {{ request('status') == 'done' ? 'selected' : '' }}>Done</option>
+                        <option value="missed" {{ request('status') == 'missed' ? 'selected' : '' }}>Missed</option>
                     </select>
                 </div>
                 <div class="flex space-x-2">
@@ -599,7 +605,7 @@
                     </td>
                     <td>
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full status-{{ $checkup->status ?? 'upcoming' }}">
-                            <i class="fas {{ $checkup->status === 'done' ? 'fa-check' : 'fa-clock' }} mr-1"></i>
+                            <i class="fas {{ $checkup->status === 'done' ? 'fa-check' : ($checkup->status === 'missed' ? 'fa-times-circle' : 'fa-clock') }} mr-1"></i>
                             {{ ucfirst($checkup->status ?? 'Upcoming') }}
                         </span>
                     </td>
@@ -663,6 +669,11 @@
                 @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 overflow-x-auto">
+            {{ $checkups->links() }}
         </div>
     </div>
 </div>
@@ -943,7 +954,8 @@
         fetch('{{ route("midwife.prenatalcheckup.patients.search") }}')
             .then(response => response.json())
             .then(data => {
-                patients = data;
+                // Handle Laravel Resource Collection structure
+                patients = data.data || data; // Laravel resources wrap data in 'data' property
                 console.log('Loaded patients:', patients.length);
             })
             .catch(error => {

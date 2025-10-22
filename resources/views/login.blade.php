@@ -62,7 +62,11 @@
     <div class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8" style="background-color: #FEFAE0;">
         <div class="w-full max-w-md">
             <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+                <!-- Logo Header -->
                 <div class="text-center mb-6 sm:mb-8">
+                    <div class="mb-4">
+                        <img src="{{ asset('images/logo_final.jpg') }}" alt="Healthcare Logo" class="mx-auto h-28 w-28 sm:h-32 sm:w-32 rounded-full object-cover border-4 border-[#D4A373] shadow-lg">
+                    </div>
                     <h2 class="text-xl sm:text-2xl font-bold mb-2" style="color: #000000;">Welcome Back</h2>
                     <p class="text-sm sm:text-base" style="color: #6b7280;">Sign in to access your healthcare portal</p>
                 </div>

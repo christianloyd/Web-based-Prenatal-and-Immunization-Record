@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Pagination\Paginator;
 use App\View\Composers\ChildRecordComposer;
 use App\Models\Patient;
 use App\Models\Vaccine;
@@ -64,8 +65,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Use Tailwind for pagination
+        Paginator::useTailwind();
+
         View::composer('*childadd*', ChildRecordComposer::class);
-        
+
         // Register model observers for automatic notifications
         Patient::observe(PatientObserver::class);
         Vaccine::observe(VaccineObserver::class);

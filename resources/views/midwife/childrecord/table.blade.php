@@ -60,6 +60,11 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
+        {{ $childRecords->links() }}
+    </div>
 @else
     <!-- Empty State -->
     <div class="text-center py-16 px-4">

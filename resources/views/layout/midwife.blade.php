@@ -493,13 +493,36 @@
                             </ul>
                         </div>
                     </li>
-
-                    <!-- User Management -->
+                    <!-- Users -->
                     <li>
                         <a href="{{ route('midwife.user.index') }}"
-                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.user.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
-                            <i class="fas fa-users-cog w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('admin.users.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
+                           data-section="users"
+                           onclick="showNavigationLoading(event, this)">
+                            <i class="fas fa-users w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
                             User Management
+                        </a>
+                    </li>
+
+                    <!-- Cloud Backup -->
+                    <li>
+                        <a href="{{ route('midwife.cloudbackup.index') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('admin.cloudbackup.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
+                           data-section="cloud-backup"
+                           onclick="showNavigationLoading(event, this)">
+                           <i class="fas fa-cloud-upload-alt w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
+                            Cloud Backup
+                        </a>
+                    </li>
+
+                    <!-- SMS Logs -->
+                    <li>
+                        <a href="{{ route('midwife.sms-logs.index') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.sms-logs.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
+                           data-section="sms-logs"
+                           onclick="showNavigationLoading(event, this)">
+                            <i class="fas fa-sms w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
+                            SMS Logs
                         </a>
                     </li>
 
@@ -885,6 +908,7 @@
                             'vaccines': 'fa-vial',
                             'user-management': 'fa-users-cog',
                             'cloud-backup': 'fa-cloud-upload-alt',
+                            'sms-logs': 'fa-sms',
                             'reports': 'fa-chart-bar'
                         };
 

@@ -178,4 +178,72 @@ class Vaccine extends Model
 
         return $this;
     }
+
+    /**
+     * Check if a child has completed all doses for this vaccine
+     *
+     * @param int $childRecordId
+     * @return bool
+     */
+    public function isCompletedForChild($childRecordId)
+    {
+        if (!$this->dose_count) {
+            return false;
+        }
+
+        // Count how many "Done" immunizations exist for this vaccine and child
+        $completedDoses = \App\Models\Immunization::where('child_record_id', $childRecordId)
+            ->where('vaccine_id', $this->id)
+            ->where('status', 'Done')
+            ->count();
+
+        return $completedDoses >= $this->dose_count;
+    }
+
+    /**
+     * Get remaining doses for a child
+     *
+     * @param int $childRecordId
+     * @return int
+     */
+    public function getRemainingDosesForChild($childRecordId)
+    {
+        if (!$this->dose_count) {
+            return 0;
+        }
+
+        $completedDoses = \App\Models\Immunization::where('child_record_id', $childRecordId)
+            ->where('vaccine_id', $this->id)
+            ->where('status', 'Done')
+            ->count();
+
+        return max(0, $this->dose_count - $completedDoses);
+    }
+
+    /**
+     * Get the next dose number for a child
+     *
+     * @param int $childRecordId
+     * @return string|null
+     */
+    public function getNextDoseForChild($childRecordId)
+    {
+        $completedDoses = \App\Models\Immunization::where('child_record_id', $childRecordId)
+            ->where('vaccine_id', $this->id)
+            ->where('status', 'Done')
+            ->count();
+
+        if ($completedDoses >= $this->dose_count) {
+            return null; // All doses completed
+        }
+
+        $doseNumber = $completedDoses + 1;
+
+        // Return dose label
+        if ($doseNumber == 1) return '1st Dose';
+        if ($doseNumber == 2) return '2nd Dose';
+        if ($doseNumber == 3) return '3rd Dose';
+
+        return $doseNumber . 'th Dose';
+    }
 }

@@ -46,7 +46,7 @@ class User extends Authenticatable
             'age' => 'required|integer|min:18|max:100',
             'contact_number' => 'required|regex:/^9\d{9}$/|unique:users,contact_number',
             'address' => 'nullable|string|max:500',
-            'role' => 'required|in:midwife,bhw,admin',
+            'role' => 'required|in:midwife,bhw',
             'password' => 'required|string|min:8',
             'is_active' => 'sometimes|boolean', // Add validation for is_active
         ];
@@ -134,7 +134,7 @@ class User extends Authenticatable
             'age' => 'required|integer|min:18|max:100',
             'contact_number' => 'required|regex:/^9\d{9}$/|unique:users,contact_number,' . $userId,
             'address' => 'nullable|string|max:500',
-            'role' => 'required|in:midwife,bhw,admin',
+            'role' => 'required|in:midwife,bhw',
             'password' => 'nullable|string|min:8',
         ];
     }
@@ -159,7 +159,7 @@ class User extends Authenticatable
             'contact_number.unique' => 'This contact number is already registered.',
             'address.max' => 'Address cannot exceed 500 characters.',
             'role.required' => 'Role is required.',
-            'role.in' => 'Role must be midwife, bhw, or admin.',
+            'role.in' => 'Role must be midwife or bhw.',
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters long.',
         ];
@@ -177,7 +177,6 @@ class User extends Authenticatable
         return match($this->role) {
             'midwife' => 'role-badge-midwife',
             'bhw' => 'role-badge-bhw',
-            'admin' => 'role-badge-admin',
             default => 'role-badge-default'
         };
     }
@@ -188,7 +187,6 @@ class User extends Authenticatable
         return match($this->role) {
             'midwife' => 'fa-user-md',
             'bhw' => 'fa-hands-helping',
-            'admin' => 'fa-user-shield',
             default => 'fa-user'
         };
     }
@@ -203,12 +201,6 @@ class User extends Authenticatable
     public function isBhw()
     {
         return $this->role === 'bhw';
-    }
-
-    // Check if user is Admin
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
     }
 
     // Scope for filtering by role

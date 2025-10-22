@@ -346,21 +346,26 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Blood Pressure</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Blood Pressure *</label>
                         <input type="text"
                                name="blood_pressure"
+                               required
                                placeholder="e.g., 120/80"
+                               pattern="\d{2,3}/\d{2,3}"
+                               title="Please enter blood pressure in format XXX/XXX (e.g., 120/80)"
                                class="form-input @error('blood_pressure') error @enderror"
                                value="{{ old('blood_pressure') }}">
+                        <p class="text-xs text-gray-500 mt-1">Format: XXX/XXX (numbers only, e.g., 120/80)</p>
                         @error('blood_pressure')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg) *</label>
                         <input type="number"
                                name="weight"
+                               required
                                step="0.1"
                                min="30"
                                max="200"
@@ -373,9 +378,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Height (cm) *</label>
                         <input type="number"
                                name="height"
+                               required
                                min="120"
                                max="200"
                                placeholder="e.g., 165"
@@ -395,12 +401,18 @@
                 <i class="fas fa-notes-medical"></i>
                 Medical Information
             </h3>
+            
+            <p class="text-sm text-gray-600 mb-4">
+                <i class="fas fa-exclamation-triangle text-orange-500 mr-1"></i>
+                Both medical fields (Medical History and Notes) are required.
+            </p>
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Medical History</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Medical History *</label>
                     <textarea name="medical_history"
                               rows="4"
+                              required
                               placeholder="Any relevant medical history, previous pregnancies, complications, etc."
                               class="form-input resize-none @error('medical_history') error @enderror">{{ old('medical_history') }}</textarea>
                     @error('medical_history')
@@ -409,9 +421,10 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes *</label>
                     <textarea name="notes"
                               rows="3"
+                              required
                               placeholder="Any additional notes or observations..."
                               class="form-input resize-none @error('notes') error @enderror">{{ old('notes') }}</textarea>
                     @error('notes')
@@ -460,7 +473,9 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('{{ route("bhw.patients.search") }}')
             .then(response => response.json())
             .then(data => {
-                patients = data;
+                // Handle Laravel Resource Collection structure
+                patients = data.data || data; // Laravel resources wrap data in 'data' property
+                console.log('Loaded patients:', patients.length);
             })
             .catch(error => {
                 console.error('Error fetching patients:', error);

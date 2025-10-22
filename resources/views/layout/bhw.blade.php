@@ -392,6 +392,17 @@
                         </a>
                     </li>
 
+                    <!-- SMS Logs -->
+                    <li>
+                        <a href="{{ route('bhw.sms-logs.index') }}"
+                           class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('bhw.sms-logs.*') ? 'nav-active bg-primary' : 'hover-cream' }}"
+                           data-section="sms-logs"
+                           onclick="showNavigationLoading(event, this)">
+                            <i class="fas fa-sms w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
+                            SMS Logs
+                        </a>
+                    </li>
+
                     <!-- Reports -->
                     <li>
                         <a href="{{ route('bhw.report') }}"
@@ -515,6 +526,7 @@
                             'patients': 'fa-user-plus',
                             'prenatal': 'fa-file-medical',
                             'child-records': 'fa-child',
+                            'sms-logs': 'fa-sms',
                             'reports': 'fa-chart-bar'
                         };
 

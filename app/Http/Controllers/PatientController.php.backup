@@ -1,0 +1,349 @@
+<?php
+// app/Http/Controllers/PatientController.php
+
+namespace App\Http\Controllers;
+
+use App\Models\Patient;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use App\Notifications\HealthcareNotification;
+use Illuminate\Support\Facades\Cache;
+use App\Traits\NotifiesHealthcareWorkers;
+use App\Services\PatientService;
+use App\Http\Requests\StorePatientRequest;
+use App\Http\Requests\UpdatePatientRequest;
+
+class PatientController extends Controller
+{
+    use NotifiesHealthcareWorkers;
+
+    protected $patientService;
+
+    public function __construct(PatientService $patientService)
+    {
+        $this->patientService = $patientService;
+    }
+    // Display a listing of patients (mothers only)
+    public function index(Request $request)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $query = Patient::query();
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function($q) use ($term) {
+                $q->where('first_name', 'LIKE', "%{$term}%")
+                  ->orWhere('last_name', 'LIKE', "%{$term}%")
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$term}%"])
+                  ->orWhere('formatted_patient_id', 'LIKE', "%{$term}%");
+            });
+        }
+
+        $patients = $query->with('activePrenatalRecord')->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        $view = auth()->user()->role === 'midwife' 
+            ? 'midwife.patients.index' 
+            : 'bhw.patients.index';
+            
+        return view($view, compact('patients'));
+    }
+
+    // Show form to create new patient
+    public function create()
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $view = auth()->user()->role === 'midwife' 
+            ? 'midwife.patients.create' 
+            : 'bhw.patients.create';
+            
+        return view($view);
+    }
+
+    // Store new patient with comprehensive validation
+    public function store(StorePatientRequest $request)
+    {
+        try {
+            // Create the patient using service
+            $patient = $this->patientService->createPatient($request->validated());
+
+            // Success response
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Patient "' . $patient->name . '" has been registered successfully!',
+                    'patient' => $patient
+                ]);
+            }
+
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.patients.index'
+                : 'bhw.patients.index';
+
+            return redirect()->route($redirectRoute)
+                ->with('success', 'Patient "' . $patient->name . '" has been registered successfully!');
+
+        } catch (\Exception $e) {
+            // Check if it's a duplicate patient error
+            $errorMessage = $e->getMessage();
+            $isDuplicateError = strpos($errorMessage, 'same name and age') !== false;
+
+            if ($isDuplicateError) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMessage,
+                        'errors' => ['first_name' => [$errorMessage]]
+                    ], 422);
+                }
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', $errorMessage);
+            }
+
+            // Generic error
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An unexpected error occurred. Please try again.',
+                    'errors' => []
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'An unexpected error occurred. Please try again.');
+        }
+    }
+
+    // Show a single patient
+    public function show($id)
+    {
+        $patient = Patient::with(['prenatalRecords'])->findOrFail($id);
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.patients.show'
+            : 'bhw.patients.show';
+
+        return view($view, compact('patient'));
+    }
+
+    // Show comprehensive patient profile with all related records
+    public function profile($id)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Load patient with all related data
+        $patient = Patient::with([
+            'prenatalRecords' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            },
+            'prenatalCheckups' => function($query) {
+                $query->orderBy('checkup_date', 'desc');
+            },
+            'childRecords' => function($query) {
+                $query->orderBy('birthdate', 'desc');
+            },
+            'childRecords.immunizations' => function($query) {
+                $query->with('vaccine')->orderBy('schedule_date', 'desc');
+            },
+            'activePrenatalRecord',
+            'latestCheckup'
+        ])->findOrFail($id);
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.patients.profile'
+            : 'bhw.patients.profile';
+
+        return view($view, compact('patient'));
+    }
+
+    // Print patient profile with A4 layout
+    public function printProfile($id)
+    {
+        if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Load patient with all related data (same as profile method)
+        $patient = Patient::with([
+            'prenatalRecords' => function($query) {
+                $query->orderBy('created_at', 'asc');
+            },
+            'prenatalCheckups' => function($query) {
+                $query->orderBy('checkup_date', 'asc');
+            },
+            'childRecords' => function($query) {
+                $query->orderBy('birthdate', 'asc');
+            },
+            'childRecords.immunizations' => function($query) {
+                $query->with('vaccine')->orderBy('schedule_date', 'asc');
+            },
+            'activePrenatalRecord',
+            'latestCheckup'
+        ])->findOrFail($id);
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.patients.print'
+            : 'bhw.patients.print';
+
+        return view($view, compact('patient'));
+    }
+
+    // Show form to edit patient
+    public function edit($id)
+    {
+        $patient = Patient::findOrFail($id);
+        
+        $view = auth()->user()->role === 'midwife' 
+            ? 'midwife.patients.edit' 
+            : 'bhw.patients.edit';
+            
+        return view($view, compact('patient'));
+    }
+
+    // Update patient with comprehensive validation
+    public function update(UpdatePatientRequest $request, $id)
+    {
+        try {
+            $patient = Patient::findOrFail($id);
+
+            // Update the patient using service
+            $patient = $this->patientService->updatePatient($patient, $request->validated());
+
+            // Success response
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Patient "' . $patient->name . '" has been updated successfully!',
+                    'patient' => $patient
+                ]);
+            }
+
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.patients.index'
+                : 'bhw.patients.index';
+
+            return redirect()->route($redirectRoute)
+                ->with('success', 'Patient "' . $patient->name . '" has been updated successfully!');
+
+        } catch (\Exception $e) {
+            // Check if it's a duplicate patient error
+            $errorMessage = $e->getMessage();
+            $isDuplicateError = strpos($errorMessage, 'same name and age') !== false;
+
+            if ($isDuplicateError) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMessage,
+                        'errors' => ['first_name' => [$errorMessage]]
+                    ], 422);
+                }
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', $errorMessage);
+            }
+
+            // Generic error
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An unexpected error occurred. Please try again.',
+                    'errors' => []
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'An unexpected error occurred. Please try again.');
+        }
+    }
+
+    // Delete patient (only if no prenatal records)
+    public function destroy($id)
+    {
+        try {
+            $patient = Patient::with('prenatalRecords')->findOrFail($id);
+
+            // Use service to delete patient
+            $patientName = $this->patientService->deletePatient($patient);
+
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.patients.index'
+                : 'bhw.patients.index';
+
+            return redirect()->route($redirectRoute)
+                ->with('success', "Patient \"{$patientName}\" has been deleted successfully.");
+
+        } catch (\Exception $e) {
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.patients.index'
+                : 'bhw.patients.index';
+
+            return redirect()->route($redirectRoute)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+ * Search patients for AJAX requests
+ * Used by prenatal record creation and checkup forms
+ */
+public function search(Request $request)
+{
+    try {
+        $query = Patient::query();
+        
+        // If there's a search term, filter by it
+        if ($request->has('q') && !empty($request->q)) {
+            $searchTerm = $request->q;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('first_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('formatted_patient_id', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('contact', 'LIKE', "%{$searchTerm}%");
+            });
+        }
+        
+        // Get patients ordered by most recent first
+        $patients = $query->orderBy('created_at', 'desc')
+                         ->limit(50)
+                         ->get();
+        
+        // Format the response to match what the JavaScript expects
+        $formattedPatients = $patients->map(function($patient) {
+            return [
+                'id' => $patient->id,
+                'name' => $patient->name ?? ($patient->first_name . ' ' . $patient->last_name),
+                'first_name' => $patient->first_name,
+                'last_name' => $patient->last_name,
+                'formatted_patient_id' => $patient->formatted_patient_id ?? 'P-' . str_pad($patient->id, 3, '0', STR_PAD_LEFT),
+                'contact' => $patient->contact,
+                'age' => $patient->age,
+                'date_of_birth' => $patient->date_of_birth,
+            ];
+        });
+        
+        return response()->json($formattedPatients);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error in patient search: ' . $e->getMessage());
+        return response()->json([], 500);
+    }
+}
+}

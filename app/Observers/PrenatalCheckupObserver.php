@@ -12,8 +12,13 @@ class PrenatalCheckupObserver
      */
     public function created(PrenatalCheckup $prenatalCheckup): void
     {
-        // Send notification when a new prenatal checkup is scheduled
-        NotificationService::sendAppointmentReminder($prenatalCheckup);
+        // Send SMS for NEXT VISIT DATE only (not current checkup date)
+        // Current checkup date is today (already happening), no need for SMS
+        // Next visit date is the future appointment that needs reminder
+        if (!empty($prenatalCheckup->next_visit_date)) {
+            NotificationService::sendAppointmentConfirmation($prenatalCheckup);
+        }
+        // Patient will ALSO receive a reminder SMS 1 day before next visit via scheduled task (8AM/2PM)
     }
 
     /**
@@ -21,9 +26,9 @@ class PrenatalCheckupObserver
      */
     public function updated(PrenatalCheckup $prenatalCheckup): void
     {
-        // Send notification if the checkup date was changed
+        // Send confirmation SMS if the checkup date was changed
         if ($prenatalCheckup->wasChanged('checkup_date')) {
-            NotificationService::sendAppointmentReminder($prenatalCheckup);
+            NotificationService::sendAppointmentConfirmation($prenatalCheckup);
         }
     }
 

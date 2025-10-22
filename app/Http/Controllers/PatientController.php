@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use App\Notifications\HealthcareNotification;
 use Illuminate\Support\Facades\Cache;
 use App\Traits\NotifiesHealthcareWorkers;
+use App\Http\Resources\PatientSearchResource;
 
 class PatientController extends Controller
 {
@@ -584,21 +585,8 @@ public function search(Request $request)
                          ->limit(50)
                          ->get();
         
-        // Format the response to match what the JavaScript expects
-        $formattedPatients = $patients->map(function($patient) {
-            return [
-                'id' => $patient->id,
-                'name' => $patient->name ?? ($patient->first_name . ' ' . $patient->last_name),
-                'first_name' => $patient->first_name,
-                'last_name' => $patient->last_name,
-                'formatted_patient_id' => $patient->formatted_patient_id ?? 'P-' . str_pad($patient->id, 3, '0', STR_PAD_LEFT),
-                'contact' => $patient->contact,
-                'age' => $patient->age,
-                'date_of_birth' => $patient->date_of_birth,
-            ];
-        });
-        
-        return response()->json($formattedPatients);
+        // Use PatientSearchResource to return initials for privacy
+        return PatientSearchResource::collection($patients);
         
     } catch (\Exception $e) {
         \Log::error('Error in patient search: ' . $e->getMessage());

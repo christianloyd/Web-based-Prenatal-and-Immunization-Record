@@ -39,4 +39,10 @@ return [
         'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'iprog' => [
+        'api_token' => env('IPROG_API_TOKEN'),
+        'api_url' => env('IPROG_API_URL', 'https://sms.iprogtech.com/api/v1/sms_messages'),
+        'sender_name' => env('IPROG_SENDER_NAME', 'HealthCare System'),
+    ],
+
 ];

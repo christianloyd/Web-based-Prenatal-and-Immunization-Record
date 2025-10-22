@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Channels\SmsChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -16,17 +17,19 @@ class HealthcareNotification extends Notification
     public $type;
     public $actionUrl;
     public $data;
+    public $sendSms;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($title, $message, $type = 'info', $actionUrl = null, $data = [])
+    public function __construct($title, $message, $type = 'info', $actionUrl = null, $data = [], $sendSms = false)
     {
         $this->title = $title;
         $this->message = $message;
         $this->type = $type; // info, success, warning, error
         $this->actionUrl = $actionUrl;
         $this->data = $data;
+        $this->sendSms = $sendSms; // Enable/disable SMS notification
     }
 
     /**
@@ -36,7 +39,14 @@ class HealthcareNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        $channels = ['database', 'broadcast'];
+
+        // Add SMS channel if enabled
+        if ($this->sendSms) {
+            $channels[] = SmsChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -77,5 +87,24 @@ class HealthcareNotification extends Notification
     public function broadcastType(): string
     {
         return 'healthcare.notification';
+    }
+
+    /**
+     * Get the SMS representation of the notification.
+     *
+     * @param  object  $notifiable
+     * @return string
+     */
+    public function toSms(object $notifiable): string
+    {
+        // Create a concise SMS message (SMS has character limits)
+        $smsMessage = $this->title . ': ' . $this->message;
+
+        // Truncate if too long (160 chars for single SMS, 306 for concatenated)
+        if (strlen($smsMessage) > 306) {
+            $smsMessage = substr($smsMessage, 0, 303) . '...';
+        }
+
+        return $smsMessage;
     }
 }
