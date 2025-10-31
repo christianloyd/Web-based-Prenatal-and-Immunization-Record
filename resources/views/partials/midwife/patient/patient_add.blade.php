@@ -32,7 +32,8 @@
             <form action="{{ route('midwife.patients.store') }}"
                 method="POST"
                 id="patient-form"
-                class="space-y-5">
+                class="space-y-5"
+                onsubmit="return handlePatientFormSubmit(event)">
                 @csrf
 
                 <!-- Show server-side validation errors -->
@@ -139,3 +140,85 @@
             </form>
         </div>
     </div>
+
+<script>
+// AJAX form submission handler for patient add
+function handlePatientFormSubmit(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const submitBtn = document.getElementById('add-submit-btn');
+    const originalBtnText = submitBtn.innerHTML;
+
+    // Disable submit button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Registering...';
+
+    // Prepare form data
+    const formData = new FormData(form);
+
+    // Send AJAX request
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success alert
+            if (window.healthcareAlert) {
+                window.healthcareAlert.success(data.message || 'Patient registered successfully!');
+            }
+
+            // Close modal
+            closePatientModal();
+
+            // Reload page after short delay to show updated list
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            // Show error alert
+            if (window.healthcareAlert) {
+                window.healthcareAlert.error(data.message || 'Failed to register patient. Please try again.');
+            }
+
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+
+            // Display validation errors if any
+            if (data.errors) {
+                Object.keys(data.errors).forEach(key => {
+                    const errorMessages = data.errors[key];
+                    const inputField = form.querySelector(`[name="${key}"]`);
+                    if (inputField) {
+                        inputField.classList.add('error-border');
+                        // Display first error message
+                        const errorP = document.createElement('p');
+                        errorP.className = 'text-red-500 text-xs mt-1';
+                        errorP.textContent = errorMessages[0];
+                        inputField.parentElement.appendChild(errorP);
+                    }
+                });
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (window.healthcareAlert) {
+            window.healthcareAlert.error('An unexpected error occurred. Please try again.');
+        }
+
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    });
+
+    return false; // Prevent default form submission
+}
+</script>

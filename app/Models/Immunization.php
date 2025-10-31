@@ -24,8 +24,7 @@ class Immunization extends Model
     ];
 
     protected $casts = [
-        'schedule_date' => 'date',
-        'schedule_time' => 'datetime:H:i'
+        'schedule_date' => 'date'
     ];
 
     /* ----------------------------------------------------------

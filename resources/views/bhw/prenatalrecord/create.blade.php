@@ -466,16 +466,29 @@ document.addEventListener('DOMContentLoaded', function() {
     let searchTimeout;
     let patients = [];
 
-    // Fetch all patients on page load
+    // Fetch patients without active prenatal records on page load
     fetchPatients();
 
     function fetchPatients() {
-        fetch('{{ route("bhw.patients.search") }}')
-            .then(response => response.json())
+        fetch('{{ route("bhw.patients.search") }}?without_prenatal=true', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            credentials: 'same-origin'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 // Handle Laravel Resource Collection structure
                 patients = data.data || data; // Laravel resources wrap data in 'data' property
-                console.log('Loaded patients:', patients.length);
+                console.log('Loaded patients without active prenatal records:', patients.length);
             })
             .catch(error => {
                 console.error('Error fetching patients:', error);

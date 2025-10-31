@@ -38,20 +38,14 @@ class PrenatalCheckupController extends Controller
         $this->checkTodaysMissed();
 
         // Optimize: Load only necessary relationships (removed redundant 'patient')
-        $query = PrenatalCheckup::with(['prenatalRecord.patient'])
-            ->where(function($query) {
-                // Show all 'done' checkups regardless of pregnancy status (for historical records)
-                $query->where('status', 'done')
-                      // OR show 'upcoming'/'missed' checkups only for active, non-completed pregnancies
-                      ->orWhere(function($subQuery) {
-                          $subQuery->whereIn('status', ['upcoming', 'missed'])
-                                   ->whereHas('prenatalRecord', function($q) {
-                                       $q->where('is_active', 1)
-                                         ->where('status', '!=', 'completed');
-                                   });
-                      });
-            })
-            ->orderBy('checkup_date', 'desc');
+        $query = PrenatalCheckup::with(['prenatalRecord.patient']);
+
+        // Status filter - apply FIRST if provided
+        if ($request->filled('status')) {
+            // When filtering by specific status, show all records with that status
+            $query->where('status', $request->status);
+        }
+        // No else block - show all records when no status filter is selected
 
         // Search functionality
         if ($request->filled('search')) {
@@ -62,10 +56,8 @@ class PrenatalCheckupController extends Controller
             });
         }
 
-        // Status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        // Order by checkup date
+        $query->orderBy('checkup_date', 'desc');
 
         // Date range filter
         if ($request->filled('date_from')) {
@@ -152,6 +144,28 @@ class PrenatalCheckupController extends Controller
             return redirect()->back()
                 ->withErrors(['checkup_date' => 'A completed prenatal checkup already exists for this patient on the selected date.'])
                 ->withInput();
+        }
+
+        // Check if patient already has an upcoming checkup (only prevent if creating another UPCOMING checkup)
+        // Allow "done" checkups (when medical data is provided) even if there's an existing upcoming checkup
+        $hasMedicalData = $request->filled('weight_kg') || $request->filled('blood_pressure_systolic') ||
+                         $request->filled('fetal_heart_rate') || $request->filled('fundal_height_cm') ||
+                         $request->filled('symptoms') || $request->filled('notes');
+
+        $isCreatingUpcoming = !$hasMedicalData; // If no medical data, it's an upcoming checkup
+
+        if ($isCreatingUpcoming) {
+            $existingUpcoming = PrenatalCheckup::where('patient_id', $request->patient_id)
+                ->where('status', 'upcoming')
+                ->whereDate('checkup_date', '!=', $request->checkup_date) // Different date
+                ->first();
+
+            if ($existingUpcoming) {
+                $existingDate = \Carbon\Carbon::parse($existingUpcoming->checkup_date)->format('F j, Y');
+                return redirect()->back()
+                    ->withErrors(['checkup_date' => "This patient already has an upcoming prenatal checkup scheduled on {$existingDate}. To complete that checkup: Create a new checkup with date '{$existingDate}' and fill in the medical data (weight, BP, etc.). The system will automatically mark it as 'Done' and you can schedule the next visit."])
+                    ->withInput();
+            }
         }
 
         // Check blood pressure and add warning if needed
@@ -614,9 +628,11 @@ class PrenatalCheckupController extends Controller
                 'missed_reason' => $request->reason ?? 'Patient did not show up'
             ]);
 
-            // Get patient name
-            $patientName = $checkup->prenatalRecord->patient->first_name . ' ' .
-                          $checkup->prenatalRecord->patient->last_name;
+            // Send SMS to patient about missed checkup
+            $patient = $checkup->prenatalRecord->patient;
+
+            // Get patient name - use 'name' field which is more reliable
+            $patientName = $patient->name ?? ($patient->first_name . ' ' . $patient->last_name);
 
             // Send notification about missed checkup
             $this->notifyHealthcareWorkers(
@@ -634,8 +650,35 @@ class PrenatalCheckupController extends Controller
                 ]
             );
 
+            if ($patient->contact) {
+                try {
+                    $smsService = new SmsService();
+                    $formattedDate = $checkup->checkup_date->format('F j, Y');
+
+                    $message = "Hello {$patientName}! You missed your prenatal checkup scheduled on {$formattedDate}. Please contact us to reschedule your appointment. Thank you! - " . config('services.iprog.sender_name');
+
+                    $smsService->sendSms(
+                        $patient->contact,
+                        $message,
+                        'prenatal_checkup_missed',
+                        $patientName,
+                        'PrenatalCheckup',
+                        $checkup->id
+                    );
+
+                    \Log::info('SMS sent for missed prenatal checkup', [
+                        'patient_id' => $patient->id,
+                        'checkup_id' => $checkup->id,
+                        'phone' => $patient->contact
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send SMS for missed checkup: ' . $e->getMessage());
+                    // Don't fail the marking if SMS fails
+                }
+            }
+
             return redirect()->back()
-                ->with('success', 'Checkup marked as missed. Patient can now reschedule.');
+                ->with('success', 'Checkup marked as missed.' . ($patient->contact ? ' Patient has been notified via SMS.' : ' Patient can now reschedule.'));
 
         } catch (\Exception $e) {
             \Log::error('Error marking checkup as missed: ' . $e->getMessage());
@@ -708,9 +751,11 @@ class PrenatalCheckupController extends Controller
                           " (New Checkup ID: " . $newCheckup->id . ")"
             ]);
 
-            // Get patient name
-            $patientName = $missedCheckup->prenatalRecord->patient->first_name . ' ' .
-                          $missedCheckup->prenatalRecord->patient->last_name;
+            // Get patient
+            $patient = $missedCheckup->prenatalRecord->patient;
+
+            // Get patient name - use 'name' field which is more reliable
+            $patientName = $patient->name ?? ($patient->first_name . ' ' . $patient->last_name);
 
             // Send notification about rescheduling
             $formattedDate = Carbon::parse($request->new_checkup_date)->format('F j, Y');
@@ -734,20 +779,25 @@ class PrenatalCheckupController extends Controller
             );
 
             // Send SMS reminder to patient
-            $patient = $missedCheckup->prenatalRecord->patient;
-            if ($patient->contact_number) {
+            if ($patient->contact) {
                 try {
                     $smsService = new SmsService();
-                    $smsService->sendAppointmentReminder(
-                        $patient->contact_number,
+
+                    $message = "Hello {$patientName}! Your missed prenatal checkup has been rescheduled to {$formattedDate} at {$formattedTime}. Please don't forget to attend. Thank you! - " . config('services.iprog.sender_name');
+
+                    $smsService->sendSms(
+                        $patient->contact,
+                        $message,
+                        'prenatal_checkup_rescheduled',
                         $patientName,
-                        $formattedDate . ' at ' . $formattedTime,
-                        'prenatal checkup'
+                        'PrenatalCheckup',
+                        $newCheckup->id
                     );
+
                     \Log::info('SMS reminder sent for rescheduled prenatal checkup', [
                         'patient_id' => $patient->id,
                         'checkup_id' => $newCheckup->id,
-                        'phone' => $patient->contact_number
+                        'phone' => $patient->contact
                     ]);
                 } catch (\Exception $e) {
                     \Log::error('Failed to send SMS for rescheduled checkup: ' . $e->getMessage());
@@ -756,7 +806,7 @@ class PrenatalCheckupController extends Controller
             }
 
             return redirect()->back()
-                ->with('success', "Checkup successfully rescheduled to {$formattedDate} at {$formattedTime}. The missed appointment record has been preserved for tracking." . ($patient->contact_number ? " SMS reminder sent to patient." : ""));
+                ->with('success', "Checkup successfully rescheduled to {$formattedDate} at {$formattedTime}. The missed appointment record has been preserved for tracking." . ($patient->contact ? " SMS reminder sent to patient." : ""));
 
         } catch (\Exception $e) {
             \Log::error('Error rescheduling missed checkup: ' . $e->getMessage());

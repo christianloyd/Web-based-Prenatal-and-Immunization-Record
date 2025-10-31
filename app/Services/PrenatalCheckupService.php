@@ -137,7 +137,7 @@ class PrenatalCheckupService
             ->first();
 
         if (!$existingNextCheckup) {
-            PrenatalCheckup::create([
+            $nextCheckup = PrenatalCheckup::create([
                 'patient_id' => $patient->id,
                 'prenatal_record_id' => $prenatalRecord ? $prenatalRecord->id : null,
                 'checkup_date' => $data['next_visit_date'],
@@ -146,6 +146,49 @@ class PrenatalCheckupService
                 'status' => 'upcoming',
                 'conducted_by' => Auth::id(),
             ]);
+
+            // Send SMS reminder for next visit
+            $this->sendCheckupReminder($patient, $nextCheckup);
+        }
+    }
+
+    /**
+     * Send SMS reminder for checkup
+     */
+    protected function sendCheckupReminder($patient, $checkup)
+    {
+        if (!$patient->contact) {
+            return;
+        }
+
+        try {
+            $smsService = new SmsService();
+            $formattedDate = Carbon::parse($checkup->checkup_date)->format('F j, Y');
+            $formattedTime = $checkup->checkup_time ? Carbon::parse($checkup->checkup_time)->format('g:i A') : '';
+
+            $message = "Hello {$patient->name}! This is a reminder for your prenatal checkup scheduled on {$formattedDate}";
+            if ($formattedTime) {
+                $message .= " at {$formattedTime}";
+            }
+            $message .= ". Please don't forget to bring your prenatal record. - " . config('services.iprog.sender_name');
+
+            $smsService->sendSms(
+                $patient->contact,
+                $message,
+                'prenatal_checkup_reminder',
+                $patient->name,
+                'PrenatalCheckup',
+                $checkup->id
+            );
+
+            \Log::info('Prenatal checkup SMS reminder sent', [
+                'patient_id' => $patient->id,
+                'checkup_id' => $checkup->id,
+                'phone' => $patient->contact
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send prenatal checkup SMS reminder: ' . $e->getMessage());
+            // Don't fail the checkup creation if SMS fails
         }
     }
 
@@ -208,7 +251,50 @@ class PrenatalCheckupService
             'conducted_by' => Auth::id(),
         ]);
 
+        // Send SMS confirmation for completed checkup
+        $this->sendCompletionSms($checkup);
+
         return $checkup;
+    }
+
+    /**
+     * Send SMS confirmation for completed checkup
+     */
+    protected function sendCompletionSms($checkup)
+    {
+        $patient = $checkup->patient;
+        if (!$patient || !$patient->contact) {
+            return;
+        }
+
+        try {
+            $smsService = new SmsService();
+            $formattedDate = Carbon::parse($checkup->checkup_date)->format('F j, Y');
+
+            $message = "Hello {$patient->name}! Your prenatal checkup on {$formattedDate} has been completed. ";
+            if ($checkup->next_visit_date) {
+                $nextDate = Carbon::parse($checkup->next_visit_date)->format('F j, Y');
+                $message .= "Your next visit is scheduled on {$nextDate}. ";
+            }
+            $message .= "Thank you for your cooperation! - " . config('services.iprog.sender_name');
+
+            $smsService->sendSms(
+                $patient->contact,
+                $message,
+                'prenatal_checkup_completed',
+                $patient->name,
+                'PrenatalCheckup',
+                $checkup->id
+            );
+
+            \Log::info('Prenatal checkup completion SMS sent', [
+                'patient_id' => $patient->id,
+                'checkup_id' => $checkup->id,
+                'phone' => $patient->contact
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send prenatal checkup completion SMS: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -258,6 +344,12 @@ class PrenatalCheckupService
             $checkup->update([
                 'status' => 'rescheduled',
             ]);
+
+            // Send SMS for rescheduled checkup
+            $patient = $checkup->patient;
+            if ($patient) {
+                $this->sendCheckupReminder($patient, $newCheckup);
+            }
 
             DB::commit();
 

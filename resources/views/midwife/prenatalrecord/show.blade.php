@@ -234,10 +234,10 @@
                     <i class="fas fa-stethoscope mr-1"></i>
                     <span class="hidden sm:inline">Schedule</span>
                 </a>
-                <button onclick="openEditModal()" class="btn-action btn-edit inline-flex items-center">
+                <a href="{{ route('midwife.prenatalrecord.edit', $prenatalRecord->id) }}" class="btn-action btn-edit inline-flex items-center">
                     <i class="fas fa-edit mr-1"></i>
                     <span class="hidden sm:inline">Edit</span>
-                </button>
+                </a>
             </div>
         </div>
     </div>

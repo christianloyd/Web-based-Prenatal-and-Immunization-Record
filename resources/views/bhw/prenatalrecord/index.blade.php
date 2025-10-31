@@ -44,6 +44,18 @@
         border-color: #f59e0b;
     }
 
+    .btn-complete {
+        background-color: #d1fae5;
+        color: #065f46;
+        border-color: #a7f3d0;
+    }
+
+    .btn-complete:hover {
+        background-color: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+
     /* Additional Mobile Responsive Styles */
 @media (max-width: 640px) {
     .modal-content {
@@ -333,16 +345,24 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-4">
-                            <a href="{{ route('bhw.prenatalrecord.show', $record->id) }}" 
+                            <a href="{{ route('bhw.prenatalrecord.show', $record->id) }}"
                                 class="btn-action btn-view inline-flex items-center justify-center">
                                 <i class="fas fa-eye mr-1"></i>
-                            <span class="hidden sm:inline">   </span>
+                            <span class="hidden sm:inline"><!--View--></span>
                                 </a>
-                                <button onclick="openEditPrenatalModal({{ $record }})" 
+                                <button onclick="openEditPrenatalModal({{ $record }})"
                                 class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
-                            <span class="hidden sm:inline"> 
+                            <span class="hidden sm:inline"><!--Edit--></span>
                                 </button>
+                                @if($record->status !== 'completed')
+                                <button onclick="openCompletePregnancyModal({{ $record->id }}, '{{ $record->patient->name }}')"
+                                class="btn-action btn-complete inline-flex items-center justify-center"
+                                title="Mark pregnancy as completed">
+                                <i class="fas fa-check-circle mr-1"></i>
+                            <span class="hidden sm:inline"><!--Complete--></span>
+                                </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -379,259 +399,410 @@
 <!-- Edit Prenatal Record Modal -->
 @include('partials.bhw.prenatalrecord.prenataledit')
 
+<!-- Complete Pregnancy Confirmation Modal -->
+<div id="completePregnancyModal" 
+     class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4"
+     onclick="closeCompletePregnancyModal(event)">
+    <div class="modal-content relative w-full max-w-md bg-white rounded-xl shadow-2xl p-6"
+         onclick="event.stopPropagation()">
+        <div class="text-center">
+            <!-- Warning Icon -->
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-3xl text-yellow-600"></i>
+            </div>
+
+            <!-- Modal Title -->
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Complete Pregnancy Record?</h3>
+
+            <!-- Patient Name -->
+            <p class="text-gray-600 mb-4">
+                You are about to mark the pregnancy record for:<br>
+                <span class="font-semibold text-gray-900" id="completePatientName"></span>
+            </p>
+
+            <!-- Warning Message -->
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4 text-left">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700 font-semibold">
+                            ⚠️ Warning: This action cannot be reversed!
+                        </p>
+                        <p class="text-sm text-red-600 mt-1">
+                            Once completed, you will NOT be able to change the status back or edit this record.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmation Question -->
+            <p class="text-gray-700 font-medium mb-6">
+                Are you sure you want to proceed?
+            </p>
+
+            <!-- Buttons -->
+            <form id="completePregnancyForm" method="POST" action="">
+                @csrf
+                <div class="flex space-x-3">
+                    <button type="button" 
+                            onclick="closeCompletePregnancyModal(event)"
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors font-medium">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        <i class="fas fa-check-circle mr-2"></i>Yes, Complete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
-@push('scripts')
+
+
 <script>
-
-// --------------------
-// View Prenatal Record Modal
-// --------------------
-function openViewPrenatalModal(record) {
-    if (!record) {
-        console.error('No prenatal record provided');
-        return;
-    }
-
-    // Helper function to safely set text content
-    const setText = (id, value) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = value || 'N/A';
+    // --------------------
+    // Complete Pregnancy Modal - FIXED VERSION
+    // --------------------
+    function openCompletePregnancyModal(recordId, patientName) {
+        console.log('Opening complete pregnancy modal for record:', recordId, 'patient:', patientName);
+    
+        // Set patient name
+        const patientNameElement = document.getElementById('completePatientName');
+        if (patientNameElement) {
+            patientNameElement.textContent = patientName || 'Unknown Patient';
+        } else {
+            console.error('completePatientName element not found');
+            return;
         }
-    };
-
-    // Populate modal fields
-    setText('viewPatientName', record.patient?.name);
-    setText('viewPatientId', record.patient?.formatted_patient_id);
-    setText('viewPatientAge', record.patient?.age ? `${record.patient.age} years` : null);
-    setText('viewGestationalAge', record.gestational_age);
-    setText('viewTrimester', record.trimester ? 
-        `${record.trimester}${record.trimester == 1 ? 'st' : (record.trimester == 2 ? 'nd' : 'rd')} Trimester` : null);
-    setText('viewLMP', record.last_menstrual_period);
-    setText('viewEDD', record.expected_due_date);
-    setText('viewGravida', record.gravida ? `G${record.gravida}` : null);
-    setText('viewPara', record.para !== null ? `P${record.para}` : null);
-    setText('viewStatus', record.status_text || record.status);
-    setText('viewBloodPressure', record.blood_pressure);
-    setText('viewWeight', record.weight ? `${record.weight} kg` : null);
-    setText('viewHeight', record.height ? `${record.height} cm` : null);
-    setText('viewMedicalHistory', record.medical_history);
-    setText('viewNotes', record.notes);
-    setText('viewLastVisit', record.last_visit);
-    setText('viewNextAppointment', record.next_appointment);
-
-    // Show modal
-    const modal = document.getElementById('view-prenatal-modal');
-    if (!modal) {
-        console.error('View prenatal modal not found');
-        return;
-    }
-
-    modal.classList.remove('hidden');
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeViewPrenatalModal(e) {
-    if (e && e.target !== e.currentTarget) return;
     
-    const modal = document.getElementById('view-prenatal-modal');
-    if (!modal) return;
-    
-    modal.classList.remove('show');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }, 300);
-}
-
-// --------------------
-// Edit Prenatal Record Modal
-// --------------------
-function openEditPrenatalModal(record) {
-    if (!record) {
-        console.error('No prenatal record provided');
-        return;
-    }
-    
-    const modal = document.getElementById('edit-prenatal-modal');
-    const form = document.getElementById('edit-prenatal-form');
-    
-    if (!modal || !form) {
-        console.error('Edit modal or form not found');
-        return;
-    }
-    
-    // Set form action URL
-    if (form.dataset.updateUrl) {
-        form.action = form.dataset.updateUrl.replace(':id', record.id);
-    }
-    
-    // Helper function to format dates for input fields
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            return date.toISOString().split('T')[0];
-        } catch (error) {
-            return '';
+        // Set form action
+        const form = document.getElementById('completePregnancyForm');
+        if (form) {
+            form.action = `/bhw/prenatalrecord/${recordId}/complete`;
+            console.log('Form action set to:', form.action);
+        } else {
+            console.error('completePregnancyForm not found');
+            return;
         }
-    };
     
-    // Helper function to safely set form values
-    const setValue = (id, value) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.value = value || '';
-            // Remove any validation styling
-            element.classList.remove('error-border', 'success-border');
+        // Show modal with proper animation (matching the pattern from other modals)
+        const modal = document.getElementById('completePregnancyModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            
+            // Use requestAnimationFrame to ensure DOM has updated before adding show class
+            requestAnimationFrame(() => {
+                modal.classList.add('show');
+            });
+            
+            document.body.style.overflow = 'hidden';
+            console.log('Modal should be visible now with animation');
+        } else {
+            console.error('completePregnancyModal not found');
         }
-    };
-
-    // Helper function to set text content
-    const setText = (id, value) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = value || 'N/A';
+    }
+    
+    function closeCompletePregnancyModal(event) {
+        // Prevent closing if clicking inside modal content
+        if (event && event.target !== event.currentTarget && !event.currentTarget.id) {
+            return;
         }
-    };
     
-    // Populate patient information display (read-only)
-    setText('edit-patient-name-display', record.patient?.name);
-    setText('edit-patient-id-display', record.patient?.formatted_patient_id);
-    setText('edit-patient-age-display', record.patient?.age ? `${record.patient.age} years` : null);
+        const modal = document.getElementById('completePregnancyModal');
+        if (!modal) return;
     
-    // Set hidden patient_id field
-    setValue('edit-patient-id-hidden', record.patient_id || '');
+        // Remove show class first to trigger closing animation
+        modal.classList.remove('show');
+        
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 300);
+    }
     
-    // Populate editable form fields
-    setValue('edit-lmp', formatDate(record.last_menstrual_period));
-    setValue('edit-due-date', formatDate(record.expected_due_date));
-    setValue('edit-gravida', record.gravida || '');
-    setValue('edit-para', record.para || '');
-    setValue('edit-status', record.status || 'normal');
-    setValue('edit-blood-pressure', record.blood_pressure || '');
-    setValue('edit-weight', record.weight || '');
-    setValue('edit-height', record.height || '');
-    setValue('edit-medical-history', record.medical_history || '');
-    setValue('edit-notes', record.notes || '');
-
-    // Show modal
-    modal.classList.remove('hidden');
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeEditPrenatalModal(e) {
-    if (e && e.target !== e.currentTarget) return;
+    // --------------------
+    // View Prenatal Record Modal
+    // --------------------
+    function openViewPrenatalModal(record) {
+        if (!record) {
+            console.error('No prenatal record provided');
+            return;
+        }
     
-    const modal = document.getElementById('edit-prenatal-modal');
-    if (!modal) return;
+        // Helper function to safely set text content
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value || 'N/A';
+            }
+        };
     
-    modal.classList.remove('show');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }, 300);
-}
-
-// --------------------
-// Date Validation and Auto-calculation
-// --------------------
-function calculateEDD(lmpDate) {
-    if (!lmpDate) return '';
+        // Populate modal fields
+        setText('viewPatientName', record.patient?.name);
+        setText('viewPatientId', record.patient?.formatted_patient_id);
+        setText('viewPatientAge', record.patient?.age ? `${record.patient.age} years` : null);
+        setText('viewGestationalAge', record.gestational_age);
+        setText('viewTrimester', record.trimester ? 
+            `${record.trimester}${record.trimester == 1 ? 'st' : (record.trimester == 2 ? 'nd' : 'rd')} Trimester` : null);
+        setText('viewLMP', record.last_menstrual_period);
+        setText('viewEDD', record.expected_due_date);
+        setText('viewGravida', record.gravida ? `G${record.gravida}` : null);
+        setText('viewPara', record.para !== null ? `P${record.para}` : null);
+        setText('viewStatus', record.status_text || record.status);
+        setText('viewBloodPressure', record.blood_pressure);
+        setText('viewWeight', record.weight ? `${record.weight} kg` : null);
+        setText('viewHeight', record.height ? `${record.height} cm` : null);
+        setText('viewMedicalHistory', record.medical_history);
+        setText('viewNotes', record.notes);
+        setText('viewLastVisit', record.last_visit);
+        setText('viewNextAppointment', record.next_appointment);
     
-    const lmp = new Date(lmpDate);
-    const edd = new Date(lmp);
-    edd.setDate(edd.getDate() + 280); // Add 280 days (40 weeks)
+        // Show modal
+        const modal = document.getElementById('view-prenatal-modal');
+        if (!modal) {
+            console.error('View prenatal modal not found');
+            return;
+        }
     
-    return edd.toISOString().split('T')[0];
-}
-
-function setupDateValidation() {
-    const today = new Date().toISOString().split('T')[0];
-
-    // Setup for Edit Modal
-    const editLmpInput = document.querySelector('#edit-prenatal-modal input[name="last_menstrual_period"]');
-    const editEddInput = document.querySelector('#edit-prenatal-modal input[name="expected_due_date"]');
-
-    if (editLmpInput) {
-        editLmpInput.setAttribute('max', today);
-
-        if (editEddInput) {
-            editLmpInput.addEventListener('change', function() {
-                if (this.value && !editEddInput.value) {
-                    editEddInput.value = calculateEDD(this.value);
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            modal.classList.add('show');
+        });
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeViewPrenatalModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        
+        const modal = document.getElementById('view-prenatal-modal');
+        if (!modal) return;
+        
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 300);
+    }
+    
+    // --------------------
+    // Edit Prenatal Record Modal
+    // --------------------
+    function openEditPrenatalModal(record) {
+        if (!record) {
+            console.error('No prenatal record provided');
+            return;
+        }
+        
+        const modal = document.getElementById('edit-prenatal-modal');
+        const form = document.getElementById('edit-prenatal-form');
+        
+        if (!modal || !form) {
+            console.error('Edit modal or form not found');
+            return;
+        }
+        
+        // Set form action URL
+        if (form.dataset.updateUrl) {
+            form.action = form.dataset.updateUrl.replace(':id', record.id);
+        }
+        
+        // Helper function to format dates for input fields
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            try {
+                const date = new Date(dateString);
+                return date.toISOString().split('T')[0];
+            } catch (error) {
+                return '';
+            }
+        };
+        
+        // Helper function to safely set form values
+        const setValue = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = value || '';
+                element.classList.remove('error-border', 'success-border');
+            }
+        };
+    
+        // Helper function to set text content
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value || 'N/A';
+            }
+        };
+        
+        // Populate patient information display (read-only)
+        setText('edit-patient-name-display', record.patient?.name);
+        setText('edit-patient-id-display', record.patient?.formatted_patient_id);
+        setText('edit-patient-age-display', record.patient?.age ? `${record.patient.age} years` : null);
+        
+        // Set hidden patient_id field
+        setValue('edit-patient-id-hidden', record.patient_id || '');
+        
+        // Populate editable form fields
+        setValue('edit-lmp', formatDate(record.last_menstrual_period));
+        setValue('edit-due-date', formatDate(record.expected_due_date));
+        setValue('edit-gravida', record.gravida || '');
+        setValue('edit-para', record.para || '');
+        setValue('edit-status', record.status || 'normal');
+        setValue('edit-blood-pressure', record.blood_pressure || '');
+        setValue('edit-weight', record.weight || '');
+        setValue('edit-height', record.height || '');
+        setValue('edit-medical-history', record.medical_history || '');
+        setValue('edit-notes', record.notes || '');
+    
+        // Show modal
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            modal.classList.add('show');
+        });
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeEditPrenatalModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        
+        const modal = document.getElementById('edit-prenatal-modal');
+        if (!modal) return;
+        
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 300);
+    }
+    
+    // --------------------
+    // Date Validation and Auto-calculation
+    // --------------------
+    function calculateEDD(lmpDate) {
+        if (!lmpDate) return '';
+        
+        const lmp = new Date(lmpDate);
+        const edd = new Date(lmp);
+        edd.setDate(edd.getDate() + 280); // Add 280 days (40 weeks)
+        
+        return edd.toISOString().split('T')[0];
+    }
+    
+    function setupDateValidation() {
+        const today = new Date().toISOString().split('T')[0];
+    
+        // Setup for Edit Modal
+        const editLmpInput = document.querySelector('#edit-prenatal-modal input[name="last_menstrual_period"]');
+        const editEddInput = document.querySelector('#edit-prenatal-modal input[name="expected_due_date"]');
+    
+        if (editLmpInput) {
+            editLmpInput.setAttribute('max', today);
+    
+            if (editEddInput) {
+                editLmpInput.addEventListener('change', function() {
+                    if (this.value && !editEddInput.value) {
+                        editEddInput.value = calculateEDD(this.value);
+                    }
+                });
+            }
+        }
+    }
+    
+    // --------------------
+    // Form Validation
+    // --------------------
+    function validateForm(formId) {
+        const form = document.getElementById(formId);
+        if (!form) return true;
+        
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        return isValid;
+    }
+    
+    // --------------------
+    // Event Listeners
+    // --------------------
+    document.addEventListener('DOMContentLoaded', function() {
+        setupDateValidation();
+    
+        // Form submission validation for edit form
+        const editPrenatalForm = document.getElementById('edit-prenatal-form');
+        if (editPrenatalForm) {
+            editPrenatalForm.addEventListener('submit', function(e) {
+                if (!validateForm('edit-prenatal-form')) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields.');
                 }
             });
         }
-    }
-}
-
-// --------------------
-// Form Validation
-// --------------------
-function validateForm(formId) {
-    const form = document.getElementById(formId);
-    if (!form) return true;
     
-    let isValid = true;
-    const requiredFields = form.querySelectorAll('[required]');
-    
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('border-red-500');
-            isValid = false;
-        } else {
-            field.classList.remove('border-red-500');
+        // Setup close on click outside for complete modal
+        const completeModal = document.getElementById('completePregnancyModal');
+        if (completeModal) {
+            completeModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCompletePregnancyModal(e);
+                }
+            });
         }
     });
     
-    return isValid;
-}
-
-// --------------------
-// Event Listeners
-// --------------------
-document.addEventListener('DOMContentLoaded', function() {
-    setupDateValidation();
-
-    // Form submission validation for edit form
-    const editPrenatalForm = document.getElementById('edit-prenatal-form');
-    if (editPrenatalForm) {
-        editPrenatalForm.addEventListener('submit', function(e) {
-            if (!validateForm('edit-prenatal-form')) {
-                e.preventDefault();
-                alert('Please fill in all required fields.');
+    // Close modals on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const completeModal = document.getElementById('completePregnancyModal');
+            if (completeModal && !completeModal.classList.contains('hidden')) {
+                closeCompletePregnancyModal();
             }
-        });
-    }
-});
-
-// Close modals on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeViewPrenatalModal();
-        closeEditPrenatalModal();
-    }
-});
-
-// Prevent modal close when clicking inside modal content
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal-overlay')) {
-        const modalId = e.target.id;
-        switch (modalId) {
-            case 'view-prenatal-modal':
-                closeViewPrenatalModal(e);
-                break;
-            case 'edit-prenatal-modal':
-                closeEditPrenatalModal(e);
-                break;
+            
+            const viewModal = document.getElementById('view-prenatal-modal');
+            if (viewModal && !viewModal.classList.contains('hidden')) {
+                closeViewPrenatalModal();
+            }
+            
+            const editModal = document.getElementById('edit-prenatal-modal');
+            if (editModal && !editModal.classList.contains('hidden')) {
+                closeEditPrenatalModal();
+            }
         }
-    }
-});
-</script>
+    });
+    
+    // Prevent modal close when clicking inside modal content
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            const modalId = e.target.id;
+            switch (modalId) {
+                case 'view-prenatal-modal':
+                    closeViewPrenatalModal(e);
+                    break;
+                case 'edit-prenatal-modal':
+                    closeEditPrenatalModal(e);
+                    break;
+                case 'completePregnancyModal':
+                    closeCompletePregnancyModal(e);
+                    break;
+            }
+        }
+    });
+    </script>
  
 
-@endpush
+ 

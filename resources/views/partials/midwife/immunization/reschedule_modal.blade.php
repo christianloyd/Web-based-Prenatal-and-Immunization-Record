@@ -140,11 +140,13 @@ function openImmunizationRescheduleModal(immunization) {
 
     if (originalDateEl) {
         const scheduleDate = new Date(immunization.schedule_date);
-        originalDateEl.textContent = scheduleDate.toLocaleDateString('en-US', {
+        const formattedDate = scheduleDate.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
+        console.log('Setting original date to:', formattedDate);
+        originalDateEl.textContent = formattedDate;
     }
 
     // Reset form
@@ -157,7 +159,7 @@ function openImmunizationRescheduleModal(immunization) {
         modal.classList.remove('hidden');
         requestAnimationFrame(() => modal.classList.add('show'));
         document.body.style.overflow = 'hidden';
-        
+
         // Focus on date input after a small delay
         setTimeout(() => {
             const dateInput = document.getElementById('reschedule-date');
@@ -190,10 +192,13 @@ function closeImmunizationRescheduleModal(event) {
 document.addEventListener('DOMContentLoaded', function() {
     const rescheduleForm = document.getElementById('rescheduleForm');
     if (rescheduleForm) {
+        console.log('Reschedule form found, attaching submit handler');
         rescheduleForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Reschedule form submitted');
 
             if (!currentRescheduleImmunization) {
+                console.error('No immunization selected for rescheduling');
                 if (window.healthcareAlert) {
                     window.healthcareAlert.error('No immunization selected for rescheduling');
                 } else {
@@ -202,13 +207,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            console.log('Current reschedule immunization:', currentRescheduleImmunization);
             const userRole = '{{ auth()->user()->role }}';
             const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
             this.action = `/${userRole}/${endpoint}/${currentRescheduleImmunization.id}/reschedule`;
-            
-            console.log('Submitting reschedule form to:', this.action);
+
+            console.log('Form action URL:', this.action);
+            console.log('Submitting form...');
             this.submit();
         });
+    } else {
+        console.error('Reschedule form not found!');
     }
 });
 

@@ -567,7 +567,15 @@ public function search(Request $request)
 {
     try {
         $query = Patient::query();
-        
+
+        // Filter patients without active prenatal records if requested
+        if ($request->has('without_prenatal') && $request->without_prenatal == 'true') {
+            $query->whereDoesntHave('prenatalRecords', function($q) {
+                $q->where('is_active', 1)
+                  ->where('status', '!=', 'completed');
+            });
+        }
+
         // If there's a search term, filter by it
         if ($request->has('q') && !empty($request->q)) {
             $searchTerm = $request->q;
@@ -579,15 +587,15 @@ public function search(Request $request)
                   ->orWhere('contact', 'LIKE', "%{$searchTerm}%");
             });
         }
-        
+
         // Get patients ordered by most recent first
         $patients = $query->orderBy('created_at', 'desc')
                          ->limit(50)
                          ->get();
-        
+
         // Use PatientSearchResource to return initials for privacy
         return PatientSearchResource::collection($patients);
-        
+
     } catch (\Exception $e) {
         \Log::error('Error in patient search: ' . $e->getMessage());
         return response()->json([], 500);

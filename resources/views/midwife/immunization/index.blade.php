@@ -107,6 +107,18 @@
         border-color: #f59e0b;
     }
 
+    .btn-complete {
+        background-color: #d1fae5;
+        color: #065f46;
+        border-color: #a7f3d0;
+    }
+
+    .btn-complete:hover {
+        background-color: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+
     .btn-done {
         background-color: #dcfce7;
         color: #166534;
@@ -347,7 +359,7 @@
                                 <div class="text-sm sm:text-base">{{ $immunization->schedule_date ? $immunization->schedule_date->format('M j, Y') : 'N/A' }}</div>
                             </td>
                             <td class="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">
-                                <div class="text-sm sm:text-base">{{ $immunization->schedule_time ? $immunization->schedule_time->format('h:i A') : 'N/A' }}</div>
+                                <div class="text-sm sm:text-base">{{ $immunization->schedule_time ? \Carbon\Carbon::parse($immunization->schedule_time)->format('h:i A') : 'N/A' }}</div>
                             </td>
                             <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
                                 {{ $immunization->dose ?? 'N/A' }}
@@ -388,8 +400,15 @@
                                 </button>
 
                                 @if($immunization->status === 'Upcoming')
+                                    <!-- Mark as Complete Button -->
+                                    <button onclick='openMarkDoneModal(@json($immunizationData))'
+                                            class="btn-action btn-complete inline-flex items-center justify-center"
+                                            title="Mark as Complete">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+
                                     <!-- Mark as Missed Button -->
-                                    <button onclick='openConfirmMissedModal(@json($immunizationData))'
+                                    <button onclick='openMarkMissedModal(@json($immunizationData))'
                                             class="btn-action btn-missed inline-flex items-center justify-center"
                                             title="Mark as Missed">
                                         <i class="fas fa-times"></i>
@@ -460,23 +479,30 @@
  @include ('partials.midwife.immunization.immuedit')
 
 <!-- Confirm Missed Modal -->
- @include ('partials.midwife.immunization.confirm-missed-modal')
+ @include ('partials.midwife.immunization.mark-missed-modal')
 
 <!-- Reschedule Modal -->
  @include ('partials.midwife.immunization.reschedule_modal')
+
+<!-- Mark as Done Modal -->
+ @include ('partials.midwife.immunization.mark-done-modal')
 
 @endsection
 
 @push('scripts')
 <script>
 // ==============================================
-// MODAL MANAGEMENT
+// MODAL MANAGEMENT - Updated 2025-10-31 v2
+// ==============================================
+
+// ==============================================
+// MODAL MANAGEMENT - Fixed for Global Scope
 // ==============================================
 
 /**
  * Opens the Add Immunization modal
  */
-function openAddModal() {
+ function openAddModal() {
     const modal = document.getElementById('immunizationModal');
     const form = document.getElementById('immunizationForm');
     
@@ -624,8 +650,8 @@ function openEditModal(immunization) {
     }
 
     try {
-        // Set form action
-        const userRole = '{{ auth()->user()->role }}';
+        // Set form action - get user role from a data attribute or PHP variable
+        const userRole = document.body.getAttribute('data-user-role') || 'midwife';
         const routeName = userRole === 'bhw' ? 'immunizations' : 'immunization';
         form.action = `/${userRole}/${routeName}/${immunization.id}`;
         console.log('Form action set to:', form.action);
@@ -677,6 +703,202 @@ function closeEditModal(event) {
     }, 300);
 }
 
+/**
+ * Opens the Mark as Done modal
+ */
+function openMarkDoneModal(immunizationData) {
+    console.log('Opening mark done modal:', immunizationData);
+
+    // Set immunization details in modal
+    const childNameElement = document.getElementById('done-child-name');
+    const vaccineNameElement = document.getElementById('done-vaccine-name');
+    const doseElement = document.getElementById('done-dose');
+
+    if (childNameElement) {
+        childNameElement.textContent = immunizationData.child_record?.full_name || 'N/A';
+    }
+    if (vaccineNameElement) {
+        vaccineNameElement.textContent = immunizationData.vaccine_name || immunizationData.vaccine?.name || 'N/A';
+    }
+    if (doseElement) {
+        doseElement.textContent = immunizationData.dose || 'N/A';
+    }
+
+    // Set form action
+    const form = document.getElementById('markDoneForm');
+    if (form) {
+        const userRole = document.body.getAttribute('data-user-role') || 'midwife';
+        const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
+        form.action = `/${userRole}/${endpoint}/${immunizationData.id}/complete`;
+        console.log('Form action set to:', form.action);
+    }
+
+    // Show modal
+    const modal = document.getElementById('markDoneModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        console.log('Modal should be visible now');
+    } else {
+        console.error('markDoneModal not found');
+    }
+}
+
+/**
+ * Closes the Mark as Done modal
+ */
+function closeMarkDoneModal() {
+    const modal = document.getElementById('markDoneModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+/**
+ * Opens the Mark as Missed modal
+ */
+function openMarkMissedModal(immunization) {
+    if (!immunization) {
+        console.error('No immunization data provided');
+        return;
+    }
+
+    // Populate immunization details
+    document.getElementById('missed-immunization-id').value = immunization.id;
+    document.getElementById('missed-child-name').textContent = immunization.child_record?.full_name || 'Unknown';
+    document.getElementById('missed-vaccine-name').textContent = immunization.vaccine?.name || immunization.vaccine_name || 'Unknown';
+    document.getElementById('missed-dose').textContent = immunization.dose || 'N/A';
+    document.getElementById('missed-schedule-date').textContent = new Date(immunization.schedule_date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    // Set form action
+    const userRole = document.body.getAttribute('data-user-role') || 'midwife';
+    const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
+    document.getElementById('markMissedForm').action = `/${userRole}/${endpoint}/${immunization.id}/mark-missed`;
+
+    // Reset form
+    document.getElementById('markMissedForm').reset();
+    document.getElementById('missed-immunization-id').value = immunization.id;
+    document.getElementById('missed-confirm-checkbox').checked = false;
+    document.getElementById('missed-reschedule-checkbox').checked = false;
+    document.getElementById('reschedule-fields').classList.add('hidden');
+
+    // Show modal
+    const modal = document.getElementById('markMissedModal');
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.classList.add('show'));
+    document.body.style.overflow = 'hidden';
+
+    // Focus first input
+    setTimeout(() => {
+        document.getElementById('missed-reason').focus();
+    }, 300);
+}
+
+/**
+ * Closes the Mark as Missed modal
+ */
+function closeMarkMissedModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+
+    const modal = document.getElementById('markMissedModal');
+    if (!modal) return;
+
+    modal.classList.remove('show');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        document.getElementById('markMissedForm').reset();
+    }, 300);
+}
+
+/**
+ * Opens the Reschedule modal
+ */
+function openImmunizationRescheduleModal(immunization) {
+    console.log('Opening reschedule modal with data:', immunization);
+
+    if (!immunization) {
+        console.error('No immunization data provided');
+        return;
+    }
+
+    // Populate immunization details
+    const childNameEl = document.getElementById('reschedule-child-name');
+    const vaccineNameEl = document.getElementById('reschedule-vaccine-name');
+    const doseEl = document.getElementById('reschedule-dose');
+    const originalDateEl = document.getElementById('reschedule-original-date');
+
+    if (childNameEl) childNameEl.textContent = immunization.child_record?.full_name || 'Unknown';
+    
+    let vaccineName = 'Unknown';
+    if (immunization.vaccine && immunization.vaccine.name) {
+        vaccineName = immunization.vaccine.name;
+    } else if (immunization.vaccine_name) {
+        vaccineName = immunization.vaccine_name;
+    }
+    if (vaccineNameEl) vaccineNameEl.textContent = vaccineName;
+    
+    if (doseEl) doseEl.textContent = immunization.dose || 'N/A';
+
+    if (originalDateEl) {
+        const scheduleDate = new Date(immunization.schedule_date);
+        originalDateEl.textContent = scheduleDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    // Reset form
+    const form = document.getElementById('rescheduleForm');
+    if (form) form.reset();
+
+    // Set current reschedule immunization for form submission
+    window.currentRescheduleImmunization = immunization;
+
+    // Show modal
+    const modal = document.getElementById('rescheduleModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => modal.classList.add('show'));
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => {
+            const dateInput = document.getElementById('reschedule-date');
+            if (dateInput) dateInput.focus();
+        }, 300);
+    }
+}
+
+/**
+ * Closes the Reschedule modal
+ */
+function closeImmunizationRescheduleModal(event) {
+    if (event && event.target !== event.currentTarget && arguments.length > 0) return;
+
+    const modal = document.getElementById('rescheduleModal');
+    if (!modal) return;
+
+    modal.classList.remove('show');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        window.currentRescheduleImmunization = null;
+
+        const form = document.getElementById('rescheduleForm');
+        if (form) form.reset();
+    }, 300);
+}
+
 // ==============================================
 // UTILITY FUNCTIONS
 // ==============================================
@@ -697,10 +919,8 @@ function updateElementText(elementId, value) {
 function populateEditForm(immunization) {
     console.log('Populating edit form with:', immunization);
 
-    // Handle vaccine ID - fallback to finding by name if vaccine_id is missing
     let vaccineId = immunization.vaccine_id;
     if (!vaccineId && immunization.vaccine_name) {
-        // Try to find vaccine ID by name from the dropdown options
         const vaccineSelect = document.getElementById('editVaccineId');
         if (vaccineSelect) {
             for (let option of vaccineSelect.options) {
@@ -735,31 +955,15 @@ function populateEditForm(immunization) {
         }
     });
 
-    // Trigger vaccine info update after setting vaccine
     setTimeout(() => {
-        try {
-            if (typeof updateEditVaccineInfo === 'function') {
-                console.log('Calling updateEditVaccineInfo');
-                updateEditVaccineInfo();
-            } else {
-                console.warn('updateEditVaccineInfo function not found');
-            }
-        } catch (error) {
-            console.error('Error calling updateEditVaccineInfo:', error);
+        if (typeof updateEditVaccineInfo === 'function') {
+            updateEditVaccineInfo();
         }
     }, 50);
 
-    // Toggle field states based on status after populating the form
     setTimeout(() => {
-        try {
-            if (typeof toggleFieldsBasedOnStatus === 'function') {
-                console.log('Calling toggleFieldsBasedOnStatus for status:', immunization.status);
-                toggleFieldsBasedOnStatus();
-            } else {
-                console.warn('toggleFieldsBasedOnStatus function not found');
-            }
-        } catch (error) {
-            console.error('Error calling toggleFieldsBasedOnStatus:', error);
+        if (typeof toggleFieldsBasedOnStatus === 'function') {
+            toggleFieldsBasedOnStatus();
         }
     }, 100);
 }
@@ -779,7 +983,7 @@ function formatDateForInput(dateString) {
 function formatTimeForInput(timeString) {
     if (!timeString) return '';
     if (timeString.includes(':')) {
-        return timeString.substring(0, 5); // Take HH:MM part
+        return timeString.substring(0, 5);
     }
     return timeString;
 }
@@ -803,13 +1007,11 @@ function validateField(field) {
     const isRequired = field.hasAttribute('required');
     let isValid = true;
 
-    // Clear previous validation styles
     field.classList.remove('error-border', 'success-border');
     
     if (isRequired && !value) {
         isValid = false;
     } else if (value) {
-        // Field-specific validation
         switch (field.name) {
             case 'schedule_date':
                 const scheduleDate = new Date(value);
@@ -828,7 +1030,6 @@ function validateField(field) {
         }
     }
 
-    // Apply validation styling
     if (!isValid) {
         field.classList.add('error-border');
     } else if (value) {
@@ -844,7 +1045,6 @@ function validateField(field) {
 function setupFormHandling(form, submitBtn, loadingText) {
     if (!form || !submitBtn) return;
 
-    // Add validation to inputs
     const inputs = form.querySelectorAll('input, textarea, select');
     inputs.forEach(input => {
         input.addEventListener('blur', function() {
@@ -855,7 +1055,6 @@ function setupFormHandling(form, submitBtn, loadingText) {
         });
     });
     
-    // Handle form submission
     form.addEventListener('submit', function(e) {
         const originalText = submitBtn.innerHTML;
         
@@ -868,7 +1067,6 @@ function setupFormHandling(form, submitBtn, loadingText) {
             ${loadingText}
         `;
         
-        // Re-enable button after 10 seconds as fallback
         setTimeout(() => {
             if (submitBtn.disabled) {
                 submitBtn.disabled = false;
@@ -890,12 +1088,22 @@ function setDateConstraints() {
             const today = new Date().toISOString().split('T')[0];
             input.setAttribute('min', today);
             
-            // Set reasonable maximum date (2 years from now)
             const maxDate = new Date();
             maxDate.setFullYear(maxDate.getFullYear() + 2);
             input.setAttribute('max', maxDate.toISOString().split('T')[0]);
         }
     });
+}
+
+/**
+ * Clear search function
+ */
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.form.submit();
+    }
 }
 
 // ==============================================
@@ -927,281 +1135,77 @@ document.addEventListener('DOMContentLoaded', function() {
             closeEditModal();
             closeViewModal();
             closeImmunizationRescheduleModal();
+            closeMarkDoneModal();
+            closeMarkMissedModal();
         }
     });
-    
-    // Handle validation errors from server - reopen modal with errors
-    @if($errors->any())
-        openAddModal();
-    @endif
 
-    // Handle Laravel session messages using the global healthcare alert system
-    @if(session('success'))
-        if (window.healthcareAlert) {
-            window.healthcareAlert.success('{{ addslashes(session("success")) }}');
-        }
-    @endif
-
-    @if(session('error'))
-        if (window.healthcareAlert) {
-            window.healthcareAlert.error('{{ addslashes(session("error")) }}');
-        }
-    @endif
-
-    @if(session('warning'))
-        if (window.healthcareAlert) {
-            window.healthcareAlert.warning('{{ addslashes(session("warning")) }}');
-        }
-    @endif
-
-    @if(session('info'))
-        if (window.healthcareAlert) {
-            window.healthcareAlert.info('{{ addslashes(session("info")) }}');
-        }
-    @endif
-
-    // Enhanced form submission with toast notifications
-    const immunizationForm = document.getElementById('immunizationForm');
-    const editImmunizationForm = document.getElementById('editImmunizationForm');
-
-    // Add form submission handlers for alert notifications
-    if (immunizationForm) {
-        immunizationForm.addEventListener('submit', function(e) {
-            // Show pending alert using global healthcare alert
-            setTimeout(() => {
-                window.healthcareAlert.info('Scheduling immunization...', 'Processing');
-            }, 100);
-        });
-    }
-
-    if (editImmunizationForm) {
-        editImmunizationForm.addEventListener('submit', function(e) {
-            // Show pending alert using global healthcare alert
-            setTimeout(() => {
-                window.healthcareAlert.info('Updating immunization record...', 'Processing');
-            }, 100);
-        });
-    }
-});
-
-// Custom alert functions for immunization operations using global healthcare alerts
-window.immunizationAlert = {
-    scheduled: function(childName, vaccineName) {
-        window.healthcareAlert.success(`Immunization scheduled for ${childName} - ${vaccineName} vaccination`, 'Scheduled Successfully!');
-    },
-    updated: function(childName, status) {
-        window.healthcareAlert.success(`Record updated for ${childName} - Status changed to ${status}`, 'Updated Successfully!');
-    },
-    error: function(message) {
-        window.healthcareAlert.error(message, 'Operation Failed');
-    },
-    lowStock: function(vaccineName, stock) {
-        window.healthcareAlert.warning(`Only ${stock} units left for ${vaccineName}`, 'Low Stock Warning');
-    },
-    showAlert: function(type, title, message) {
-        // Remove any existing alerts first
-        this.removeExistingAlerts();
-
-        // Create alert HTML based on type
-        const alertHtml = this.createAlertHtml(type, title, message);
-
-        // Create temporary container
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = alertHtml;
-        const alertElement = tempDiv.firstElementChild;
-
-        // Style for slide-in from top
-        alertElement.style.cssText = `
-            position: fixed;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            min-width: 400px;
-            max-width: 600px;
-            transition: all 0.4s ease-out;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        `;
-
-        // Add to body
-        document.body.appendChild(alertElement);
-
-        // Trigger slide-in animation
-        setTimeout(() => {
-            alertElement.style.top = '20px';
-        }, 10);
-
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            this.hideAlert(alertElement);
-        }, 5000);
-    },
-    createAlertHtml: function(type, title, message) {
-        const alertConfigs = {
-            success: {
-                bgClass: 'bg-green-50',
-                textClass: 'text-green-800',
-                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
-            },
-            error: {
-                bgClass: 'bg-red-50',
-                textClass: 'text-red-800',
-                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
-            },
-            warning: {
-                bgClass: 'bg-yellow-50',
-                textClass: 'text-yellow-800',
-                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
-            },
-            info: {
-                bgClass: 'bg-blue-50',
-                textClass: 'text-blue-800',
-                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
-            }
-        };
-
-        const config = alertConfigs[type] || alertConfigs.info;
-
-        return `
-            <div class="flex items-center p-4 mb-4 text-sm ${config.textClass} rounded-lg ${config.bgClass} border border-current/20" role="alert" data-dynamic-alert="true">
-                <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="${config.iconPath}"/>
-                </svg>
-                <span class="sr-only">Alert</span>
-                <div>
-                    <span class="font-medium">${title}</span> ${message}
-                </div>
-                <button type="button" class="ms-auto -mx-1.5 -my-1.5 ${config.textClass} rounded-lg focus:ring-2 focus:ring-current p-1.5 hover:bg-current/10 inline-flex items-center justify-center h-8 w-8" onclick="immunizationAlert.hideAlert(this.parentElement)">
-                    <span class="sr-only">Close</span>
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                </button>
-            </div>
-        `;
-    },
-    hideAlert: function(alertElement) {
-        if (alertElement) {
-            alertElement.style.opacity = '0';
-            alertElement.style.transform = 'translateX(-50%) translateY(-20px)';
-            setTimeout(() => {
-                if (alertElement.parentNode) {
-                    alertElement.parentNode.removeChild(alertElement);
-                }
-            }, 400);
-        }
-    },
-    removeExistingAlerts: function() {
-        const existingAlerts = document.querySelectorAll('[data-dynamic-alert="true"]');
-        existingAlerts.forEach(alert => {
-            this.hideAlert(alert);
-        });
-    }
-};
-
-// Test function to demonstrate the enhanced healthcare alert system
-window.testAlerts = function() {
-    setTimeout(() => window.healthcareAlert.success('This is an enhanced success alert with better design'), 500);
-    setTimeout(() => window.healthcareAlert.error('This is an enhanced error alert with better design'), 1000);
-    setTimeout(() => window.healthcareAlert.warning('This is an enhanced warning alert with better design'), 1500);
-    setTimeout(() => window.healthcareAlert.info('This is an enhanced info alert with better design'), 2000);
-};
-
-// Clear search function
-function clearSearch() {
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.value = '';
-        // Submit the form to clear the search
-        searchInput.form.submit();
-    }
-}
-
-// Reschedule Modal Functions
-let currentRescheduleImmunization = null;
-
-function openImmunizationRescheduleModal(immunization) {
-    console.log('Opening reschedule modal with data:', immunization);
-
-    if (!immunization) {
-        console.error('No immunization data provided');
-        return;
-    }
-
-    currentRescheduleImmunization = immunization;
-
-    // Populate immunization details
-    const childNameEl = document.getElementById('reschedule-child-name');
-    const vaccineNameEl = document.getElementById('reschedule-vaccine-name');
-    const doseEl = document.getElementById('reschedule-dose');
-    const originalDateEl = document.getElementById('reschedule-original-date');
-
-    if (childNameEl) childNameEl.textContent = immunization.child_record?.full_name || 'Unknown';
-    if (vaccineNameEl) vaccineNameEl.textContent = immunization.vaccine?.name || immunization.vaccine_name || 'Unknown';
-    if (doseEl) doseEl.textContent = immunization.dose || 'N/A';
-
-    if (originalDateEl) {
-        const scheduleDate = new Date(immunization.schedule_date);
-        originalDateEl.textContent = scheduleDate.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
-
-    // Reset form
-    const form = document.getElementById('rescheduleForm');
-    if (form) form.reset();
-
-    // Show modal
-    const modal = document.getElementById('rescheduleModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        
-        // Focus on date input after a small delay
-        setTimeout(() => {
-            const dateInput = document.getElementById('reschedule-date');
-            if (dateInput) dateInput.focus();
-        }, 100);
-    } else {
-        console.error('Reschedule modal not found');
-    }
-}
-
-function closeImmunizationRescheduleModal() {
-    const modal = document.getElementById('rescheduleModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    currentRescheduleImmunization = null;
-
-    const form = document.getElementById('rescheduleForm');
-    if (form) form.reset();
-}
-
-// Handle reschedule form submission
-document.addEventListener('DOMContentLoaded', function() {
+    // Setup reschedule form submission
     const rescheduleForm = document.getElementById('rescheduleForm');
     if (rescheduleForm) {
         rescheduleForm.addEventListener('submit', function(e) {
             e.preventDefault();
-
-            if (!currentRescheduleImmunization) {
-                if (window.healthcareAlert) {
-                    window.healthcareAlert.error('No immunization selected for rescheduling');
-                }
+            if (!window.currentRescheduleImmunization) {
+                alert('No immunization selected for rescheduling');
                 return;
             }
-
-            const userRole = '{{ auth()->user()->role }}';
+            const userRole = document.body.getAttribute('data-user-role') || 'midwife';
             const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
-            this.action = `/${userRole}/${endpoint}/${currentRescheduleImmunization.id}/reschedule`;
+            this.action = `/${userRole}/${endpoint}/${window.currentRescheduleImmunization.id}/reschedule`;
             this.submit();
         });
     }
+
+    // Setup mark missed reschedule checkbox
+    const missedRescheduleCheckbox = document.getElementById('missed-reschedule-checkbox');
+    if (missedRescheduleCheckbox) {
+        missedRescheduleCheckbox.addEventListener('change', function() {
+            const rescheduleFields = document.getElementById('reschedule-fields');
+            const dateInput = document.getElementById('missed-reschedule-date');
+            const timeInput = document.getElementById('missed-reschedule-time');
+
+            if (this.checked) {
+                rescheduleFields.classList.remove('hidden');
+                dateInput.required = true;
+                timeInput.required = true;
+            } else {
+                rescheduleFields.classList.add('hidden');
+                dateInput.required = false;
+                timeInput.required = false;
+                dateInput.value = '';
+                timeInput.value = '';
+            }
+        });
+    }
+
+    // Setup mark missed form submission
+    const markMissedForm = document.getElementById('markMissedForm');
+    if (markMissedForm) {
+        markMissedForm.addEventListener('submit', function(e) {
+            if (!document.getElementById('missed-confirm-checkbox').checked) {
+                e.preventDefault();
+                alert('Please confirm by checking the checkbox');
+                return false;
+            }
+
+            const submitBtn = document.getElementById('missed-submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            }
+        });
+    }
+
+    // Setup mark done modal click outside
+    const doneModal = document.getElementById('markDoneModal');
+    if (doneModal) {
+        doneModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMarkDoneModal();
+            }
+        });
+    }
 });
+
 </script>
 @endpush

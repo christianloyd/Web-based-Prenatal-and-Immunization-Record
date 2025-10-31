@@ -280,12 +280,21 @@
 function openPatientModal() {
     const modal = document.getElementById('patient-modal');
     if (!modal) return console.error('Patient modal not found');
+
+    // Clear any previous error messages
+    const errorElements = modal.querySelectorAll('.text-red-500');
+    errorElements.forEach(el => el.remove());
+
+    // Remove error border classes
+    const errorInputs = modal.querySelectorAll('.error-border');
+    errorInputs.forEach(input => input.classList.remove('error-border'));
+
     modal.classList.remove('hidden');
     requestAnimationFrame(() => modal.classList.add('show'));
     document.body.style.overflow = 'hidden';
     setTimeout(() => {
-        const nameInput = modal.querySelector('input[name="name"]');
-        if (nameInput) nameInput.focus();
+        const firstNameInput = modal.querySelector('input[name="first_name"]');
+        if (firstNameInput) firstNameInput.focus();
     }, 300);
 }
 

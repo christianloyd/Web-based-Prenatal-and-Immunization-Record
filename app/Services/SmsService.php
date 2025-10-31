@@ -250,6 +250,7 @@ class SmsService
      * @param string $childName
      * @param string $vaccineName
      * @param string $dueDate
+     * @param string $motherName (optional)
      * @param int $relatedId
      * @return array
      */
@@ -258,16 +259,23 @@ class SmsService
         string $childName,
         string $vaccineName,
         string $dueDate,
+        string $motherName = null,
         int $relatedId = null
     ): array {
-        $message = "Reminder: {$childName}'s {$vaccineName} vaccination is due on {$dueDate}. "
-                 . "Please visit the health center. - {$this->senderName}";
+        // If mother name is provided, personalize the message
+        if ($motherName) {
+            $message = "Hi {$motherName}! This is a reminder that your child {$childName}'s {$vaccineName} vaccination is due on {$dueDate}. "
+                     . "Please visit the health center. - {$this->senderName}";
+        } else {
+            $message = "Reminder: {$childName}'s {$vaccineName} vaccination is due on {$dueDate}. "
+                     . "Please visit the health center. - {$this->senderName}";
+        }
 
         return $this->sendSms(
             $phoneNumber,
             $message,
             'vaccination_reminder',
-            $childName,
+            $motherName ?? $childName,
             'Immunization',
             $relatedId
         );
@@ -279,6 +287,7 @@ class SmsService
      * @param string $phoneNumber
      * @param string $patientName
      * @param string $missedDate
+     * @param string $motherName (optional, for child appointments)
      * @param int $relatedId
      * @return array
      */
@@ -286,16 +295,23 @@ class SmsService
         string $phoneNumber,
         string $patientName,
         string $missedDate,
+        string $motherName = null,
         int $relatedId = null
     ): array {
-        $message = "Hi {$patientName}, you missed your appointment on {$missedDate}. "
-                 . "Please contact us to reschedule. Your health is important! - {$this->senderName}";
+        // If mother name is provided (for child immunization), personalize the message
+        if ($motherName) {
+            $message = "Hi {$motherName}! Your child {$patientName} missed the appointment on {$missedDate}. "
+                     . "Please contact us to reschedule. Your child's health is important! - {$this->senderName}";
+        } else {
+            $message = "Hi {$patientName}, you missed your appointment on {$missedDate}. "
+                     . "Please contact us to reschedule. Your health is important! - {$this->senderName}";
+        }
 
         return $this->sendSms(
             $phoneNumber,
             $message,
             'missed_appointment',
-            $patientName,
+            $motherName ?? $patientName,
             null,
             $relatedId
         );

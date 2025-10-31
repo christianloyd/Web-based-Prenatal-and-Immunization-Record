@@ -307,13 +307,11 @@ class ImmunizationController extends Controller
         ]);
 
         try {
-            $missedImmunization = Immunization::with(['vaccine', 'childRecord'])->findOrFail($id);
+            $missedImmunization = Immunization::with(['vaccine', 'childRecord.mother'])->findOrFail($id);
 
-            // Create new immunization with rescheduled date
+            // Prepare schedule date and time
             $newScheduleDate = $validated['schedule_date'];
-            if (!empty($validated['schedule_time'])) {
-                $newScheduleDate .= ' ' . $validated['schedule_time'];
-            }
+            $newScheduleTime = $validated['schedule_time'] ?? null;
 
             $newImmunization = Immunization::create([
                 'child_record_id' => $missedImmunization->child_record_id,
@@ -321,22 +319,27 @@ class ImmunizationController extends Controller
                 'vaccine_name' => $missedImmunization->vaccine_name,
                 'dose' => $missedImmunization->dose,
                 'schedule_date' => $newScheduleDate,
+                'schedule_time' => $newScheduleTime,
                 'status' => 'Upcoming',
                 'notes' => 'Rescheduled from missed appointment on ' . \Carbon\Carbon::parse($missedImmunization->schedule_date)->format('M d, Y')
             ]);
 
             // Send SMS if contact available
             $child = $missedImmunization->childRecord;
-            if ($child && $child->parent_contact) {
+            $mother = $child ? $child->mother : null;
+            $contactNumber = $mother ? $mother->contact : null;
+
+            if ($contactNumber) {
                 try {
                     $smsService = new \App\Services\SmsService();
                     $formattedDate = \Carbon\Carbon::parse($newScheduleDate)->format('F j, Y');
-                    $formattedTime = !empty($validated['schedule_time']) ? \Carbon\Carbon::parse($validated['schedule_time'])->format('g:i A') : '';
+                    $formattedTime = $newScheduleTime ? \Carbon\Carbon::parse($newScheduleTime)->format('g:i A') : '';
                     $smsService->sendVaccinationReminder(
-                        $child->parent_contact,
+                        $contactNumber,
                         $child->full_name,
                         $missedImmunization->vaccine->name ?? $missedImmunization->vaccine_name,
-                        $formattedDate . ($formattedTime ? ' at ' . $formattedTime : '')
+                        $formattedDate . ($formattedTime ? ' at ' . $formattedTime : ''),
+                        $mother->name ?? null
                     );
                 } catch (\Exception $e) {
                     \Log::error('Failed to send SMS for rescheduled immunization: ' . $e->getMessage());
@@ -357,6 +360,52 @@ class ImmunizationController extends Controller
 
             return redirect()->route($redirectRoute)
                              ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Mark immunization as complete (Done)
+     * Simple confirmation - changes status from Upcoming to Done
+     */
+    public function completeImmunization($id)
+    {
+        if (!Auth::check()) {
+            abort(401, 'Authentication required');
+        }
+
+        $user = Auth::user();
+
+        // Only midwife and BHW can mark immunizations as complete
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            abort(403, 'Unauthorized. Only midwives and BHWs can mark immunizations as complete.');
+        }
+
+        try {
+            $immunization = Immunization::findOrFail($id);
+
+            // Only allow completing upcoming immunizations
+            if ($immunization->status !== 'Upcoming') {
+                throw new \Exception('Only upcoming immunizations can be marked as complete.');
+            }
+
+            // Update status to Done
+            $immunization->status = 'Done';
+            $immunization->save();
+
+            $redirectRoute = $user->role === 'bhw'
+                ? 'bhw.immunization.index'
+                : 'midwife.immunization.index';
+
+            return redirect()->route($redirectRoute)
+                ->with('success', 'Immunization marked as complete successfully!');
+
+        } catch (\Exception $e) {
+            $redirectRoute = $user->role === 'bhw'
+                ? 'bhw.immunization.index'
+                : 'midwife.immunization.index';
+
+            return redirect()->route($redirectRoute)
+                ->with('error', $e->getMessage());
         }
     }
 

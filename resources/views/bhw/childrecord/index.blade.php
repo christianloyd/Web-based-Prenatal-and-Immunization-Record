@@ -209,11 +209,11 @@
             
         </div>
         <div class="flex space-x-3">
-            <button onclick="openAddModal()" 
+            <a href="{{ route('bhw.childrecord.create') }}"
                 class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <i class="fas fa-plus text-sm"></i>
                 <span>Add Record</span>
-            </button>
+            </a>
         </div>
     </div>
 
@@ -339,9 +339,9 @@
                         Get started by adding your first child record.
                     @endif
                 </p>
-                <button onclick="openAddModal()" class="btn-minimal btn-primary-clean px-6 py-3 rounded-lg font-medium inline-flex items-center">
+                <a href="{{ route('bhw.childrecord.create') }}" class="btn-minimal btn-primary-clean px-6 py-3 rounded-lg font-medium inline-flex items-center">
                     <i class="fas fa-plus mr-2"></i>Add Child Record
-                </button>
+                </a>
             </div>
         @endif
     </div>

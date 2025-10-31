@@ -53,20 +53,26 @@ class ImmunizationService
             $this->notifyImmunizationScheduled($immunization, $child, $vaccine, $data['schedule_date']);
 
             // Send SMS reminder to parent/guardian
-            if ($child->parent_contact) {
+            $child = ChildRecord::with('mother')->findOrFail($data['child_record_id']);
+            $mother = $child->mother;
+            $contactNumber = $mother ? $mother->contact : null;
+
+            if ($contactNumber) {
                 try {
                     $smsService = new SmsService();
                     $formattedDate = Carbon::parse($data['schedule_date'])->format('F j, Y');
+                    $formattedTime = isset($data['schedule_time']) ? Carbon::parse($data['schedule_time'])->format('g:i A') : '';
                     $smsService->sendVaccinationReminder(
-                        $child->parent_contact,
+                        $contactNumber,
                         $child->full_name,
                         $vaccine->name,
-                        $formattedDate
+                        $formattedDate . ($formattedTime ? ' at ' . $formattedTime : ''),
+                        $mother->name ?? null
                     );
                     Log::info('SMS vaccination reminder sent', [
                         'child_id' => $child->id,
                         'immunization_id' => $immunization->id,
-                        'phone' => $child->parent_contact
+                        'phone' => $contactNumber
                     ]);
                 } catch (\Exception $e) {
                     Log::error('Failed to send SMS for immunization: ' . $e->getMessage());
@@ -142,20 +148,26 @@ class ImmunizationService
                 isset($data['schedule_date']) &&
                 $immunization->getOriginal('schedule_date') != $data['schedule_date']) {
 
-                if ($child->parent_contact) {
+                $child = ChildRecord::with('mother')->findOrFail($data['child_record_id']);
+                $mother = $child->mother;
+                $contactNumber = $mother ? $mother->contact : null;
+
+                if ($contactNumber) {
                     try {
                         $smsService = new SmsService();
                         $formattedDate = Carbon::parse($data['schedule_date'])->format('F j, Y');
+                        $formattedTime = isset($data['schedule_time']) ? Carbon::parse($data['schedule_time'])->format('g:i A') : '';
                         $smsService->sendVaccinationReminder(
-                            $child->parent_contact,
+                            $contactNumber,
                             $child->full_name,
                             $vaccine->name,
-                            $formattedDate
+                            $formattedDate . ($formattedTime ? ' at ' . $formattedTime : ''),
+                            $mother->name ?? null
                         );
                         Log::info('SMS vaccination reminder sent (rescheduled)', [
                             'child_id' => $child->id,
                             'immunization_id' => $immunization->id,
-                            'phone' => $child->parent_contact
+                            'phone' => $contactNumber
                         ]);
                     } catch (\Exception $e) {
                         Log::error('Failed to send SMS for rescheduled immunization: ' . $e->getMessage());
@@ -235,6 +247,7 @@ class ImmunizationService
 
         try {
             $child = $immunization->childRecord;
+            $child->load('mother'); // Load mother relationship for SMS
             $vaccine = $immunization->vaccine;
 
             // If marking as Done, consume vaccine stock
@@ -266,15 +279,32 @@ class ImmunizationService
                 ]);
 
                 // Send SMS notification for completed immunization
-                if ($child->parent_contact) {
+                $mother = $child->mother;
+                $contactNumber = $mother ? $mother->contact : null;
+
+                if ($contactNumber) {
                     try {
                         $smsService = new SmsService();
-                        $formattedDate = Carbon::parse($immunization->schedule_date)->format('F j, Y');
-                        $message = "Good news! {$child->full_name}'s {$vaccine->name} vaccination has been completed on {$formattedDate}. Thank you for your cooperation! - " . config('services.iprog.sender_name');
-                        $smsService->sendSms($child->parent_contact, $message);
+                        $formattedDate = Carbon::parse($immunization->schedule_date)->format('M j, Y'); // Shorter date format
+                        // Optimized message to stay under 160 characters to avoid double charging
+                        $childName = $child->full_name;
+                        $vaccineName = $vaccine->name;
+
+                        // Build concise message
+                        $message = "Hi {$mother}, your child {$childName}'s {$vaccineName} vaccination completed on {$formattedDate}. Thank you!";
+
+                        // Only add sender name if it fits within 160 chars
+                        $senderName = config('services.iprog.sender_name');
+                        if (strlen($message . " - " . $senderName) <= 160) {
+                            $message .= " - {$senderName}";
+                        }
+
+                        $smsService->sendSms($contactNumber, $message, 'immunization_completed', $mother->name ?? $child->full_name, 'Immunization', $immunization->id);
                         Log::info('SMS sent for completed immunization', [
                             'child_id' => $child->id,
-                            'immunization_id' => $immunization->id
+                            'immunization_id' => $immunization->id,
+                            'phone' => $contactNumber,
+                            'message_length' => strlen($message)
                         ]);
                     } catch (\Exception $e) {
                         Log::error('Failed to send SMS for completed immunization: ' . $e->getMessage());
@@ -315,20 +345,25 @@ class ImmunizationService
                     ]);
 
                     // Send SMS for rescheduled immunization
-                    if ($child->parent_contact) {
+                    $mother = $child->mother;
+                    $contactNumber = $mother ? $mother->contact : null;
+
+                    if ($contactNumber) {
                         try {
                             $smsService = new SmsService();
                             $formattedDate = Carbon::parse($newScheduleDate)->format('F j, Y');
                             $formattedTime = !empty($data['reschedule_time']) ? Carbon::parse($data['reschedule_time'])->format('g:i A') : '';
                             $smsService->sendVaccinationReminder(
-                                $child->parent_contact,
+                                $contactNumber,
                                 $child->full_name,
                                 $vaccine->name ?? $immunization->vaccine_name,
-                                $formattedDate . ($formattedTime ? ' at ' . $formattedTime : '')
+                                $formattedDate . ($formattedTime ? ' at ' . $formattedTime : ''),
+                                $mother->name ?? null
                             );
                             Log::info('SMS sent for rescheduled immunization', [
                                 'child_id' => $child->id,
-                                'new_immunization_id' => $rescheduledImmunization->id
+                                'new_immunization_id' => $rescheduledImmunization->id,
+                                'phone' => $contactNumber
                             ]);
                         } catch (\Exception $e) {
                             Log::error('Failed to send SMS for rescheduled immunization: ' . $e->getMessage());
@@ -336,18 +371,23 @@ class ImmunizationService
                     }
                 } else {
                     // Send SMS for missed immunization (without reschedule)
-                    if ($child->parent_contact) {
+                    $mother = $child->mother;
+                    $contactNumber = $mother ? $mother->contact : null;
+
+                    if ($contactNumber) {
                         try {
                             $smsService = new SmsService();
                             $formattedDate = Carbon::parse($immunization->schedule_date)->format('F j, Y');
                             $smsService->sendMissedAppointmentNotification(
-                                $child->parent_contact,
+                                $contactNumber,
                                 $child->full_name,
-                                $formattedDate
+                                $formattedDate,
+                                $mother->name ?? null
                             );
                             Log::info('SMS sent for missed immunization', [
                                 'child_id' => $child->id,
-                                'immunization_id' => $immunization->id
+                                'immunization_id' => $immunization->id,
+                                'phone' => $contactNumber
                             ]);
                         } catch (\Exception $e) {
                             Log::error('Failed to send SMS for missed immunization: ' . $e->getMessage());

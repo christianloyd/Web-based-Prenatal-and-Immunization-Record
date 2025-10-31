@@ -1,10 +1,79 @@
-@extends('layout.admin')
-@section('title', 'Cloud Backup Management')
-@section('page-title', 'Cloud Backup Management')
-@section('page-subtitle', 'Secure backup and restore for healthcare system data')
+@extends('layout.midwife') 
+@section('title', 'Immunization Schedule')
+@section('page-title', 'Immunization Schedule')
+@section('page-subtitle', 'Manage and track child immunization records')
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 @push('styles')
 <style>
+    /* Modal Animation Styles */
+    .modal-overlay {
+        transition: opacity 0.3s ease-out;
+    }
+    
+    .modal-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .modal-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .modal-content {
+        transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        transform: translateY(-20px) scale(0.95);
+        opacity: 0;
+    }
+    
+    .modal-overlay.show .modal-content {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    /* Form Input Focus Styles */
+    .form-input {
+        transition: all 0.2s ease;
+    }
+    
+    .form-input:focus {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Error and Success Styles */
+    .error-border {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2 !important;
+    }
+
+    .success-border {
+        border-color: #10b981 !important;
+        background-color: #f0fdf4 !important;
+    }
+
+    /* Button Styles */
+    .btn-minimal {
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+    }
+    
+    .btn-minimal:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-primary-clean {
+        background-color: #68727A;
+        color: white;
+    }
+    
+    .btn-primary-clean:hover {
+        background-color: #5a6269;
+    }
+
     .btn-action {
         padding: 6px 12px;
         border-radius: 6px;
@@ -13,1530 +82,1126 @@
         transition: all 0.15s ease;
         border: 1px solid transparent;
     }
-
+    
     .btn-view {
         background-color: #f8fafc;
         color: #475569;
         border-color: #e2e8f0;
     }
-
+    
     .btn-view:hover {
         background-color: #68727A;
         color: white;
         border-color: #68727A;
     }
-
+    
     .btn-edit {
+        background-color: #fef3c7;
+        color: #92400e;
+        border-color: #fde68a;
+    }
+    
+    .btn-edit:hover {
+        background-color: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+
+    .btn-done {
         background-color: #dcfce7;
         color: #166534;
         border-color: #bbf7d0;
     }
-
-    .btn-edit:hover {
+    
+    .btn-done:hover {
         background-color: #16a34a;
         color: white;
         border-color: #16a34a;
     }
 
-    .btn-delete {
-        background-color: #fef2f2;
+    .btn-missed {
+        background-color: #fee2e2;
         color: #dc2626;
         border-color: #fecaca;
     }
-
-    .btn-delete:hover {
+    
+    .btn-missed:hover {
         background-color: #dc2626;
         color: white;
         border-color: #dc2626;
     }
 
-    .tab-button.active {
-        border-color: #0ea5e9;
-        color: #0ea5e9;
+    .btn-reschedule {
+        background-color: #dbeafe;
+        color: #1e40af;
+        border-color: #bfdbfe;
+    }
+    
+    .btn-reschedule:hover {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
     }
 
-    .tab-content.hidden {
-        display: none;
+    /* Input styles */
+    .input-clean {
+        transition: all 0.15s ease;
+        border: 1px solid #d1d5db;
+    }
+    
+    .input-clean:focus {
+        outline: none;
+        border-color: #68727A;
+        box-shadow: 0 0 0 3px rgba(104, 114, 122, 0.1);
+    }
+
+    /* Status badges */
+    .status-upcoming {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+    }
+    
+    .status-done {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-missed {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 640px) {
+        .table-row-hover td, .table-row-hover th {
+            font-size: 0.875rem;
+            padding: 0.75rem 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .hide-mobile {
+            display: none;
+        }
+
+        .modal-form-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-wrapper table {
+        min-width: 900px;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="space-y-6">
     <!-- Success/Error Messages -->
     @include('components.flowbite-alert')
 
-    <!-- Global Confirmation Modal -->
-    @include('components.confirmation-modal')
-    <!-- Page Header -->
-    <div class="mb-6 sm:mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div class="min-w-0">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 truncate"> </h2>
-                <p class="mt-1 text-sm text-gray-600 truncate"> </p>
-            </div>
-            <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">
-                <button onclick="openBackupModal()" class="bg-secondary hover:bg-secondary/90 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
-                    <i class="fas fa-cloud-upload-alt w-4 h-4"></i>
-                    <span class="hidden sm:inline">Create Backup</span>
-                    <span class="sm:hidden">Backup</span>
-                </button>
-                <button onclick="openRestoreModal()" class="bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
-                    <i class="fas fa-cloud-download-alt w-4 h-4"></i>
-                    <span class="hidden sm:inline">Restore Data</span>
-                    <span class="sm:hidden">Restore</span>
-                </button>
-                <button onclick="syncGoogleDrive()" class="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
-                    <i class="fas fa-sync-alt w-4 h-4"></i>
-                    <span class="hidden sm:inline">Sync Drive</span>
-                    <span class="sm:hidden">Sync</span>
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Disabled Toast Notifications - Using Alert Components instead -->
+    {{-- @include('components.toast-notification') --}}
 
-    <!-- Stats Cards 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-            <div class="flex items-center">
-                <div class="p-2 sm:p-3 rounded-lg bg-blue-100">
-                    <i class="fas fa-database text-2xl sm:text-3xl text-blue-600"></i>
-                </div>
-                <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Total Backups</p>
-                    <p id="totalBackups" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{{ $stats['total_backups'] ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-            <div class="flex items-center">
-                <div class="p-2 sm:p-3 rounded-lg bg-green-100">
-                    <i class="fas fa-check-circle text-2xl sm:text-3xl text-green-600"></i>
-                </div>
-                <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Successful</p>
-                    <p id="successfulBackups" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{{ $stats['successful_backups'] ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-            <div class="flex items-center">
-                <div class="p-2 sm:p-3 rounded-lg bg-yellow-100">
-                    <i class="fas fa-clock text-2xl sm:text-3xl text-yellow-600"></i>
-                </div>
-                <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Last Backup</p>
-                    <p id="lastBackup" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 truncate">{{ $stats['last_backup'] ?? 'Never' }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-            <div class="flex items-center">
-                <div class="p-2 sm:p-3 rounded-lg bg-purple-100">
-                    <i class="fas fa-hdd text-2xl sm:text-3xl text-purple-600"></i>
-                </div>
-                <div class="ml-3 sm:ml-4 min-w-0">
-                    <p class="text-sm sm:text-base font-medium text-gray-600 truncate">Storage Used</p>
-                    <p id="storageUsed" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 truncate">{{ $stats['storage_used'] ?? '0 MB' }}</p>
-                </div>
-            </div>
-        </div>
-    </div>-->
-
-
-    <!-- Connection Status -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <div class="flex items-start sm:items-center space-x-3 min-w-0">
-                @if($isOAuth && $isAuthenticated)
-                    <div class="p-2 rounded-lg bg-green-100 flex-shrink-0">
-                        <i class="fab fa-google-drive text-green-600"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Google Drive Connected</h3>
-                        <p class="text-xs sm:text-sm text-gray-600">Connected to your Google Drive - Ready for cloud backups</p>
-                    </div>
-                @elseif($isOAuth && !$isAuthenticated)
-                    <div class="p-2 rounded-lg bg-yellow-100 flex-shrink-0">
-                        <i class="fab fa-google-drive text-yellow-600"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Google Drive Authentication Required</h3>
-                        <p class="text-xs sm:text-sm text-gray-600">Please authenticate with Google Drive to enable cloud backups</p>
-                    </div>
-                @elseif($googleDriveConnected)
-                    <div class="p-2 rounded-lg bg-green-100 flex-shrink-0">
-                        <i class="fab fa-google-drive text-green-600"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Cloud Storage Status</h3>
-                        <p class="text-xs sm:text-sm text-gray-600">Connected to Google Drive - Service Account Mode</p>
-                    </div>
-                @else
-                    <div class="p-2 rounded-lg bg-red-100 flex-shrink-0">
-                        <i class="fab fa-google-drive text-red-600"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">Google Drive Disconnected</h3>
-                        <p class="text-xs sm:text-sm text-gray-600">No connection to Google Drive - Local backups only</p>
-                    </div>
-                @endif
-            </div>
-            <div class="flex items-center space-x-3 flex-shrink-0">
-                @if($isOAuth && $isAuthenticated)
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs sm:text-sm text-green-600 font-medium">Connected</span>
-                    </div>
-                    <form method="POST" action="{{ route('google.disconnect') }}" class="inline">
-                        @csrf
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
-                            <i class="fas fa-unlink mr-1"></i>
-                            <span class="hidden sm:inline">Disconnect</span>
-                        </button>
-                    </form>
-                @elseif($isOAuth && !$isAuthenticated)
-                    <a href="{{ route('google.auth') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors text-xs sm:text-sm">
-                        <i class="fab fa-google"></i>
-                        <span class="hidden sm:inline">Connect Google Drive</span>
-                        <span class="sm:hidden">Connect</span>
-                    </a>
-                @elseif($googleDriveConnected)
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs sm:text-sm text-green-600 font-medium">Online</span>
-                    </div>
-                @else
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span class="text-xs sm:text-sm text-red-600 font-medium">Offline</span>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    <!-- Active Backup Progress -->
-    <div id="backupProgress" class="hidden bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center space-x-3">
-                <div class="animate-spin">
-                    <i class="fas fa-cloud-upload-alt text-2xl text-blue-600"></i>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-gray-900">Backup in Progress</h3>
-                    <p id="progressStatus" class="text-sm text-gray-600">Preparing backup...</p>
-                </div>
-            </div>
-            <button onclick="cancelBackup()" class="text-red-600 hover:text-red-700">
-                <i class="fas fa-times"></i>
+    <!-- Header Stats -->
+    <div class="flex justify-between items-center mb-6">
+         <div> </div>
+        <div class="flex space-x-3">
+            <button onclick="openAddModal()"
+                class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
+                <i class="fas fa-plus text-sm"></i>
+                <span> Add Schedule</span>
             </button>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-        </div>
-        <div class="flex justify-between text-sm mt-2 text-gray-600">
-            <span id="progressText">0%</span>
-            <span id="progressETA">Calculating...</span>
+
+            <!-- Test Toast Button (Remove in production) -->
+            
+
+            <!-- Test Notification Integration Button (Remove in production) -->
+            
+
+            <!-- Test BHW-to-Midwife Notifications (Remove in production) -->
+             
         </div>
     </div>
 
-    <!-- History Tabs -->
-    <div class="bg-white rounded-lg border border-gray-200">
-        <div class="border-b border-gray-200">
-            <nav class="flex space-x-8 px-4 sm:px-6" aria-label="Tabs">
-                <button id="backupHistoryTab" class="tab-button border-b-2 border-secondary text-secondary py-4 px-1 text-sm font-medium" onclick="switchTab('backup')">
-                    <i class="fas fa-cloud-upload-alt mr-2"></i>
-                    Backup History
-                </button>
-                <button id="restoreHistoryTab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium" onclick="switchTab('restore')">
-                    <i class="fas fa-cloud-download-alt mr-2"></i>
-                    Restore History
-                </button>
-            </nav>
-        </div>
-
-        <!-- Backup History Tab Content -->
-        <div id="backupHistoryContent" class="tab-content">
-            <div class="p-4 sm:p-6 border-b border-gray-200">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Backup Operations</h3>
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                        <select id="filterType" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
-                            <option value="">All Types</option>
-                            <option value="full">Full Backup</option>
-                            <option value="selective">Selective Backup</option>
-                        </select>
-                        <select id="filterStatus" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterBackups()">
+    
+    <!-- Search and Filter -->
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <form method="GET" action="{{ route('midwife.immunization.index') }}">
+            <div class="grid grid-cols-1 md:grid-cols-8 gap-4">
+                <!-- Search Input - takes 4 columns -->
+                <div class="md:col-span-4">
+                    <div class="relative">
+                        <input type="text" name="search" id="searchInput" value="{{ request('search') }}"
+                               placeholder="Search by child name or vaccine"
+                               class="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                        </svg>
+                        <!-- Clear button (x) inside input -->
+                        @if(request('search'))
+                        <button type="button" onclick="clearSearch()" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        @endif
+                    </div>
+                </div>
+                <!-- Status Filter, Vaccine Filter, and Search Button grouped closer - takes 4 columns total -->
+                <div class="md:col-span-4 flex gap-2">
+                    <!-- Status Filter -->
+                    <div class="flex-1">
+                        <select name="status" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
                             <option value="">All Status</option>
-                            <option value="completed">Completed</option>
-                            <option value="failed">Failed</option>
-                            <option value="in-progress">In Progress</option>
+                            <option value="Upcoming" {{ request('status') == 'Upcoming' ? 'selected' : '' }}>Upcoming</option>
+                            <option value="Done" {{ request('status') == 'Done' ? 'selected' : '' }}>Done</option>
+                            <option value="Missed" {{ request('status') == 'Missed' ? 'selected' : '' }}>Missed</option>
                         </select>
+                    </div>
+                    <!-- Vaccine Filter -->
+                    <div class="flex-1">
+                        <select name="vaccine" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                            <option value="">All Vaccines</option>
+                            @foreach($availableVaccines ?? [] as $vaccine)
+                                <option value="{{ $vaccine->id }}" {{ request('vaccine') == $vaccine->id ? 'selected' : '' }}>
+                                    {{ $vaccine->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <!-- Search Button -->
+                    <div class="flex items-end">
+                        <button type="submit" class="bg-[#68727A] text-white px-4 py-2 rounded-lg hover:bg-[#5a6470] transition-all duration-200 btn-primary whitespace-nowrap">
+                            Search
+                        </button>
                     </div>
                 </div>
             </div>
+        </form>
+    </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Backup Details</th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Type</th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Size</th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date</th>
-                        <th class="px-3 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="backupTableBody" class="bg-white divide-y divide-gray-200">
-                    <!-- Dynamic backup entries will be populated here -->
-                </tbody>
-            </table>
-        </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden text-center py-12">
-                <i class="fas fa-cloud text-4xl mb-4 text-gray-300"></i>
-                <h3 class="text-lg font-medium mb-2 text-gray-900">No backups found</h3>
-                <p class="mb-6 text-gray-600">Create your first backup to secure your healthcare data.</p>
-                <button onclick="openBackupModal()" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg font-medium">
-                    Create Backup
-                </button>
-            </div>
-        </div>
-
-        <!-- Restore History Tab Content -->
-        <div id="restoreHistoryContent" class="tab-content hidden">
-            <div class="p-4 sm:p-6 border-b border-gray-200">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Restore Operations</h3>
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                        <select id="filterRestoreStatus" class="w-full sm:w-auto px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" onchange="filterRestoreBackups()">
-                            <option value="">All Status</option>
-                            <option value="completed">Completed</option>
-                            <option value="failed">Failed</option>
-                            <option value="in-progress">In Progress</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
+    <!-- Records Table -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        @if($immunizations->count() > 0)
+            <div class="table-wrapper">
+                <table class="w-full table-container">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restore Details</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Source Backup</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Options</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">User</th>
+                            <!--<th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Immunization ID</th>-->
+                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'child_name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
+                                    Child Name <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                </a>
+                            </th>
+                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'vaccine_name', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
+                                    Vaccine <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                </a>
+                            </th>
+                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'schedule_date', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
+                                    Schedule Date <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                </a>
+                            </th>
+                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'schedule_time', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center hover:text-gray-800">
+                                    Schedule Time <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                </a>
+                            </th>
+                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap hide-mobile">Dose</th>
+                            <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
+
                         </tr>
                     </thead>
-                    <tbody id="restoreTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Dynamic restore entries will be populated here -->
+                    <tbody class="divide-y divide-gray-200">
+                        @foreach($immunizations as $immunization)
+                        <tr class="table-row-hover">
+                            <!--<td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div class="font-medium text-blue-600">{{ $immunization->formatted_immunization_id ?? 'IM-001' }}</div>
+                            </td>-->
+                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ $immunization->childRecord->full_name ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ $immunization->vaccine_name ?? 'N/A' }}</div>
+                                <div class="text-sm text-gray-500 sm:hidden">{{ $immunization->dose ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">
+                                <div class="text-sm sm:text-base">{{ $immunization->schedule_date ? $immunization->schedule_date->format('M j, Y') : 'N/A' }}</div>
+                            </td>
+                            <td class="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">
+                                <div class="text-sm sm:text-base">{{ $immunization->schedule_time ? $immunization->schedule_time->format('h:i A') : 'N/A' }}</div>
+                            </td>
+                            <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
+                                {{ $immunization->dose ?? 'N/A' }}
+                            </td>
+                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium 
+                                    {{ $immunization->status === 'Upcoming' ? 'status-upcoming' : '' }}
+                                    {{ $immunization->status === 'Done' ? 'status-done' : '' }}
+                                    {{ $immunization->status === 'Missed' ? 'status-missed' : '' }}">
+                                    <i class="fas {{ $immunization->status === 'Done' ? 'fa-check' : ($immunization->status === 'Upcoming' ? 'fa-clock' : 'fa-times') }} mr-1"></i>
+                                    {{ $immunization->status }}
+                                </span>
+                            </td>
+                            <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center align-middle">
+                            <div class="flex items-center justify-center gap-1 flex-wrap">
+                                @php
+                                    $immunizationData = [
+                                        'id' => $immunization->id,
+                                        'child_record' => ['full_name' => $immunization->childRecord->full_name ?? 'Unknown'],
+                                        'vaccine' => ['name' => $immunization->vaccine->name ?? $immunization->vaccine_name],
+                                        'vaccine_name' => $immunization->vaccine_name,
+                                        'dose' => $immunization->dose,
+                                        'schedule_date' => $immunization->schedule_date,
+                                        'status' => $immunization->status,
+                                        'notes' => $immunization->notes,
+                                        'batch_number' => $immunization->batch_number,
+                                        'administered_by' => $immunization->administered_by,
+                                        'child_record_id' => $immunization->child_record_id,
+                                        'vaccine_id' => $immunization->vaccine_id
+                                    ];
+                                @endphp
+
+                                <!-- View Button -->
+                                <button onclick='openViewModal(@json($immunizationData))'
+                                        class="btn-action btn-view inline-flex items-center justify-center"
+                                        title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                @if($immunization->status === 'Upcoming')
+                                    <!-- Mark as Missed Button -->
+                                    <button onclick='openConfirmMissedModal(@json($immunizationData))'
+                                            class="btn-action btn-missed inline-flex items-center justify-center"
+                                            title="Mark as Missed">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+
+                                    <!-- Edit Button -->
+                                    <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})"
+                                            class="btn-action btn-edit inline-flex items-center justify-center"
+                                            title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                @elseif($immunization->status === 'Missed')
+                                    <!-- Reschedule Button for Missed Immunizations -->
+                                    <button onclick='openImmunizationRescheduleModal(@json($immunizationData))'
+                                            class="btn-action btn-reschedule inline-flex items-center justify-center"
+                                            title="Reschedule">
+                                        <i class="fas fa-calendar-plus"></i>
+                                    </button>
+                                @else
+                                    <!-- For completed immunizations - only show edit -->
+                                    <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})"
+                                            class="btn-action btn-edit inline-flex items-center justify-center"
+                                            title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                @endif
+                            </div>
+                        </td>
+                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
-
-            <!-- Empty State for Restores -->
-            <div id="emptyRestoreState" class="hidden text-center py-12">
-                <i class="fas fa-cloud-download-alt text-4xl mb-4 text-gray-300"></i>
-                <h3 class="text-lg font-medium mb-2 text-gray-900">No restore operations found</h3>
-                <p class="mb-6 text-gray-600">Restore operations will appear here when you restore data from backups.</p>
+            
+            <!-- Pagination -->
+            <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 overflow-x-auto">
+                {{ $immunizations->links() }}
             </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 sm:p-3 rounded-lg bg-blue-100 flex-shrink-0">
-                    <i class="fas fa-calendar-plus text-blue-600 text-sm sm:text-base"></i>
+        @else
+            <!-- Empty State -->
+            <div class="text-center py-16 px-4">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-syringe text-gray-400 text-xl"></i>
                 </div>
-                <div class="min-w-0">
-                    <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">Schedule Backup</h4>
-                    <p class="text-xs sm:text-sm text-gray-600">Set up automatic backups</p>
-                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No immunization schedules found</h3>
+                <p class="text-gray-500 mb-6 max-w-sm mx-auto">
+                    @if(request()->hasAny(['search', 'status', 'vaccine', 'date_from']))
+                        No records match your search criteria. Try adjusting your filters.
+                    @else
+                        Get started by scheduling the first immunization.
+                    @endif
+                </p>
+                <button onclick="openAddModal()" class="btn-minimal btn-primary-clean px-6 py-3 rounded-lg font-medium inline-flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Schedule Immunization
+                </button>
             </div>
-            <button class="mt-3 sm:mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium">
-                Configure Schedule
-            </button>
-        </div>
-
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 sm:p-3 rounded-lg bg-green-100 flex-shrink-0">
-                    <i class="fas fa-shield-alt text-green-600 text-sm sm:text-base"></i>
-                </div>
-                <div class="min-w-0">
-                    <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">Security Settings</h4>
-                    <p class="text-xs sm:text-sm text-gray-600">Manage encryption and access</p>
-                </div>
-            </div>
-            <button class="mt-3 sm:mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium">
-                Manage Security
-            </button>
-        </div>
-
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 sm:p-3 rounded-lg bg-purple-100 flex-shrink-0">
-                    <i class="fas fa-chart-line text-purple-600 text-sm sm:text-base"></i>
-                </div>
-                <div class="min-w-0">
-                    <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">Storage Analytics</h4>
-                    <p class="text-xs sm:text-sm text-gray-600">View usage and trends</p>
-                </div>
-            </div>
-            <button class="mt-3 sm:mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium">
-                View Analytics
-            </button>
-        </div>
-    </div>
-
-    <!-- Create Backup Modal -->
-    <div id="backupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-lg sm:rounded-xl shadow-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 rounded-t-lg sm:rounded-t-xl border-gray-200">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-cloud-upload-alt mr-2 text-secondary text-sm sm:text-base"></i>
-                        <span class="hidden sm:inline">Create Backup</span>
-                        <span class="sm:hidden">Backup</span>
-                    </h2>
-                    <button onclick="closeBackupModal()" class="text-gray-400 hover:text-gray-600 p-1">
-                        <i class="fas fa-times text-lg sm:text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <form id="backupForm" class="p-4 sm:p-6" onsubmit="createBackup(event)">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                    <!-- Data Selection -->
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Select Data to Backup</h3>
-                        <div class="space-y-4">
-                            <label class="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 border-gray-200">
-                                <input type="checkbox" name="modules" value="patient_records" class="mt-1 w-5 h-5 text-secondary">
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-900">Patient Records</div>
-                                    <div class="text-sm text-gray-600">All patient registration data and profiles</div>
-                                    <div class="text-xs mt-1 text-gray-500" id="patient-records-count">Loading...</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 border-gray-200">
-                                <input type="checkbox" name="modules" value="prenatal_monitoring" class="mt-1 w-5 h-5 text-secondary">
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-900">Prenatal Monitoring</div>
-                                    <div class="text-sm text-gray-600">Prenatal records, checkups, and high-risk cases</div>
-                                    <div class="text-xs mt-1 text-gray-500" id="prenatal-records-count">Loading...</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 border-gray-200">
-                                <input type="checkbox" name="modules" value="child_records" class="mt-1 w-5 h-5 text-secondary">
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-900">Child Records</div>
-                                    <div class="text-sm text-gray-600">Child patient data and growth tracking</div>
-                                    <div class="text-xs mt-1 text-gray-500" id="child-records-count">Loading...</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 border-gray-200">
-                                <input type="checkbox" name="modules" value="immunization_records" class="mt-1 w-5 h-5 text-secondary">
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-900">Immunization Records</div>
-                                    <div class="text-sm text-gray-600">Vaccination history and schedules</div>
-                                    <div class="text-xs mt-1 text-gray-500" id="immunization-records-count">Loading...</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 border-gray-200">
-                                <input type="checkbox" name="modules" value="vaccine_management" class="mt-1 w-5 h-5 text-secondary">
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-900">Vaccine Management</div>
-                                    <div class="text-sm text-gray-600">Vaccine inventory and stock transactions</div>
-                                    <div class="text-xs mt-1 text-gray-500" id="vaccine-records-count">Loading...</div>
-                                </div>
-                            </label>
-
-                            <div class="border-t pt-4 border-gray-200">
-                                <label class="flex items-center space-x-3 cursor-pointer">
-                                    <input type="checkbox" id="selectAll" class="w-5 h-5 text-secondary" onchange="toggleSelectAll()">
-                                    <span class="font-medium text-secondary">Select All Modules</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Backup Configuration -->
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Backup Configuration</h3>
-                        <div class="space-y-6">
-                            <!-- Backup Name -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2 text-gray-600">Backup Name</label>
-                                <input type="text" name="backup_name" id="backup_name" 
-                                       class="w-full px-4 py-2 border rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
-                                       placeholder="Enter backup name (optional)">
-                                <div class="text-xs mt-1 text-gray-500">Leave empty to auto-generate name</div>
-                            </div>
-
-                            <!-- Storage Location (Fixed to Google Drive) -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2 text-gray-600">Storage Location</label>
-                                <div class="flex items-center p-3 border rounded-lg bg-gray-50 border-gray-200">
-                                    <i class="fab fa-google-drive text-green-600 mr-3"></i>
-                                    <span class="text-gray-900">Google Drive (Healthcare Backup)</span>
-                                </div>
-                            </div>
-
-                            <!-- Backup Format (Fixed to SQL Dump) -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2 text-gray-600">Backup Format</label>
-                                <div class="flex items-center p-3 border rounded-lg bg-gray-50 border-gray-200">
-                                    <i class="fas fa-database text-blue-600 mr-3"></i>
-                                    <div>
-                                        <div class="font-medium text-gray-900">SQL Dump (.sql)</div>
-                                        <div class="text-sm text-gray-600">MySQL database dump - Best for database restoration</div>
-                                    </div>
-                                </div>
-                            </div> 
-                            <!-- Estimated Size -->
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-info-circle text-blue-600"></i>
-                                    <span class="text-sm font-medium text-blue-800">Estimated Backup Size</span>
-                                </div>
-                                <div id="estimatedSize" class="text-lg font-semibold text-blue-900 mt-1">Select modules to see estimate</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-                    <button type="button" onclick="closeBackupModal()" class="px-6 py-2 border rounded-lg text-gray-600 border-gray-300 hover:bg-gray-50 transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" id="backupSubmitBtn" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i>
-                        <span id="backupSubmitText">Start Backup</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Restore Data Modal -->
-    <div id="restoreModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b px-6 py-4 rounded-t-xl border-gray-200">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-cloud-download-alt mr-2 text-primary"></i>
-                        Restore Data
-                    </h2>
-                    <button onclick="closeRestoreModal()" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-6">
-                <div class="mb-6">
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i>
-                            <div>
-                                <h4 class="font-medium text-yellow-800">Important Warning</h4>
-                                <p class="text-sm text-yellow-700 mt-1">Restoring data will overwrite existing records. Please ensure you have a current backup before proceeding.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <form id="restoreForm" onsubmit="restoreData(event)">
-                    <div class="space-y-6">
-                        <!-- Select Backup -->
-                        <div>
-                            <label class="block text-sm font-medium mb-3 text-gray-600">Select Backup to Restore</label>
-                            <div id="backupList" class="space-y-3 max-h-60 overflow-y-auto">
-                                <!-- Backup options will be populated here -->
-                            </div>
-                        </div>
-
-                        <!-- Restore Options -->
-                        <div>
-                            <label class="block text-sm font-medium mb-3 text-gray-600">Restore Options</label>
-                            <div class="space-y-3">
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" name="restore_options" value="create_backup" class="w-5 h-5 text-primary" checked>
-                                    <span class="text-sm text-gray-900">Create backup before restore</span>
-                                </label>
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" name="restore_options" value="verify_integrity" class="w-5 h-5 text-primary" checked>
-                                    <span class="text-sm text-gray-900">Verify backup integrity</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Confirmation -->
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <label class="flex items-start space-x-3">
-                                <input type="checkbox" name="confirm_restore" class="mt-1 w-5 h-5 text-red-600" required>
-                                <div class="text-sm text-red-800">
-                                    <strong>I understand that this action will overwrite existing data</strong> and cannot be undone without a backup. I have verified that I want to proceed with this restore operation.
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-                        <button type="button" onclick="closeRestoreModal()" class="px-6 py-2 border rounded-lg text-gray-600 border-gray-300 hover:bg-gray-50 transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                            <i class="fas fa-cloud-download-alt mr-2"></i>
-                            Start Restore
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        @endif
     </div>
 </div>
 
-@push('scripts')
-<script>
-    // Initialize with empty array - will be populated from server
-    let backups = [];
-    let restores = [];
+<!-- Add Immunization Modal -->
+ @include ('partials.midwife.immunization.immuadd')
 
-    let filteredBackups = [...backups];
-    let filteredRestores = [...restores];
-    let currentBackupProgress = null;
-    let activeTab = 'backup';
+<!-- View Immunization Modal -->
+ @include ('partials.midwife.immunization.immuview')
 
-    // Module data - will be loaded dynamically
-    let moduleSizes = {};
-    let moduleCounts = {};
+<!-- Edit Immunization Modal -->
+ @include ('partials.midwife.immunization.immuedit')
 
-    // Initialize the page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Clear any existing messages on page load
-        hideAllMessages();
+<!-- Confirm Missed Modal -->
+ @include ('partials.midwife.immunization.confirm-missed-modal')
 
-        loadRealDataCounts();
-        loadBackupData();
-        updateEstimatedSize();
-
-        // Add event listeners for module selection
-        const moduleCheckboxes = document.querySelectorAll('input[name="modules"]');
-        moduleCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updateEstimatedSize);
-        });
-    });
-
-    // Load backup data from server
-    function loadBackupData() {
-        return fetch('{{ route("admin.cloudbackup.data") }}')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Handle error response from server
-                if (data.success === false) {
-                    console.error('Server error loading backup data:', data.error);
-                    showError(data.message || 'Failed to load backup data');
-
-                    // Use empty data to prevent further errors
-                    backups = [];
-                    restores = [];
-                    filteredBackups = [];
-                    filteredRestores = [];
-                } else {
-                    backups = data.backups || [];
-                    restores = data.restores || [];
-                    filteredBackups = [...backups];
-                    filteredRestores = [...restores];
-                }
-
-                if (activeTab === 'backup') {
-                    renderBackups();
-                } else {
-                    renderRestores();
-                }
-
-                // Update stats
-                if (data.stats) {
-                    updateStatsFromServer(data.stats);
-                }
-
-                return data; // Return data for chaining
-            })
-            .catch(error => {
-                console.error('Error loading backup data:', error);
-                showError('Failed to load backup data: ' + error.message);
-
-                // Set empty data to prevent further errors
-                backups = [];
-                restores = [];
-                filteredBackups = [];
-                filteredRestores = [];
-
-                // Still render to show empty state
-                if (activeTab === 'backup') {
-                    renderBackups();
-                } else {
-                    renderRestores();
-                }
-
-                throw error; // Re-throw for proper error handling
-            });
-    }
-
-    function renderBackups() {
-        const tbody = document.getElementById('backupTableBody');
-        const emptyState = document.getElementById('emptyState');
-        
-        if (filteredBackups.length === 0) {
-            tbody.innerHTML = '';
-            emptyState.classList.remove('hidden');
-            return;
-        }
-        
-        emptyState.classList.add('hidden');
-        
-        tbody.innerHTML = filteredBackups.map(backup => {
-            const statusColor = getStatusColor(backup.status);
-            const moduleNames = backup.modules.map(m => formatModuleName(m)).join(', ');
-            
-            return `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-3 sm:px-6 py-4">
-                        <div class="font-medium text-gray-900 text-sm sm:text-base">${backup.name}</div>
-                        <div class="text-xs sm:text-sm text-gray-500">${moduleNames}</div>
-                        <div class="sm:hidden text-xs text-gray-500 mt-1">${backup.type === 'full' ? 'Full' : 'Selective'} • ${backup.size}</div>
-                        <div class="lg:hidden text-xs text-gray-500 mt-1">${formatDate(backup.created_at)}</div>
-                        ${backup.encrypted ? '<div class="text-xs text-green-600 mt-1"><i class="fas fa-lock mr-1"></i>Encrypted</div>' : ''}
-                    </td>
-                    <td class="px-3 sm:px-6 py-4 hidden sm:table-cell">
-                        <div class="text-sm text-gray-900">${backup.type === 'full' ? 'Full Backup' : 'Selective'}</div>
-                        <div class="text-xs text-gray-500">SQL DUMP</div>
-                    </td>
-                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden md:table-cell">${backup.size}</td>
-                    <td class="px-3 sm:px-6 py-4">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text}">
-                            <i class="fas ${statusColor.icon} mr-1"></i>
-                            <span class="hidden sm:inline">${backup.status.charAt(0).toUpperCase() + backup.status.slice(1)}</span>
-                            <span class="sm:hidden">${backup.status.charAt(0).toUpperCase()}</span>
-                        </span>
-                        ${backup.error ? `<div class="text-xs text-red-600 mt-1">${backup.error}</div>` : ''}
-                    </td>
-                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">${formatDate(backup.created_at)}</td>
-                    <td class="px-3 sm:px-6 py-4 text-center">
-                        <div class="flex flex-col sm:flex-row justify-center items-center space-y-1 sm:space-y-0 sm:space-x-1">
-                            ${backup.status === 'completed' ? `
-                                <button onclick="downloadBackup(${backup.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition-colors w-full sm:w-auto">
-                                    <i class="fas fa-cloud-download-alt mr-1"></i><span class="hidden sm:inline">Download</span>
-                                </button>
-                                <button onclick="restoreFromBackup(${backup.id})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors w-full sm:w-auto">
-                                    <i class="fas fa-history mr-1"></i><span class="hidden sm:inline">Restore</span>
-                                </button>
-                            ` : ''}
-                            <button onclick="deleteBackup(${backup.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors w-full sm:w-auto">
-                                <i class="fas fa-trash-alt mr-1"></i><span class="hidden sm:inline">Delete</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    function renderRestores() {
-        const tbody = document.getElementById('restoreTableBody');
-        const emptyState = document.getElementById('emptyRestoreState');
-
-        if (filteredRestores.length === 0) {
-            tbody.innerHTML = '';
-            emptyState.classList.remove('hidden');
-            return;
-        }
-
-        emptyState.classList.add('hidden');
-
-        tbody.innerHTML = filteredRestores.map(restore => {
-            const statusColor = getStatusColor(restore.status);
-
-            return `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-3 sm:px-6 py-4">
-                        <div class="font-medium text-gray-900 text-sm sm:text-base">Restored from: ${restore.backup_name}</div>
-                        <div class="text-xs sm:text-sm text-gray-500">${restore.formatted_modules}</div>
-                        <div class="sm:hidden text-xs text-gray-500 mt-1">${restore.restore_options}</div>
-                        <div class="lg:hidden text-xs text-gray-500 mt-1">${formatDate(restore.restored_at)} • ${restore.restored_by}</div>
-                    </td>
-                    <td class="px-3 sm:px-6 py-4 hidden sm:table-cell">
-                        <div class="text-sm text-gray-900">${restore.backup_name}</div>
-                        <div class="text-xs text-gray-500">Backup ID: ${restore.backup_id}</div>
-                    </td>
-                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden md:table-cell">${restore.restore_options}</td>
-                    <td class="px-3 sm:px-6 py-4">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text}">
-                            <i class="fas ${statusColor.icon} mr-1"></i>
-                            <span class="hidden sm:inline">${restore.status.charAt(0).toUpperCase() + restore.status.slice(1)}</span>
-                            <span class="sm:hidden">${restore.status.charAt(0).toUpperCase()}</span>
-                        </span>
-                        ${restore.error ? `<div class="text-xs text-red-600 mt-1">${restore.error}</div>` : ''}
-                    </td>
-                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">${formatDate(restore.restored_at)}</td>
-                    <td class="px-3 sm:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">${restore.restored_by}</td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    function switchTab(tabName) {
-        // Update active tab
-        activeTab = tabName;
-
-        // Update tab buttons
-        const backupTab = document.getElementById('backupHistoryTab');
-        const restoreTab = document.getElementById('restoreHistoryTab');
-
-        if (tabName === 'backup') {
-            backupTab.classList.add('border-secondary', 'text-secondary');
-            backupTab.classList.remove('border-transparent', 'text-gray-500');
-            restoreTab.classList.add('border-transparent', 'text-gray-500');
-            restoreTab.classList.remove('border-secondary', 'text-secondary');
-        } else {
-            restoreTab.classList.add('border-secondary', 'text-secondary');
-            restoreTab.classList.remove('border-transparent', 'text-gray-500');
-            backupTab.classList.add('border-transparent', 'text-gray-500');
-            backupTab.classList.remove('border-secondary', 'text-secondary');
-        }
-
-        // Update tab content
-        const backupContent = document.getElementById('backupHistoryContent');
-        const restoreContent = document.getElementById('restoreHistoryContent');
-
-        if (tabName === 'backup') {
-            backupContent.classList.remove('hidden');
-            restoreContent.classList.add('hidden');
-            renderBackups();
-        } else {
-            restoreContent.classList.remove('hidden');
-            backupContent.classList.add('hidden');
-            renderRestores();
-        }
-    }
-
-    function filterRestoreBackups() {
-        const statusFilter = document.getElementById('filterRestoreStatus').value;
-
-        filteredRestores = restores.filter(restore => {
-            const matchesStatus = !statusFilter || restore.status === statusFilter;
-            return matchesStatus;
-        });
-
-        renderRestores();
-    }
-
-    function getStatusColor(status) {
-        const colors = {
-            completed: { bg: 'bg-green-100', text: 'text-green-800', icon: 'fa-check-circle' },
-            failed: { bg: 'bg-red-100', text: 'text-red-800', icon: 'fa-times-circle' },
-            'in-progress': { bg: 'bg-blue-100', text: 'text-blue-800', icon: 'fa-spinner' }
-        };
-        return colors[status] || colors.completed;
-    }
-
-    function formatModuleName(module) {
-        const names = {
-            patient_records: 'Patient Records',
-            prenatal_monitoring: 'Prenatal Monitoring',
-            child_records: 'Child Records',
-            immunization_records: 'Immunization Records',
-            vaccine_management: 'Vaccine Management'
-        };
-        return names[module] || module;
-    }
-
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-
-    function filterBackups() {
-        const typeFilter = document.getElementById('filterType').value;
-        const statusFilter = document.getElementById('filterStatus').value;
-        
-        filteredBackups = backups.filter(backup => {
-            const matchesType = !typeFilter || backup.type === typeFilter;
-            const matchesStatus = !statusFilter || backup.status === statusFilter;
-            return matchesType && matchesStatus;
-        });
-        
-        renderBackups();
-    }
-
-    function openBackupModal() {
-        document.getElementById('backupModal').classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-        updateEstimatedSize();
-    }
-
-    function closeBackupModal() {
-        document.getElementById('backupModal').classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function openRestoreModal() {
-        document.getElementById('restoreModal').classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-
-        // Refresh backup data before populating restore options to ensure latest status
-        loadBackupData().then(() => {
-            populateRestoreBackups();
-        }).catch(() => {
-            // If loading fails, still populate with existing data
-            populateRestoreBackups();
-        });
-    }
-
-    function closeRestoreModal() {
-        document.getElementById('restoreModal').classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function toggleSelectAll() {
-        const selectAll = document.getElementById('selectAll');
-        const moduleCheckboxes = document.querySelectorAll('input[name="modules"]');
-        
-        moduleCheckboxes.forEach(checkbox => {
-            checkbox.checked = selectAll.checked;
-        });
-        
-        updateEstimatedSize();
-    }
-
-    function updateEstimatedSize() {
-        const selectedModules = Array.from(document.querySelectorAll('input[name="modules"]:checked'))
-            .map(cb => cb.value);
-        
-        let totalSize = 0;
-        selectedModules.forEach(module => {
-            totalSize += moduleSizes[module] || 0;
-        });
-        
-        const estimatedSizeElement = document.getElementById('estimatedSize');
-        if (totalSize > 0) {
-            estimatedSizeElement.textContent = `~${totalSize.toFixed(1)} MB (uncompressed)`;
-        } else {
-            estimatedSizeElement.textContent = 'Select modules to see estimate';
-        }
-    }
-
-    function createBackup(event) {
-        event.preventDefault();
-
-        // Prevent duplicate submissions
-        if (window.backupInProgress) {
-            showError('Backup already in progress. Please wait...');
-            return;
-        }
-
-        // Disable submit button
-        const submitBtn = document.getElementById('backupSubmitBtn');
-        const submitText = document.getElementById('backupSubmitText');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            submitText.textContent = 'Creating...';
-        }
-
-        const formData = new FormData(event.target);
-        const selectedModules = Array.from(document.querySelectorAll('input[name="modules"]:checked'))
-            .map(cb => cb.value);
-
-        if (selectedModules.length === 0) {
-            showError('Please select at least one module to backup.');
-            return;
-        }
-
-        const backupData = {
-            backup_name: formData.get('backup_name'),
-            modules: selectedModules,
-            options: Array.from(document.querySelectorAll('input[name="options"]:checked')).map(cb => cb.value)
-        };
-
-        // Get backup name for confirmation
-        const backupName = backupData.backup_name || generateBackupName(selectedModules);
-        const moduleNames = selectedModules.map(m => formatModuleName(m)).join(', ');
-
-        // Use confirmation modal for backup creation
-        showConfirmationModal({
-            title: `Are you sure you want to create a backup named "${backupName}" for the following modules: ${moduleNames}? This process may take several minutes.`,
-            type: 'info',
-            confirmText: 'Yes, create backup',
-            cancelText: 'Cancel',
-            onCancel: function() {
-                // Reset button state if user cancels
-                resetBackupButton();
-            },
-            onConfirm: function() {
-            // Set flag to prevent duplicate submissions
-            window.backupInProgress = true;
-
-            // Close the backup modal and start the backup process
-            closeBackupModal();
-
-            // Show progress immediately
-            const progressContainer = document.getElementById('backupProgress');
-            progressContainer.classList.remove('hidden');
-            document.getElementById('progressStatus').textContent = 'Starting backup...';
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('progressText').textContent = '0%';
-            document.getElementById('progressETA').textContent = 'Calculating...';
-
-            // Start progress simulation
-            simulateBackupProgress();
-
-            // Send request to server
-            fetch('{{ route("admin.cloudbackup.store") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(backupData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Stop progress simulation
-                if (currentBackupProgress) {
-                    clearInterval(currentBackupProgress);
-                    currentBackupProgress = null;
-                }
-
-                // Reset backup flag and button state regardless of outcome
-                window.backupInProgress = false;
-                resetBackupButton();
-
-                if (data.success) {
-                    // Complete the progress bar
-                    document.getElementById('progressBar').style.width = '100%';
-                    document.getElementById('progressText').textContent = '100%';
-                    document.getElementById('progressStatus').textContent = 'Backup completed!';
-                    document.getElementById('progressETA').textContent = 'Done';
-
-                    // Hide progress after a short delay to show completion
-                    setTimeout(() => {
-                        progressContainer.classList.add('hidden');
-                    }, 2000);
-
-                    // Reload data to show the new backup
-                    loadBackupData();
-
-                    // Show success message
-                    showSuccess('Backup created successfully!');
-                } else {
-                    progressContainer.classList.add('hidden');
-                    showError(data.message || 'Failed to create backup');
-                }
-            })
-            .catch(error => {
-                // Stop progress simulation
-                if (currentBackupProgress) {
-                    clearInterval(currentBackupProgress);
-                    currentBackupProgress = null;
-                }
-
-                // Reset backup flag and button state on error
-                window.backupInProgress = false;
-                resetBackupButton();
-
-                progressContainer.classList.add('hidden');
-                console.error('Error:', error);
-                showError('Failed to create backup: ' + error.message);
-            });
-            }
-        });
-    }
-
-    function generateBackupName(modules) {
-        const timestamp = new Date().toISOString().slice(0, 16).replace('T', '_');
-        if (modules.length === Object.keys(moduleSizes).length) {
-            return `Full_Backup_${timestamp}`;
-        } else {
-            return `Selective_Backup_${timestamp}`;
-        }
-    }
-
-    function simulateBackupProgress() {
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const progressStatus = document.getElementById('progressStatus');
-        const progressETA = document.getElementById('progressETA');
-
-        let progress = 10;
-        const steps = [
-            'Preparing backup...',
-            'Connecting to database...',
-            'Exporting data...',
-            'Compressing backup...',
-            'Encrypting backup...',
-            'Uploading to Google Drive...',
-            'Finalizing...'
-        ];
-        let currentStep = 0;
-
-        currentBackupProgress = setInterval(() => {
-            // Only animate progress if request hasn't completed yet
-            if (currentBackupProgress && progress < 85) {
-                progress += Math.random() * 8 + 2;
-                if (progress > 85) progress = 85;
-
-                progressBar.style.width = progress + '%';
-                progressText.textContent = Math.round(progress) + '%';
-
-                // Update status step
-                const stepIndex = Math.floor((progress / 85) * steps.length);
-                if (stepIndex < steps.length && stepIndex !== currentStep) {
-                    currentStep = stepIndex;
-                    progressStatus.textContent = steps[currentStep];
-                }
-
-                const remainingTime = Math.max(1, Math.round((100 - progress) / 8));
-                progressETA.textContent = remainingTime > 0 ? `~${remainingTime}s remaining` : 'Almost done...';
-            }
-        }, 800);
-    }
-
-
-    function cancelBackup() {
-        if (currentBackupProgress) {
-            // Use confirmation modal for canceling backup
-            showConfirmationModal({
-                title: 'Are you sure you want to cancel the current backup process? Any progress will be lost.',
-                type: 'warning',
-                confirmText: 'Yes, cancel backup',
-                cancelText: 'Continue backup',
-                onConfirm: function() {
-                    clearInterval(currentBackupProgress);
-                    currentBackupProgress = null;
-                    document.getElementById('backupProgress').classList.add('hidden');
-                    showWarning('Backup cancelled by user.');
-                }
-            });
-        }
-    }
-
-    function populateRestoreBackups() {
-        const backupList = document.getElementById('backupList');
-        // Filter backups to show only:
-        // 1. Completed backups
-        // 2. With valid size (not '0 B')
-        // 3. Available locally OR from Google Drive (with better logic)
-        const restorableBackups = backups.filter(b => {
-            const isCompleted = b.status === 'completed';
-            const hasValidSize = b.size && b.size !== '0 B' && b.size !== '0 MB';
-
-            // FIXED: Better logic for restorable backups
-            // A backup is restorable if:
-            // 1. It's stored locally OR
-            // 2. It's stored in Google Drive (we can download it)
-            // 3. It has a valid file path or Google Drive file ID
-            const isRestorable = (b.storage_location === 'local' && b.file_path) ||
-                                (b.storage_location === 'google_drive') ||
-                                (b.google_drive_file_id); // Any backup with Google Drive ID
-
-            console.log('Backup restore check:', {
-                name: b.name,
-                isCompleted,
-                hasValidSize,
-                isRestorable,
-                storage_location: b.storage_location,
-                google_drive_file_id: b.google_drive_file_id,
-                file_path: b.file_path
-            });
-
-            return isCompleted && hasValidSize && isRestorable;
-        });
-
-        if (restorableBackups.length === 0) {
-            console.log('No restorable backups found. Total backups:', backups.length);
-            console.log('All backups:', backups);
-            backupList.innerHTML = `
-                <div class="text-center py-8">
-                    <i class="fas fa-exclamation-circle text-gray-400 text-2xl mb-2"></i>
-                    <p class="text-gray-600">No restorable backups available.</p>
-                    <p class="text-sm text-gray-500 mt-1">Create a backup or ensure Google Drive connection for cloud backups.</p>
-                    <button onclick="loadBackupData()" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm">Refresh Backup List</button>
-                </div>
-            `;
-            return;
-        }
-
-        backupList.innerHTML = restorableBackups.map(backup => `
-            <label class="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 border-gray-200">
-                <input type="radio" name="restore_backup" value="${backup.id}" class="mt-1 w-5 h-5 text-primary">
-                <div class="flex-1">
-                    <div class="font-medium text-gray-900 flex items-center">
-                        ${backup.name}
-                        ${backup.storage_location === 'google_drive' && backup.google_drive_file_id ?
-                            '<i class="fas fa-cloud ml-2 text-blue-500" title="Available from Google Drive"></i>' :
-                            '<i class="fas fa-hdd ml-2 text-green-500" title="Available locally"></i>'
-                        }
-                        <span class="ml-2 px-2 py-0.5 text-xs rounded-full ${backup.storage_location === 'google_drive' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
-                            ${backup.storage_location === 'google_drive' ? 'Cloud' : 'Local'}
-                        </span>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        ${backup.modules.map(m => formatModuleName(m)).join(', ')}
-                    </div>
-                    <div class="text-xs mt-1 text-gray-500">
-                        ${formatDate(backup.created_at)} • ${backup.size} • SQL DUMP
-                        ${backup.encrypted ? ' • <i class="fas fa-lock text-green-600"></i> Encrypted' : ''}
-                        ${backup.storage_location === 'google_drive' ? ' • Can be downloaded for restore' : ' • Ready for immediate restore'}
-                    </div>
-                </div>
-            </label>
-        `).join('');
-    }
-
-    function restoreData(event) {
-        event.preventDefault();
-        
-        const formData = new FormData(event.target);
-        const backupId = parseInt(formData.get('restore_backup'));
-        
-        if (!backupId) {
-            showError('Please select a backup to restore.');
-            return;
-        }
-        
-        const backup = backups.find(b => b.id === backupId);
-        if (!backup) {
-            showError('Selected backup not found.');
-            return;
-        }
-        
-        const restoreData = {
-            backup_id: backupId,
-            restore_options: Array.from(document.querySelectorAll('input[name="restore_options"]:checked')).map(cb => cb.value),
-            confirm_restore: document.querySelector('input[name="confirm_restore"]').checked ? 1 : 0
-        };
-        
-        // Additional confirmation for critical restore operation
-        const moduleNames = backup.modules.map(m => formatModuleName(m)).join(', ');
-        const restoreOptions = restoreData.restore_options.length > 0 ?
-            ' with options: ' + restoreData.restore_options.join(', ') : '';
-
-        showConfirmationModal({
-            title: `⚠️ CRITICAL OPERATION: Are you absolutely sure you want to restore data from "${backup.name}" (${moduleNames})${restoreOptions}? This will overwrite existing data and cannot be undone without another backup.`,
-            type: 'danger',
-            confirmText: 'Yes, restore data',
-            cancelText: 'Cancel restore',
-            onConfirm: function() {
-            closeRestoreModal();
-
-            // Prevent duplicate requests
-            if (window.restoreInProgress) {
-                showError('Restore already in progress. Please wait...');
-                return;
-            }
-            window.restoreInProgress = true;
-
-            showInfo(`Starting restore from "${backup.name}". This may take several minutes...`);
-
-            fetch('{{ route("admin.cloudbackup.restore") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(restoreData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                window.restoreInProgress = false; // Reset flag
-                if (data.success) {
-                    showSuccess(data.message);
-                    loadBackupData(); // Reload data
-                } else {
-                    showError(data.message || 'Failed to restore backup');
-                }
-            })
-            .catch(error => {
-                window.restoreInProgress = false; // Reset flag on error
-                console.error('Error:', error);
-                showError('Failed to restore backup');
-            });
-            }
-        });
-    }
-
-    function downloadBackup(id) {
-        const backup = backups.find(b => b.id === id);
-        if (backup) {
-            showSuccess(`Downloading "${backup.name}"...`);
-            window.open('{{ route("admin.cloudbackup.download", ":id") }}'.replace(':id', id), '_blank');
-        }
-    }
-
-    function restoreFromBackup(id) {
-        const backup = backups.find(b => b.id === id);
-        if (backup) {
-            // Pre-select the backup in restore modal
-            openRestoreModal();
-            setTimeout(() => {
-                const radioButton = document.querySelector(`input[name="restore_backup"][value="${id}"]`);
-                if (radioButton) {
-                    radioButton.checked = true;
-                }
-            }, 100);
-        }
-    }
-
-    function deleteBackup(id) {
-        const backup = backups.find(b => b.id === id);
-        if (!backup) {
-            showError('Backup not found.');
-            return;
-        }
-        
-        // Use confirmation modal for delete operation
-        confirmDelete(backup.name, function() {
-            fetch('/midwife/cloudbackup/' + id, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccess(data.message);
-                    loadBackupData(); // Reload data
-                } else {
-                    showError(data.message || 'Failed to delete backup');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showError('Failed to delete backup');
-            });
-        });
-    }
-
-    function updateStats() {
-        const totalBackups = backups.length;
-        const successfulBackups = backups.filter(b => b.status === 'completed').length;
-        const lastBackup = backups.length > 0 ? backups[0] : null;
-        
-        document.getElementById('totalBackups').textContent = totalBackups;
-        document.getElementById('successfulBackups').textContent = successfulBackups;
-        
-        if (lastBackup) {
-            const lastBackupTime = new Date(lastBackup.created_at);
-            const now = new Date();
-            const diffHours = Math.floor((now - lastBackupTime) / (1000 * 60 * 60));
-            document.getElementById('lastBackup').textContent = `${diffHours}h ago`;
-        }
-    }
-
-    function updateStatsFromServer(stats) {
-        const statsData = @json($stats ?? []);
-
-        // Only update stats if elements exist (they're commented out in the current UI)
-        const totalElement = document.getElementById('totalBackups');
-        const successfulElement = document.getElementById('successfulBackups');
-        const lastElement = document.getElementById('lastBackup');
-        const storageElement = document.getElementById('storageUsed');
-
-        if (stats.total_backups !== undefined && totalElement) {
-            totalElement.textContent = stats.total_backups;
-        }
-        if (stats.successful_backups !== undefined && successfulElement) {
-            successfulElement.textContent = stats.successful_backups;
-        }
-        if (stats.last_backup !== undefined && lastElement) {
-            lastElement.textContent = stats.last_backup;
-        }
-        if (stats.storage_used !== undefined && storageElement) {
-            storageElement.textContent = stats.storage_used;
-        }
-    }
-
-    // Utility functions
-    function formatModuleName(moduleKey) {
-        const moduleNames = {
-            'patient_records': 'Patient Records',
-            'prenatal_monitoring': 'Prenatal Monitoring',
-            'child_records': 'Child Records',
-            'immunization_records': 'Immunization Records',
-            'vaccine_management': 'Vaccine Management'
-        };
-        return moduleNames[moduleKey] || moduleKey;
-    }
-
-    // Use flowbite alert system for all notifications
-    function showSuccess(message) {
-        // Use the global healthcare alert system
-        if (window.healthcareAlert) {
-            window.healthcareAlert.success(message);
-        } else {
-            console.log('Success:', message);
-        }
-    }
-
-    function showError(message) {
-        // Use the global healthcare alert system
-        if (window.healthcareAlert) {
-            window.healthcareAlert.error(message);
-        } else {
-            console.error('Error:', message);
-        }
-    }
-
-    function showInfo(message) {
-        // Use the global healthcare alert system
-        if (window.healthcareAlert) {
-            window.healthcareAlert.info(message);
-        } else {
-            console.log('Info:', message);
-        }
-    }
-
-    function showWarning(message) {
-        // Use the global healthcare alert system
-        if (window.healthcareAlert) {
-            window.healthcareAlert.warning(message);
-        } else {
-            console.warn('Warning:', message);
-        }
-    }
-
-    // Function to hide all messages (no longer needed with centered overlays)
-    function hideAllMessages() {
-        // Remove any existing alert overlays from healthcare alert system
-        if (window.healthcareAlert) {
-            window.healthcareAlert.removeExisting();
-        }
-    }
-
-    // Load real database record counts
-    function loadRealDataCounts() {
-        // Use server-side real module information
-        const moduleInfo = @json($moduleInfo ?? []);
-
-        // Extract counts and sizes from server data
-        moduleCounts = {};
-        moduleSizes = {};
-
-        Object.keys(moduleInfo).forEach(module => {
-            moduleCounts[module] = moduleInfo[module].record_count || 0;
-            moduleSizes[module] = moduleInfo[module].size_mb || 0;
-        });
-
-        // Update UI with real counts
-        const updateModuleDisplay = (moduleKey, elementId) => {
-            const info = moduleInfo[moduleKey];
-            if (info && document.getElementById(elementId)) {
-                const count = info.record_count || 0;
-                const size = info.size_formatted || '0 B';
-                document.getElementById(elementId).textContent = `${count} records • ${size}`;
-            }
-        };
-
-        updateModuleDisplay('patient_records', 'patient-records-count');
-        updateModuleDisplay('prenatal_monitoring', 'prenatal-records-count');
-        updateModuleDisplay('child_records', 'child-records-count');
-        updateModuleDisplay('immunization_records', 'immunization-records-count');
-        updateModuleDisplay('vaccine_management', 'vaccine-records-count');
-
-        console.log('Module info loaded:', moduleInfo);
-        console.log('Module counts:', moduleCounts);
-        console.log('Module sizes:', moduleSizes);
-    }
-
-    // Format size for display
-    function formatSize(sizeInMB) {
-        if (sizeInMB < 0.001) {
-            return '< 1 KB';
-        } else if (sizeInMB < 1) {
-            return `${Math.round(sizeInMB * 1024)} KB`;
-        } else {
-            return `${sizeInMB.toFixed(1)} MB`;
-        }
-    }
-
-    // Reset backup button state
-    function resetBackupButton() {
-        const submitBtn = document.getElementById('backupSubmitBtn');
-        const submitText = document.getElementById('backupSubmitText');
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            submitText.textContent = 'Start Backup';
-        }
-    }
-
-    // Sync Google Drive backups
-    function syncGoogleDrive() {
-        showInfo('Syncing Google Drive backups...');
-
-        fetch('{{ route("admin.cloudbackup.sync") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccess(data.message);
-                loadBackupData(); // Reload backup data
-            } else {
-                showError(data.message || 'Failed to sync Google Drive');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showError('Failed to sync Google Drive');
-        });
-    }
-
-    // Click outside to close modals
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
-            if (e.target.id === 'backupModal') {
-                closeBackupModal();
-            } else if (e.target.id === 'restoreModal') {
-                closeRestoreModal();
-            }
-        }
-    });
-</script>
-@endpush
+<!-- Reschedule Modal -->
+ @include ('partials.midwife.immunization.reschedule_modal')
 
 @endsection
+
+@push('scripts')
+<script>
+// ==============================================
+// MODAL MANAGEMENT
+// ==============================================
+
+/**
+ * Opens the Add Immunization modal
+ */
+function openAddModal() {
+    const modal = document.getElementById('immunizationModal');
+    const form = document.getElementById('immunizationForm');
+    
+    if (!modal || !form) {
+        console.error('Add modal elements not found');
+        return;
+    }
+    
+    // Reset form
+    form.reset();
+    clearValidationStates(form);
+    
+    // Show modal with animation
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.classList.add('show'));
+    document.body.style.overflow = 'hidden';
+    
+    // Focus first input
+    setTimeout(() => {
+        const firstInput = form.querySelector('select[name="child_record_id"]');
+        if (firstInput) firstInput.focus();
+    }, 300);
+}
+
+/**
+ * Closes the Add Immunization modal
+ */
+function closeModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    
+    const modal = document.getElementById('immunizationModal');
+    if (!modal) return;
+    
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        
+        // Reset form only if no validation errors
+        if (!document.querySelector('.bg-red-100')) {
+            const form = document.getElementById('immunizationForm');
+            if (form) {
+                form.reset();
+                clearValidationStates(form);
+            }
+        }
+    }, 300);
+}
+
+/**
+ * Opens the View Immunization modal
+ */
+function openViewModal(immunization) {
+    if (!immunization) {
+        console.error('No immunization record provided');
+        return;
+    }
+    
+    try {
+        // Populate modal fields
+        updateElementText('modalChildName', immunization.child_record?.full_name);
+        updateElementText('modalVaccineName', immunization.vaccine_name);
+        updateElementText('modalDose', immunization.dose);
+        updateElementText('modalStatus', immunization.status);
+        updateElementText('modalNotes', immunization.notes);
+        
+        // Format and display schedule date
+        if (immunization.schedule_date) {
+            const scheduleDate = new Date(immunization.schedule_date);
+            updateElementText('modalScheduleDate', scheduleDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            }));
+        } else {
+            updateElementText('modalScheduleDate', 'N/A');
+        }
+        
+        // Display schedule time
+        updateElementText('modalScheduleTime', immunization.schedule_time || 'N/A');
+        
+        // Show modal with animation
+        const modal = document.getElementById('viewImmunizationModal');
+        const content = document.getElementById('viewImmunizationModalContent');
+        
+        if (!modal || !content) {
+            console.error('View modal elements not found');
+            return;
+        }
+        
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+            content.classList.remove('-translate-y-10', 'opacity-0');
+            content.classList.add('translate-y-0', 'opacity-100');
+        });
+        
+    } catch (error) {
+        console.error('Error opening view modal:', error);
+    }
+}
+
+/**
+ * Closes the View Immunization modal
+ */
+function closeViewModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    
+    const modal = document.getElementById('viewImmunizationModal');
+    const content = document.getElementById('viewImmunizationModalContent');
+    
+    if (!modal || !content) return;
+    
+    content.classList.remove('translate-y-0', 'opacity-100');
+    content.classList.add('-translate-y-10', 'opacity-0');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+/**
+ * Opens the Edit Immunization modal
+ */
+function openEditModal(immunization) {
+    console.log('Opening edit modal for immunization:', immunization);
+
+    if (!immunization) {
+        console.error('No immunization record provided');
+        alert('Error: No immunization data provided');
+        return;
+    }
+
+    const modal = document.getElementById('editImmunizationModal');
+    const form = document.getElementById('editImmunizationForm');
+
+    if (!modal || !form) {
+        console.error('Edit modal elements not found');
+        alert('Error: Modal elements not found');
+        return;
+    }
+
+    try {
+        // Set form action
+        const userRole = '{{ auth()->user()->role }}';
+        const routeName = userRole === 'bhw' ? 'immunizations' : 'immunization';
+        form.action = `/${userRole}/${routeName}/${immunization.id}`;
+        console.log('Form action set to:', form.action);
+
+        // Populate form fields
+        populateEditForm(immunization);
+
+        // Clear validation states
+        clearValidationStates(form);
+
+        // Show modal
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => modal.classList.add('show'));
+        document.body.style.overflow = 'hidden';
+
+        // Focus first input (but only if not readonly)
+        setTimeout(() => {
+            const firstInput = document.getElementById('editChildRecordId');
+            if (firstInput && !firstInput.disabled) {
+                firstInput.focus();
+            }
+        }, 300);
+
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        alert('Error opening edit modal. Please try again.');
+    }
+}
+
+/**
+ * Closes the Edit Immunization modal
+ */
+function closeEditModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    
+    const modal = document.getElementById('editImmunizationModal');
+    if (!modal) return;
+    
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        
+        const form = document.getElementById('editImmunizationForm');
+        if (form) {
+            form.reset();
+            clearValidationStates(form);
+        }
+    }, 300);
+}
+
+// ==============================================
+// UTILITY FUNCTIONS
+// ==============================================
+
+/**
+ * Updates text content of an element safely
+ */
+function updateElementText(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = value || 'N/A';
+    }
+}
+
+/**
+ * Populates the edit form with immunization data
+ */
+function populateEditForm(immunization) {
+    console.log('Populating edit form with:', immunization);
+
+    // Handle vaccine ID - fallback to finding by name if vaccine_id is missing
+    let vaccineId = immunization.vaccine_id;
+    if (!vaccineId && immunization.vaccine_name) {
+        // Try to find vaccine ID by name from the dropdown options
+        const vaccineSelect = document.getElementById('editVaccineId');
+        if (vaccineSelect) {
+            for (let option of vaccineSelect.options) {
+                if (option.textContent.includes(immunization.vaccine_name)) {
+                    vaccineId = option.value;
+                    console.log(`Found vaccine ID ${vaccineId} for vaccine name "${immunization.vaccine_name}"`);
+                    break;
+                }
+            }
+        }
+    }
+
+    const fieldMappings = [
+        { id: 'editImmunizationId', value: immunization.id },
+        { id: 'editChildRecordId', value: immunization.child_record_id },
+        { id: 'editVaccineId', value: vaccineId },
+        { id: 'editDose', value: immunization.dose },
+        { id: 'editScheduleDate', value: formatDateForInput(immunization.schedule_date) },
+        { id: 'editScheduleTime', value: formatTimeForInput(immunization.schedule_time) },
+        { id: 'editStatus', value: immunization.status },
+        { id: 'editNotes', value: immunization.notes }
+    ];
+
+    fieldMappings.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) {
+            element.value = field.value || '';
+            element.classList.remove('error-border', 'success-border');
+            console.log(`Set ${field.id} to: ${field.value}`);
+        } else {
+            console.warn(`Element not found: ${field.id}`);
+        }
+    });
+
+    // Trigger vaccine info update after setting vaccine
+    setTimeout(() => {
+        try {
+            if (typeof updateEditVaccineInfo === 'function') {
+                console.log('Calling updateEditVaccineInfo');
+                updateEditVaccineInfo();
+            } else {
+                console.warn('updateEditVaccineInfo function not found');
+            }
+        } catch (error) {
+            console.error('Error calling updateEditVaccineInfo:', error);
+        }
+    }, 50);
+
+    // Toggle field states based on status after populating the form
+    setTimeout(() => {
+        try {
+            if (typeof toggleFieldsBasedOnStatus === 'function') {
+                console.log('Calling toggleFieldsBasedOnStatus for status:', immunization.status);
+                toggleFieldsBasedOnStatus();
+            } else {
+                console.warn('toggleFieldsBasedOnStatus function not found');
+            }
+        } catch (error) {
+            console.error('Error calling toggleFieldsBasedOnStatus:', error);
+        }
+    }, 100);
+}
+
+/**
+ * Formats date string for HTML date input
+ */
+function formatDateForInput(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+}
+
+/**
+ * Formats time string for HTML time input
+ */
+function formatTimeForInput(timeString) {
+    if (!timeString) return '';
+    if (timeString.includes(':')) {
+        return timeString.substring(0, 5); // Take HH:MM part
+    }
+    return timeString;
+}
+
+/**
+ * Clears validation states from form elements
+ */
+function clearValidationStates(form) {
+    if (!form) return;
+    
+    form.querySelectorAll('.error-border, .success-border').forEach(input => {
+        input.classList.remove('error-border', 'success-border');
+    });
+}
+
+/**
+ * Validates a form field
+ */
+function validateField(field) {
+    const value = field.value.trim();
+    const isRequired = field.hasAttribute('required');
+    let isValid = true;
+
+    // Clear previous validation styles
+    field.classList.remove('error-border', 'success-border');
+    
+    if (isRequired && !value) {
+        isValid = false;
+    } else if (value) {
+        // Field-specific validation
+        switch (field.name) {
+            case 'schedule_date':
+                const scheduleDate = new Date(value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (scheduleDate < today) {
+                    isValid = false;
+                }
+                break;
+            case 'schedule_time':
+                const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (!timeRegex.test(value)) {
+                    isValid = false;
+                }
+                break;
+        }
+    }
+
+    // Apply validation styling
+    if (!isValid) {
+        field.classList.add('error-border');
+    } else if (value) {
+        field.classList.add('success-border');
+    }
+
+    return isValid;
+}
+
+/**
+ * Sets up form validation and submission handling
+ */
+function setupFormHandling(form, submitBtn, loadingText) {
+    if (!form || !submitBtn) return;
+
+    // Add validation to inputs
+    const inputs = form.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+        input.addEventListener('input', function() {
+            this.classList.remove('error-border');
+        });
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            ${loadingText}
+        `;
+        
+        // Re-enable button after 10 seconds as fallback
+        setTimeout(() => {
+            if (submitBtn.disabled) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }, 10000);
+    });
+}
+
+/**
+ * Sets date constraints on date inputs
+ */
+function setDateConstraints() {
+    const scheduleDateInputs = ['schedule_date', 'editScheduleDate'];
+    
+    scheduleDateInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            const today = new Date().toISOString().split('T')[0];
+            input.setAttribute('min', today);
+            
+            // Set reasonable maximum date (2 years from now)
+            const maxDate = new Date();
+            maxDate.setFullYear(maxDate.getFullYear() + 2);
+            input.setAttribute('max', maxDate.toISOString().split('T')[0]);
+        }
+    });
+}
+
+// ==============================================
+// INITIALIZATION
+// ==============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup form handling for Add form
+    const addForm = document.getElementById('immunizationForm');
+    const addSubmitBtn = document.getElementById('submit-btn');
+    if (addForm && addSubmitBtn) {
+        setupFormHandling(addForm, addSubmitBtn, 'Scheduling...');
+    }
+
+    // Setup form handling for Edit form
+    const editForm = document.getElementById('editImmunizationForm');
+    const editSubmitBtn = editForm?.querySelector('button[type="submit"]');
+    if (editForm && editSubmitBtn) {
+        setupFormHandling(editForm, editSubmitBtn, 'Updating...');
+    }
+    
+    // Set date constraints
+    setDateConstraints();
+    
+    // Close modals on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+            closeEditModal();
+            closeViewModal();
+            closeImmunizationRescheduleModal();
+        }
+    });
+    
+    // Handle validation errors from server - reopen modal with errors
+    @if($errors->any())
+        openAddModal();
+    @endif
+
+    // Handle Laravel session messages using the global healthcare alert system
+    @if(session('success'))
+        if (window.healthcareAlert) {
+            window.healthcareAlert.success('{{ addslashes(session("success")) }}');
+        }
+    @endif
+
+    @if(session('error'))
+        if (window.healthcareAlert) {
+            window.healthcareAlert.error('{{ addslashes(session("error")) }}');
+        }
+    @endif
+
+    @if(session('warning'))
+        if (window.healthcareAlert) {
+            window.healthcareAlert.warning('{{ addslashes(session("warning")) }}');
+        }
+    @endif
+
+    @if(session('info'))
+        if (window.healthcareAlert) {
+            window.healthcareAlert.info('{{ addslashes(session("info")) }}');
+        }
+    @endif
+
+    // Enhanced form submission with toast notifications
+    const immunizationForm = document.getElementById('immunizationForm');
+    const editImmunizationForm = document.getElementById('editImmunizationForm');
+
+    // Add form submission handlers for alert notifications
+    if (immunizationForm) {
+        immunizationForm.addEventListener('submit', function(e) {
+            // Show pending alert using global healthcare alert
+            setTimeout(() => {
+                window.healthcareAlert.info('Scheduling immunization...', 'Processing');
+            }, 100);
+        });
+    }
+
+    if (editImmunizationForm) {
+        editImmunizationForm.addEventListener('submit', function(e) {
+            // Show pending alert using global healthcare alert
+            setTimeout(() => {
+                window.healthcareAlert.info('Updating immunization record...', 'Processing');
+            }, 100);
+        });
+    }
+});
+
+// Custom alert functions for immunization operations using global healthcare alerts
+window.immunizationAlert = {
+    scheduled: function(childName, vaccineName) {
+        window.healthcareAlert.success(`Immunization scheduled for ${childName} - ${vaccineName} vaccination`, 'Scheduled Successfully!');
+    },
+    updated: function(childName, status) {
+        window.healthcareAlert.success(`Record updated for ${childName} - Status changed to ${status}`, 'Updated Successfully!');
+    },
+    error: function(message) {
+        window.healthcareAlert.error(message, 'Operation Failed');
+    },
+    lowStock: function(vaccineName, stock) {
+        window.healthcareAlert.warning(`Only ${stock} units left for ${vaccineName}`, 'Low Stock Warning');
+    },
+    showAlert: function(type, title, message) {
+        // Remove any existing alerts first
+        this.removeExistingAlerts();
+
+        // Create alert HTML based on type
+        const alertHtml = this.createAlertHtml(type, title, message);
+
+        // Create temporary container
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = alertHtml;
+        const alertElement = tempDiv.firstElementChild;
+
+        // Style for slide-in from top
+        alertElement.style.cssText = `
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            min-width: 400px;
+            max-width: 600px;
+            transition: all 0.4s ease-out;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        `;
+
+        // Add to body
+        document.body.appendChild(alertElement);
+
+        // Trigger slide-in animation
+        setTimeout(() => {
+            alertElement.style.top = '20px';
+        }, 10);
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            this.hideAlert(alertElement);
+        }, 5000);
+    },
+    createAlertHtml: function(type, title, message) {
+        const alertConfigs = {
+            success: {
+                bgClass: 'bg-green-50',
+                textClass: 'text-green-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            },
+            error: {
+                bgClass: 'bg-red-50',
+                textClass: 'text-red-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            },
+            warning: {
+                bgClass: 'bg-yellow-50',
+                textClass: 'text-yellow-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            },
+            info: {
+                bgClass: 'bg-blue-50',
+                textClass: 'text-blue-800',
+                iconPath: 'M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z'
+            }
+        };
+
+        const config = alertConfigs[type] || alertConfigs.info;
+
+        return `
+            <div class="flex items-center p-4 mb-4 text-sm ${config.textClass} rounded-lg ${config.bgClass} border border-current/20" role="alert" data-dynamic-alert="true">
+                <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="${config.iconPath}"/>
+                </svg>
+                <span class="sr-only">Alert</span>
+                <div>
+                    <span class="font-medium">${title}</span> ${message}
+                </div>
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 ${config.textClass} rounded-lg focus:ring-2 focus:ring-current p-1.5 hover:bg-current/10 inline-flex items-center justify-center h-8 w-8" onclick="immunizationAlert.hideAlert(this.parentElement)">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+    },
+    hideAlert: function(alertElement) {
+        if (alertElement) {
+            alertElement.style.opacity = '0';
+            alertElement.style.transform = 'translateX(-50%) translateY(-20px)';
+            setTimeout(() => {
+                if (alertElement.parentNode) {
+                    alertElement.parentNode.removeChild(alertElement);
+                }
+            }, 400);
+        }
+    },
+    removeExistingAlerts: function() {
+        const existingAlerts = document.querySelectorAll('[data-dynamic-alert="true"]');
+        existingAlerts.forEach(alert => {
+            this.hideAlert(alert);
+        });
+    }
+};
+
+// Test function to demonstrate the enhanced healthcare alert system
+window.testAlerts = function() {
+    setTimeout(() => window.healthcareAlert.success('This is an enhanced success alert with better design'), 500);
+    setTimeout(() => window.healthcareAlert.error('This is an enhanced error alert with better design'), 1000);
+    setTimeout(() => window.healthcareAlert.warning('This is an enhanced warning alert with better design'), 1500);
+    setTimeout(() => window.healthcareAlert.info('This is an enhanced info alert with better design'), 2000);
+};
+
+// Clear search function
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        // Submit the form to clear the search
+        searchInput.form.submit();
+    }
+}
+
+// Reschedule Modal Functions
+let currentRescheduleImmunization = null;
+
+function openImmunizationRescheduleModal(immunization) {
+    console.log('Opening reschedule modal with data:', immunization);
+
+    if (!immunization) {
+        console.error('No immunization data provided');
+        return;
+    }
+
+    currentRescheduleImmunization = immunization;
+
+    // Populate immunization details
+    const childNameEl = document.getElementById('reschedule-child-name');
+    const vaccineNameEl = document.getElementById('reschedule-vaccine-name');
+    const doseEl = document.getElementById('reschedule-dose');
+    const originalDateEl = document.getElementById('reschedule-original-date');
+
+    if (childNameEl) childNameEl.textContent = immunization.child_record?.full_name || 'Unknown';
+    if (vaccineNameEl) vaccineNameEl.textContent = immunization.vaccine?.name || immunization.vaccine_name || 'Unknown';
+    if (doseEl) doseEl.textContent = immunization.dose || 'N/A';
+
+    if (originalDateEl) {
+        const scheduleDate = new Date(immunization.schedule_date);
+        originalDateEl.textContent = scheduleDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    // Reset form
+    const form = document.getElementById('rescheduleForm');
+    if (form) form.reset();
+
+    // Show modal
+    const modal = document.getElementById('rescheduleModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus on date input after a small delay
+        setTimeout(() => {
+            const dateInput = document.getElementById('reschedule-date');
+            if (dateInput) dateInput.focus();
+        }, 100);
+    } else {
+        console.error('Reschedule modal not found');
+    }
+}
+
+function closeImmunizationRescheduleModal() {
+    const modal = document.getElementById('rescheduleModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    currentRescheduleImmunization = null;
+
+    const form = document.getElementById('rescheduleForm');
+    if (form) form.reset();
+}
+
+// Handle reschedule form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const rescheduleForm = document.getElementById('rescheduleForm');
+    if (rescheduleForm) {
+        rescheduleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!currentRescheduleImmunization) {
+                if (window.healthcareAlert) {
+                    window.healthcareAlert.error('No immunization selected for rescheduling');
+                }
+                return;
+            }
+
+            const userRole = '{{ auth()->user()->role }}';
+            const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
+            this.action = `/${userRole}/${endpoint}/${currentRescheduleImmunization.id}/reschedule`;
+            this.submit();
+        });
+    }
+});
+</script>
+@endpush

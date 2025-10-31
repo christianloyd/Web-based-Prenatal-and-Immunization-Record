@@ -200,3 +200,89 @@
         </form>
     </div>
 </div>
+
+<script>
+// AJAX form submission handler for child record edit
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('edit-child-form');
+
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('edit-submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Disable submit button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
+
+            // Prepare form data
+            const formData = new FormData(this);
+            const url = this.action;
+
+            // Send AJAX request
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success alert
+                    if (window.healthcareAlert) {
+                        window.healthcareAlert.success(data.message || 'Child record updated successfully!');
+                    }
+
+                    // Close modal
+                    closeEditChildModal();
+
+                    // Reload page after short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Show error alert
+                    if (window.healthcareAlert) {
+                        window.healthcareAlert.error(data.message || 'Failed to update child record.');
+                    }
+
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+
+                    // Display validation errors if any
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(key => {
+                            const errorMessages = data.errors[key];
+                            const inputField = editForm.querySelector(`[name="${key}"]`);
+                            if (inputField) {
+                                inputField.classList.add('error-border');
+                                // Display first error message
+                                const errorP = document.createElement('p');
+                                errorP.className = 'text-red-500 text-xs mt-1';
+                                errorP.textContent = errorMessages[0];
+                                inputField.parentElement.appendChild(errorP);
+                            }
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (window.healthcareAlert) {
+                    window.healthcareAlert.error('An unexpected error occurred. Please try again.');
+                }
+
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            });
+        });
+    }
+});
+</script>

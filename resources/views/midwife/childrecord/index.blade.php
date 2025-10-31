@@ -198,11 +198,11 @@
              
         </div>
         <div class="flex space-x-3">
-            <button onclick="openAddModal()"
+            <a href="{{ route('midwife.childrecord.create') }}"
                 class="btn-minimal btn-primary-clean px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <i class="fas fa-plus text-sm"></i>
                 <span>Add Record</span>
-            </button>
+            </a>
         </div>
     </div>
 

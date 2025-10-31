@@ -189,14 +189,14 @@ class PrenatalRecordController extends Controller
 
     /**
      * Complete pregnancy - Change status to completed
-     * Only accessible by midwife
+     * Accessible by midwife and BHW
      * Irreversible action
      */
     public function completePregnancy($id)
     {
-        // Only midwife can complete pregnancies
-        if (Auth::user()->role !== 'midwife') {
-            abort(403, 'Unauthorized. Only midwives can complete pregnancy records.');
+        // Only midwife and BHW can complete pregnancies
+        if (!in_array(Auth::user()->role, ['midwife', 'bhw'])) {
+            abort(403, 'Unauthorized. Only midwives and BHWs can complete pregnancy records.');
         }
 
         try {
@@ -205,11 +205,19 @@ class PrenatalRecordController extends Controller
             // Complete pregnancy using service
             $this->prenatalRecordService->completePregnancy($prenatal);
 
-            return redirect()->route('midwife.prenatalrecord.index')
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.prenatalrecord.index'
+                : 'bhw.prenatalrecord.index';
+
+            return redirect()->route($redirectRoute)
                 ->with('success', 'Pregnancy record completed successfully. This action cannot be reversed.');
 
         } catch (\Exception $e) {
-            return redirect()->route('midwife.prenatalrecord.index')
+            $redirectRoute = Auth::user()->role === 'midwife'
+                ? 'midwife.prenatalrecord.index'
+                : 'bhw.prenatalrecord.index';
+
+            return redirect()->route($redirectRoute)
                 ->with('error', $e->getMessage());
         }
     }

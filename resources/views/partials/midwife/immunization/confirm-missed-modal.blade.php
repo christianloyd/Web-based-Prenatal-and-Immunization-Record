@@ -68,44 +68,71 @@
 </div>
 
 <script>
-let currentMissedImmunizationId = null;
-let currentMissedImmunizationData = null;
-
-function openConfirmMissedModal(immunization) {
-    currentMissedImmunizationId = immunization.id;
-    currentMissedImmunizationData = immunization;
-
-    // Populate immunization details
-    document.getElementById('confirm-child-name').textContent = immunization.child_record?.full_name || 'Unknown';
-    document.getElementById('confirm-vaccine-name').textContent = immunization.vaccine?.name || immunization.vaccine_name || 'Unknown';
-    document.getElementById('confirm-dose').textContent = immunization.dose || 'N/A';
-
-    const scheduleDate = new Date(immunization.schedule_date);
-    document.getElementById('confirm-schedule-date').textContent = scheduleDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-
-    // Set form action
-    const userRole = '{{ auth()->user()->role }}';
-    const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
-    document.getElementById('confirmMissedForm').action = `/${userRole}/${endpoint}/${immunization.id}/mark-missed`;
-
-    // Show modal
-    document.getElementById('confirmMissedModal').classList.remove('hidden');
-}
-
-function closeConfirmMissedModal() {
-    document.getElementById('confirmMissedModal').classList.add('hidden');
-    currentMissedImmunizationId = null;
-    currentMissedImmunizationData = null;
-}
-
-// Close on Escape key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeConfirmMissedModal();
+    let currentMissedImmunizationId = null;
+    let currentMissedImmunizationData = null;
+    
+    function openConfirmMissedModal(immunization) {
+        console.log('Opening confirm missed modal with:', immunization);
+        
+        if (!immunization) {
+            console.error('No immunization data provided');
+            return;
+        }
+        
+        currentMissedImmunizationId = immunization.id;
+        currentMissedImmunizationData = immunization;
+    
+        // Populate immunization details
+        document.getElementById('confirm-child-name').textContent = immunization.child_record?.full_name || 'Unknown';
+        document.getElementById('confirm-vaccine-name').textContent = immunization.vaccine?.name || immunization.vaccine_name || 'Unknown';
+        document.getElementById('confirm-dose').textContent = immunization.dose || 'N/A';
+    
+        const scheduleDate = new Date(immunization.schedule_date);
+        document.getElementById('confirm-schedule-date').textContent = scheduleDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    
+        // Set form action
+        const userRole = '{{ auth()->user()->role }}';
+        const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
+        document.getElementById('confirmMissedForm').action = `/${userRole}/${endpoint}/${immunization.id}/mark-missed`;
+    
+        // Show modal
+        const modal = document.getElementById('confirmMissedModal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        console.log('Modal should now be visible');
+        console.log('Form action:', document.getElementById('confirmMissedForm').action);
     }
-});
+    
+    function closeConfirmMissedModal() {
+        const modal = document.getElementById('confirmMissedModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        currentMissedImmunizationId = null;
+        currentMissedImmunizationData = null;
+    }
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('confirmMissedModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                closeConfirmMissedModal();
+            }
+        }
+    });
+    
+    // Prevent event bubbling on modal content
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalContent = document.querySelector('#confirmMissedModal .modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
 </script>

@@ -42,7 +42,8 @@
         </div>
 
         <!-- Form -->
-        <form id="markMissedForm" class="space-y-4">
+        <form id="markMissedForm" method="POST" class="space-y-4">
+            @csrf
             <input type="hidden" id="missed-immunization-id" name="immunization_id">
 
             <!-- Reason -->
@@ -164,8 +165,14 @@ function openMarkMissedModal(immunization) {
         day: 'numeric'
     });
 
+    // Set form action
+    const userRole = '{{ auth()->user()->role }}';
+    const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
+    document.getElementById('markMissedForm').action = `/${userRole}/${endpoint}/${immunization.id}/mark-missed`;
+
     // Reset form
     document.getElementById('markMissedForm').reset();
+    document.getElementById('missed-immunization-id').value = immunization.id; // Restore after reset
     document.getElementById('missed-confirm-checkbox').checked = false;
     document.getElementById('missed-reschedule-checkbox').checked = false;
     document.getElementById('reschedule-fields').classList.add('hidden');
@@ -218,70 +225,19 @@ document.getElementById('missed-reschedule-checkbox').addEventListener('change',
 });
 
 // Handle form submission
-document.getElementById('markMissedForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const submitBtn = document.getElementById('missed-submit-btn');
-    const originalBtnText = submitBtn.innerHTML;
-
+document.getElementById('markMissedForm').addEventListener('submit', function(e) {
     if (!document.getElementById('missed-confirm-checkbox').checked) {
+        e.preventDefault();
         alert('Please confirm by checking the checkbox');
-        return;
+        return false;
     }
 
-    try {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+    // Show loading state
+    const submitBtn = document.getElementById('missed-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
 
-        const formData = {
-            immunization_id: document.getElementById('missed-immunization-id').value,
-            reason: document.getElementById('missed-reason').value,
-            notes: document.getElementById('missed-notes').value,
-            status: 'Missed',
-            reschedule: document.getElementById('missed-reschedule-checkbox').checked,
-            reschedule_date: document.getElementById('missed-reschedule-date').value,
-            reschedule_time: document.getElementById('missed-reschedule-time').value
-        };
-
-        const userRole = '{{ auth()->user()->role }}';
-        const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
-        const response = await fetch(`/${userRole}/${endpoint}/quick-update-status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(formData)
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            // Show success message
-            if (window.healthcareAlert) {
-                window.healthcareAlert.success(result.message || 'Immunization marked as missed successfully!');
-            }
-
-            // Close modal and reload page
-            closeMarkMissedModal();
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        } else {
-            throw new Error(result.message || 'Failed to update status');
-        }
-
-    } catch (error) {
-        console.error('Error:', error);
-        if (window.healthcareAlert) {
-            window.healthcareAlert.error(error.message || 'Failed to mark as missed. Please try again.');
-        } else {
-            alert('Error: ' + error.message);
-        }
-
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
-    }
+    // Let the form submit normally
+    return true;
 });
 </script>

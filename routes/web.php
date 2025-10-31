@@ -124,6 +124,7 @@ Route::middleware('auth')->group(function () {
             Route::get('immunization/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunization.child-doses');
             Route::post('immunization/{id}/mark-missed', [ImmunizationController::class, 'markAsMissed'])->name('immunization.mark-missed');
             Route::post('immunization/{id}/reschedule', [ImmunizationController::class, 'reschedule'])->name('immunization.reschedule');
+            Route::post('immunization/{id}/complete', [ImmunizationController::class, 'completeImmunization'])->name('immunization.complete');
             Route::resource('immunization', ImmunizationController::class);
 
             //Vaccine Routes
@@ -181,16 +182,18 @@ Route::middleware('auth')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'bhwIndex'])->name('dashboard');
             
             //Patient Routes for BHW
-            Route::resource('patients', PatientController::class);
+            // Specific routes MUST come before resource routes
             Route::get('patients/search', [PatientController::class, 'search'])->name('patients.search');
             Route::get('patients/search-minimal', [PatientController::class, 'searchMinimal'])->name('patients.search.minimal');
             Route::get('patients/{id}/details', [PatientController::class, 'getPatientDetails'])->name('patients.details');
             Route::get('patients/{id}/profile', [PatientController::class, 'profile'])->name('patients.profile');
             Route::get('patients/{id}/print', [PatientController::class, 'printProfile'])->name('patients.print');
+            Route::resource('patients', PatientController::class);
 
             //Prenatal Record Routes for BHW
+            Route::post('prenatalrecord/{id}/complete', [PrenatalRecordController::class, 'completePregnancy'])->name('prenatalrecord.complete');
             Route::resource('prenatalrecord', PrenatalRecordController::class);
-            
+
             //Prenatal Checkup Routes for BHW
             Route::resource('prenatalcheckup', PrenatalCheckupController::class);
             Route::get('prenatalcheckup/{id}/data', [PrenatalCheckupController::class, 'getData'])->name('prenatalcheckup.data');
