@@ -843,85 +843,8 @@ function closeMarkMissedModal(event) {
     }, 300);
 }
 
-/**
- * Opens the Reschedule modal
- */
-function openImmunizationRescheduleModal(immunization) {
-    console.log('Opening reschedule modal with data:', immunization);
-
-    if (!immunization) {
-        console.error('No immunization data provided');
-        return;
-    }
-
-    // Populate immunization details
-    const childNameEl = document.getElementById('reschedule-child-name');
-    const vaccineNameEl = document.getElementById('reschedule-vaccine-name');
-    const doseEl = document.getElementById('reschedule-dose');
-    const originalDateEl = document.getElementById('reschedule-original-date');
-
-    if (childNameEl) childNameEl.textContent = immunization.child_record?.full_name || 'Unknown';
-    
-    let vaccineName = 'Unknown';
-    if (immunization.vaccine && immunization.vaccine.name) {
-        vaccineName = immunization.vaccine.name;
-    } else if (immunization.vaccine_name) {
-        vaccineName = immunization.vaccine_name;
-    }
-    if (vaccineNameEl) vaccineNameEl.textContent = vaccineName;
-    
-    if (doseEl) doseEl.textContent = immunization.dose || 'N/A';
-
-    if (originalDateEl) {
-        const scheduleDate = new Date(immunization.schedule_date);
-        originalDateEl.textContent = scheduleDate.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
-
-    // Reset form
-    const form = document.getElementById('rescheduleForm');
-    if (form) form.reset();
-
-    // Set current reschedule immunization for form submission
-    window.currentRescheduleImmunization = immunization;
-
-    // Show modal
-    const modal = document.getElementById('rescheduleModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        requestAnimationFrame(() => modal.classList.add('show'));
-        document.body.style.overflow = 'hidden';
-
-        setTimeout(() => {
-            const dateInput = document.getElementById('reschedule-date');
-            if (dateInput) dateInput.focus();
-        }, 300);
-    }
-}
-
-/**
- * Closes the Reschedule modal
- */
-function closeImmunizationRescheduleModal(event) {
-    if (event && event.target !== event.currentTarget && arguments.length > 0) return;
-
-    const modal = document.getElementById('rescheduleModal');
-    if (!modal) return;
-
-    modal.classList.remove('show');
-
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-        window.currentRescheduleImmunization = null;
-
-        const form = document.getElementById('rescheduleForm');
-        if (form) form.reset();
-    }, 300);
-}
+// Note: openImmunizationRescheduleModal() and closeImmunizationRescheduleModal()
+// are defined in reschedule_modal.blade.php to avoid duplicate definitions
 
 // ==============================================
 // UTILITY FUNCTIONS
@@ -1164,30 +1087,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Setup reschedule form submission
-    const rescheduleForm = document.getElementById('rescheduleForm');
-    if (rescheduleForm) {
-        rescheduleForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!window.currentRescheduleImmunization) {
-                console.error('No immunization selected for rescheduling');
-                // Don't show error - form should still work
-            }
-            const userRole = document.body.getAttribute('data-user-role') || 'midwife';
-            const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
-
-            // Get immunization ID from hidden input if currentRescheduleImmunization is not set
-            const immunizationId = window.currentRescheduleImmunization?.id || document.getElementById('reschedule-immunization-id')?.value;
-
-            if (!immunizationId) {
-                showError('No immunization selected for rescheduling');
-                return;
-            }
-
-            this.action = `/${userRole}/${endpoint}/${immunizationId}/reschedule`;
-            this.submit();
-        });
-    }
+    // Note: Reschedule form submission is handled in reschedule_modal.blade.php
+    // to avoid duplicate event listeners
 
     // Setup mark missed reschedule checkbox
     const missedRescheduleCheckbox = document.getElementById('missed-reschedule-checkbox');

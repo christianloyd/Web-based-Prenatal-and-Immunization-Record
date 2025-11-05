@@ -324,6 +324,11 @@ class ImmunizationController extends Controller
                 'notes' => 'Rescheduled from missed appointment on ' . \Carbon\Carbon::parse($missedImmunization->schedule_date)->format('M d, Y')
             ]);
 
+            // Mark the original immunization as rescheduled and link to the new appointment
+            $missedImmunization->rescheduled = true;
+            $missedImmunization->rescheduled_to_immunization_id = $newImmunization->id;
+            $missedImmunization->save();
+
             // Send SMS if contact available
             $child = $missedImmunization->childRecord;
             $mother = $child ? $child->mother : null;
