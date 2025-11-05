@@ -1,0 +1,356 @@
+{
+	"info": {
+		"_postman_id": "healthcare-api-collection",
+		"name": "Healthcare System API",
+		"description": "Complete API collection for Healthcare Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"midwife@example.com\",\n    \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Login to get authenticated session"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Prenatal Records",
+			"item": [
+				{
+					"name": "Get All Prenatal Records",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/prenatal-records",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-records"
+							]
+						},
+						"description": "Fetch all prenatal records with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Prenatal Record",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/prenatal-records/1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-records",
+								"1"
+							]
+						},
+						"description": "Get a specific prenatal record by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Prenatal Record",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"patient_id\": 1,\n    \"lmp\": \"2024-01-01\",\n    \"edc\": \"2024-10-08\",\n    \"gravida\": 2,\n    \"para\": 1,\n    \"abortion\": 0,\n    \"living_children\": 1,\n    \"blood_type\": \"O+\",\n    \"rh_factor\": \"Positive\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/prenatal-records",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-records"
+							]
+						},
+						"description": "Create a new prenatal record"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Prenatal Record",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"gravida\": 3,\n    \"para\": 2,\n    \"living_children\": 2\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/prenatal-records/1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-records",
+								"1"
+							]
+						},
+						"description": "Update an existing prenatal record"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Prenatal Record",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/prenatal-records/1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-records",
+								"1"
+							]
+						},
+						"description": "Delete a prenatal record"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Prenatal Checkups",
+			"item": [
+				{
+					"name": "Get All Checkups",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/prenatal-checkups",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-checkups"
+							]
+						},
+						"description": "Fetch all prenatal checkups"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Checkup",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/prenatal-checkups/1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-checkups",
+								"1"
+							]
+						},
+						"description": "Get a specific checkup by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Checkup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prenatal_record_id\": 1,\n    \"checkup_date\": \"2024-11-10\",\n    \"weight\": 65.5,\n    \"blood_pressure\": \"120/80\",\n    \"fundal_height\": 25,\n    \"fetal_heart_rate\": 140,\n    \"status\": \"upcoming\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/prenatal-checkups",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-checkups"
+							]
+						},
+						"description": "Create a new prenatal checkup"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Checkup",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"done\",\n    \"weight\": 67.0,\n    \"blood_pressure\": \"118/78\"\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}/prenatal-checkups/1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-checkups",
+								"1"
+							]
+						},
+						"description": "Update a checkup"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Checkup",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/prenatal-checkups/1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"prenatal-checkups",
+								"1"
+							]
+						},
+						"description": "Delete a checkup"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/capstone/health-care/public"
+		},
+		{
+			"key": "api_url",
+			"value": "{{base_url}}/api"
+		}
+	]
+}

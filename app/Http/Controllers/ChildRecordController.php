@@ -147,12 +147,29 @@ class ChildRecordController extends Controller
         try {
             $childRecord = $this->childRecordService->createChildRecord($request->validated());
 
+            // Return JSON for AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Child record created successfully!',
+                    'child_record' => $childRecord
+                ]);
+            }
+
             $redirectRoute = $user->role === 'bhw' ? 'bhw.childrecord.index' : 'midwife.childrecord.index';
 
             return redirect()->route($redirectRoute)
                              ->with('success', 'Child record created successfully!');
 
         } catch (\Exception $e) {
+            // Return JSON error for AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create child record: ' . $e->getMessage()
+                ], 500);
+            }
+
             return back()->withInput()->withErrors([
                 'error' => $e->getMessage()
             ]);

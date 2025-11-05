@@ -192,7 +192,7 @@ class PrenatalRecordController extends Controller
      * Accessible by midwife and BHW
      * Irreversible action
      */
-    public function completePregnancy($id)
+    public function completePregnancy(Request $request, $id)
     {
         // Only midwife and BHW can complete pregnancies
         if (!in_array(Auth::user()->role, ['midwife', 'bhw'])) {
@@ -205,6 +205,14 @@ class PrenatalRecordController extends Controller
             // Complete pregnancy using service
             $this->prenatalRecordService->completePregnancy($prenatal);
 
+            // Return JSON for AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pregnancy record completed successfully. This action cannot be reversed.'
+                ]);
+            }
+
             $redirectRoute = Auth::user()->role === 'midwife'
                 ? 'midwife.prenatalrecord.index'
                 : 'bhw.prenatalrecord.index';
@@ -213,6 +221,14 @@ class PrenatalRecordController extends Controller
                 ->with('success', 'Pregnancy record completed successfully. This action cannot be reversed.');
 
         } catch (\Exception $e) {
+            // Return JSON error for AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+
             $redirectRoute = Auth::user()->role === 'midwife'
                 ? 'midwife.prenatalrecord.index'
                 : 'bhw.prenatalrecord.index';

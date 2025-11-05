@@ -505,9 +505,6 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success/Error Messages -->
-    @include('components.flowbite-alert')
-
     @if($errors->any())
     <div class="alert alert-error">
         <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
@@ -635,11 +632,18 @@
                                     <i class="fas fa-edit"></i>
                                 </button>
                             @elseif($checkup->status === 'missed')
-                                <!-- For missed checkups - show reschedule button -->
-                                <button onclick="openRescheduleModal({{ $checkup->id }})"
-                                        class="btn-action btn-reschedule inline-flex items-center justify-center" title="Reschedule">
-                                    <i class="fas fa-calendar-plus"></i>
-                                </button>
+                                <!-- For missed checkups - show reschedule button only if not already rescheduled -->
+                                @if(!$checkup->rescheduled)
+                                    <button onclick="openRescheduleModal({{ $checkup->id }})"
+                                            class="btn-action btn-reschedule inline-flex items-center justify-center" title="Reschedule">
+                                        <i class="fas fa-calendar-plus"></i>
+                                    </button>
+                                @else
+                                    <!-- Show indicator that it has been rescheduled -->
+                                    <span class="text-xs text-gray-500 italic" title="This checkup has been rescheduled">
+                                        <i class="fas fa-check-circle text-green-500"></i> Rescheduled
+                                    </span>
+                                @endif
                             @elseif($checkup->status === 'done')
                                 <!-- For done/completed checkups - NO EDIT BUTTON, view only -->
                                 <!-- Edit button hidden as requested -->
@@ -831,13 +835,13 @@
     function viewCheckupDetails(patientId) {
         console.log('View checkup details for patient:', patientId);
         // This will be implemented to show existing checkup details
-        alert('View checkup functionality - Patient ID: ' + patientId);
+        showError('View checkup functionality - Patient ID: ' + patientId);
     }
 
     // Edit scheduled checkup
     function editScheduledCheckup(patientId) {
         console.log('Edit scheduled checkup for patient:', patientId);
-        alert('Edit scheduled checkup functionality - Patient ID: ' + patientId);
+        showError('Edit scheduled checkup functionality - Patient ID: ' + patientId);
     }
 
     // Toggle next visit fields

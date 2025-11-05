@@ -46,7 +46,10 @@ class PrenatalCheckup extends Model
         // Missed checkup tracking fields
         'missed_date',
         'missed_reason',
-        'auto_missed'
+        'auto_missed',
+        // Reschedule tracking fields
+        'rescheduled',
+        'rescheduled_to_checkup_id'
     ];
 
     protected $dates = [

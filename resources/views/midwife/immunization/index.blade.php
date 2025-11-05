@@ -224,12 +224,6 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success/Error Messages -->
-    @include('components.flowbite-alert')
-
-    <!-- Disabled Toast Notifications - Using Alert Components instead -->
-    {{-- @include('components.toast-notification') --}}
-
     <!-- Header Stats -->
     <div class="flex justify-between items-center mb-6">
          <div> </div>
@@ -365,13 +359,21 @@
                                 {{ $immunization->dose ?? 'N/A' }}
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium 
-                                    {{ $immunization->status === 'Upcoming' ? 'status-upcoming' : '' }}
-                                    {{ $immunization->status === 'Done' ? 'status-done' : '' }}
-                                    {{ $immunization->status === 'Missed' ? 'status-missed' : '' }}">
-                                    <i class="fas {{ $immunization->status === 'Done' ? 'fa-check' : ($immunization->status === 'Upcoming' ? 'fa-clock' : 'fa-times') }} mr-1"></i>
-                                    {{ $immunization->status }}
-                                </span>
+                                <div class="flex flex-col gap-1">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                                        {{ $immunization->status === 'Upcoming' ? 'status-upcoming' : '' }}
+                                        {{ $immunization->status === 'Done' ? 'status-done' : '' }}
+                                        {{ $immunization->status === 'Missed' ? 'status-missed' : '' }}">
+                                        <i class="fas {{ $immunization->status === 'Done' ? 'fa-check' : ($immunization->status === 'Upcoming' ? 'fa-clock' : 'fa-times') }} mr-1"></i>
+                                        {{ $immunization->status }}
+                                    </span>
+                                    @if($immunization->rescheduled || $immunization->hasBeenRescheduled())
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                            <i class="fas fa-calendar-alt mr-1"></i>
+                                            Rescheduled
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center align-middle">
                             <div class="flex items-center justify-center gap-1 flex-wrap">
@@ -400,33 +402,57 @@
                                 </button>
 
                                 @if($immunization->status === 'Upcoming')
-                                    <!-- Mark as Complete Button -->
-                                    <button onclick='openMarkDoneModal(@json($immunizationData))'
-                                            class="btn-action btn-complete inline-flex items-center justify-center"
-                                            title="Mark as Complete">
-                                        <i class="fas fa-check-circle"></i>
-                                    </button>
+                                    @if(!$immunization->hasBeenRescheduled())
+                                        <!-- Mark as Complete Button -->
+                                        <button onclick='openMarkDoneModal(@json($immunizationData))'
+                                                class="btn-action btn-complete inline-flex items-center justify-center"
+                                                title="Mark as Complete">
+                                            <i class="fas fa-check-circle"></i>
+                                        </button>
 
-                                    <!-- Mark as Missed Button -->
-                                    <button onclick='openMarkMissedModal(@json($immunizationData))'
-                                            class="btn-action btn-missed inline-flex items-center justify-center"
-                                            title="Mark as Missed">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                        <!-- Mark as Missed Button -->
+                                        <button onclick='openMarkMissedModal(@json($immunizationData))'
+                                                class="btn-action btn-missed inline-flex items-center justify-center"
+                                                title="Mark as Missed">
+                                            <i class="fas fa-times"></i>
+                                        </button>
 
-                                    <!-- Edit Button -->
-                                    <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})"
-                                            class="btn-action btn-edit inline-flex items-center justify-center"
-                                            title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                        <!-- Edit Button -->
+                                        <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})"
+                                                class="btn-action btn-edit inline-flex items-center justify-center"
+                                                title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    @else
+                                        <!-- Show link to new appointment if rescheduled -->
+                                        @if($immunization->rescheduledToImmunization)
+                                            <a href="{{ route('midwife.immunization.index') }}"
+                                               class="btn-action btn-view inline-flex items-center justify-center"
+                                               title="View New Appointment">
+                                                <i class="fas fa-arrow-right mr-1"></i>
+                                                View New
+                                            </a>
+                                        @endif
+                                    @endif
                                 @elseif($immunization->status === 'Missed')
-                                    <!-- Reschedule Button for Missed Immunizations -->
-                                    <button onclick='openImmunizationRescheduleModal(@json($immunizationData))'
-                                            class="btn-action btn-reschedule inline-flex items-center justify-center"
-                                            title="Reschedule">
-                                        <i class="fas fa-calendar-plus"></i>
-                                    </button>
+                                    @if(!$immunization->hasBeenRescheduled())
+                                        <!-- Reschedule Button for Missed Immunizations -->
+                                        <button onclick='openImmunizationRescheduleModal(@json($immunizationData))'
+                                                class="btn-action btn-reschedule inline-flex items-center justify-center"
+                                                title="Reschedule">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </button>
+                                    @else
+                                        <!-- Show link to new appointment if rescheduled -->
+                                        @if($immunization->rescheduledToImmunization)
+                                            <a href="{{ route('midwife.immunization.index') }}"
+                                               class="btn-action btn-view inline-flex items-center justify-center"
+                                               title="View New Appointment">
+                                                <i class="fas fa-arrow-right mr-1"></i>
+                                                View New
+                                            </a>
+                                        @endif
+                                    @endif
                                 @else
                                     <!-- For completed immunizations - only show edit -->
                                     <button onclick="openEditModal({{ json_encode($immunization->toArray()) }})"
@@ -636,7 +662,7 @@ function openEditModal(immunization) {
 
     if (!immunization) {
         console.error('No immunization record provided');
-        alert('Error: No immunization data provided');
+        showError('Error: No immunization data provided');
         return;
     }
 
@@ -645,7 +671,7 @@ function openEditModal(immunization) {
 
     if (!modal || !form) {
         console.error('Edit modal elements not found');
-        alert('Error: Modal elements not found');
+        showError('Error: Modal elements not found');
         return;
     }
 
@@ -677,7 +703,7 @@ function openEditModal(immunization) {
 
     } catch (error) {
         console.error('Error opening edit modal:', error);
-        alert('Error opening edit modal. Please try again.');
+        showError('Error opening edit modal. Please try again.');
     }
 }
 
@@ -733,11 +759,10 @@ function openMarkDoneModal(immunizationData) {
         console.log('Form action set to:', form.action);
     }
 
-    // Show modal
+    // Show modal with proper flexbox centering
     const modal = document.getElementById('markDoneModal');
     if (modal) {
         modal.classList.remove('hidden');
-        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         console.log('Modal should be visible now');
     } else {
@@ -752,7 +777,6 @@ function closeMarkDoneModal() {
     const modal = document.getElementById('markDoneModal');
     if (modal) {
         modal.classList.add('hidden');
-        modal.style.display = 'none';
         document.body.style.overflow = '';
     }
 }
@@ -1146,12 +1170,21 @@ document.addEventListener('DOMContentLoaded', function() {
         rescheduleForm.addEventListener('submit', function(e) {
             e.preventDefault();
             if (!window.currentRescheduleImmunization) {
-                alert('No immunization selected for rescheduling');
-                return;
+                console.error('No immunization selected for rescheduling');
+                // Don't show error - form should still work
             }
             const userRole = document.body.getAttribute('data-user-role') || 'midwife';
             const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
-            this.action = `/${userRole}/${endpoint}/${window.currentRescheduleImmunization.id}/reschedule`;
+
+            // Get immunization ID from hidden input if currentRescheduleImmunization is not set
+            const immunizationId = window.currentRescheduleImmunization?.id || document.getElementById('reschedule-immunization-id')?.value;
+
+            if (!immunizationId) {
+                showError('No immunization selected for rescheduling');
+                return;
+            }
+
+            this.action = `/${userRole}/${endpoint}/${immunizationId}/reschedule`;
             this.submit();
         });
     }
@@ -1184,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         markMissedForm.addEventListener('submit', function(e) {
             if (!document.getElementById('missed-confirm-checkbox').checked) {
                 e.preventDefault();
-                alert('Please confirm by checking the checkbox');
+                showError('Please confirm by checking the checkbox');
                 return false;
             }
 

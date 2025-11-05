@@ -144,9 +144,6 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success/Error Messages -->
-    @include('components.flowbite-alert')
-
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
          <div> </div>
@@ -358,7 +355,7 @@
                             class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors font-medium">
                         <i class="fas fa-times mr-2"></i>Cancel
                     </button>
-                    <button type="submit"
+                    <button type="submit" id="complete-submit-btn"
                             class="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
                         <i class="fas fa-check-circle mr-2"></i>Yes, Complete
                     </button>
@@ -378,6 +375,9 @@ function openCompletePregnancyModal(recordId, patientName) {
     const form = document.getElementById('completePregnancyForm');
     form.action = `/midwife/prenatalrecord/${recordId}/complete`;
 
+    // Store recordId for later use
+    form.dataset.recordId = recordId;
+
     // Show modal
     const modal = document.getElementById('completePregnancyModal');
     modal.classList.remove('hidden');
@@ -391,10 +391,85 @@ function closeCompletePregnancyModal() {
     setTimeout(() => modal.classList.add('hidden'), 300);
 }
 
-// Close modal when clicking outside
-document.getElementById('completePregnancyModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeCompletePregnancyModal();
+// Handle Complete Pregnancy Form Submission with AJAX and SweetAlert
+document.addEventListener('DOMContentLoaded', function() {
+    const completeForm = document.getElementById('completePregnancyForm');
+
+    if (completeForm) {
+        completeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('complete-submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Completing...';
+
+            // Send AJAX request
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+
+                if (data.success) {
+                    // Close modal first
+                    closeCompletePregnancyModal();
+
+                    // Show success SweetAlert after modal closes
+                    setTimeout(() => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message || 'Pregnancy record completed successfully!',
+                            confirmButtonColor: '#D4A373',
+                            confirmButtonText: 'Great!'
+                        }).then(() => {
+                            // Reload page to show updated record
+                            window.location.reload();
+                        });
+                    }, 400);
+                } else {
+                    // Show error SweetAlert
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to complete pregnancy record.',
+                        confirmButtonColor: '#D4A373'
+                    });
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'An unexpected error occurred. Please try again.',
+                    confirmButtonColor: '#D4A373'
+                });
+            });
+        });
+    }
+
+    // Close modal when clicking outside
+    const modal = document.getElementById('completePregnancyModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCompletePregnancyModal();
+            }
+        });
     }
 });
 </script>
@@ -640,24 +715,24 @@ function validateForm(formId) {
 // --------------------
 document.addEventListener('DOMContentLoaded', function() {
     setupDateValidation();
-    
-    // Form submission validation
+
+    // Form submission validation with SweetAlert
     const prenatalForm = document.getElementById('prenatal-form');
     if (prenatalForm) {
         prenatalForm.addEventListener('submit', function(e) {
             if (!validateForm('prenatal-form')) {
                 e.preventDefault();
-                alert('Please fill in all required fields.');
+                showError('Please fill in all required fields.');
             }
         });
     }
-    
+
     const editPrenatalForm = document.getElementById('edit-prenatal-form');
     if (editPrenatalForm) {
         editPrenatalForm.addEventListener('submit', function(e) {
             if (!validateForm('edit-prenatal-form')) {
                 e.preventDefault();
-                alert('Please fill in all required fields.');
+                showError('Please fill in all required fields.');
             }
         });
     }

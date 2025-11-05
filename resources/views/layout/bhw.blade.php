@@ -297,12 +297,73 @@
             opacity: 1;
         }
 
+        /* Notification Badge Styles */
+        .notification-badge-count {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        /* Notification bell animation on new notification */
+        @keyframes ring {
+            0% { transform: rotate(0); }
+            10% { transform: rotate(14deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(14deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(10deg); }
+            60% { transform: rotate(0); }
+            100% { transform: rotate(0); }
+        }
+
+        .ring-bell {
+            animation: ring 0.8s ease-in-out;
+        }
+
+        /* SweetAlert2 Global Button Styling */
+        .swal2-confirm {
+            background-color: #D4A373 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .swal2-confirm:hover {
+            background-color: #D4A373 !important;
+            background-image: none !important;
+        }
+
+        .swal2-confirm:focus {
+            background-color: #D4A373 !important;
+            box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.3) !important;
+        }
+
+        .swal2-confirm:active {
+            background-color: #D4A373 !important;
+        }
+
     </style>
     
     @stack('styles')
+
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- BHW SweetAlert Handler -->
+    <script src="{{ asset('js/bhw/sweetalert-handler.js') }}"></script>
+
     @stack('scripts')
-   
-   
+
+
 </head>
 <body class="bg-gray-50" x-data="{ sidebarOpen: window.innerWidth >= 1024, sidebarInitialized: false }">
     <div class="flex h-screen overflow-hidden">
@@ -453,6 +514,38 @@
                         <div class="min-w-0">
                             <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate" id="page-title">@yield('page-title', 'Dashboard Overview')</h2>
                             <p class="text-gray-600 text-xs sm:text-sm truncate" id="page-subtitle">@yield('page-subtitle', 'Monitor patient care and health records')</p>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Icon -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open; loadRecentNotifications()" class="p-2 text-gray-400 hover:text-gray-600 relative">
+                            <i class="fas fa-bell w-6 h-6 sm:w-8 sm:h-8"></i>
+                            <span id="notification-badge" class="notification-badge-count absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center hidden">0</span>
+                        </button>
+
+                        <!-- Notifications Dropdown -->
+                        <div x-show="open" @click.outside="open = false"
+                             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                             style="display: none;">
+                            <div class="p-4 border-b border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
+                                    <a href="{{ route('notifications.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        View All
+                                    </a>
+                                </div>
+                            </div>
+                            <div id="recent-notifications" class="max-h-64 overflow-y-auto">
+                                <div class="p-4 text-center text-gray-500">
+                                    Loading notifications...
+                                </div>
+                            </div>
+                            <div class="p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                                <button onclick="markAllAsRead()" class="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                    Mark All as Read
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -629,10 +722,15 @@
                         // Update the last check timestamp
                         lastNotificationCheck = data.timestamp;
 
-                        // Show toast for each new notification
-                        data.notifications.forEach(notification => {
-                            showNotificationToast(notification);
-                        });
+                        // Update notification count badge
+                        loadNotificationCount();
+
+                        // Animate the bell icon
+                        const bellIcon = document.querySelector('.fa-bell');
+                        if (bellIcon) {
+                            bellIcon.classList.add('ring-bell');
+                            setTimeout(() => bellIcon.classList.remove('ring-bell'), 800);
+                        }
 
                         // Play notification sound if available
                         try {
@@ -671,14 +769,128 @@
             }
         }
 
+        // Load notification count and update badge
+        function loadNotificationCount() {
+            fetch('/notifications/unread-count')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count > 99 ? '99+' : data.count;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error loading notification count:', error));
+        }
+
+        // Load recent notifications for dropdown
+        function loadRecentNotifications() {
+            fetch('/notifications/recent')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('recent-notifications');
+                    if (container && data.notifications) {
+                        if (data.notifications.length === 0) {
+                            container.innerHTML = '<div class="p-4 text-center text-gray-500">No new notifications</div>';
+                        } else {
+                            container.innerHTML = data.notifications.map(notification => {
+                                const type = notification.data.type || 'info';
+                                const iconClass = type === 'success' ? 'fa-check-circle text-green-500' :
+                                                 type === 'error' ? 'fa-exclamation-circle text-red-500' :
+                                                 type === 'warning' ? 'fa-exclamation-triangle text-yellow-500' :
+                                                 'fa-info-circle text-blue-500';
+
+                                return `
+                                    <div class="p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="window.location.href='${notification.data.action_url || '/notifications'}'">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas ${iconClass} mr-2"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900">
+                                                    ${notification.data.title || 'Notification'}
+                                                </p>
+                                                <p class="text-sm text-gray-500">
+                                                    ${notification.data.message || ''}
+                                                </p>
+                                                <p class="text-xs text-gray-400 mt-1">
+                                                    ${formatDate(notification.created_at)}
+                                                </p>
+                                            </div>
+                                            ${!notification.read_at ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error loading recent notifications:', error));
+        }
+
+        // Mark all notifications as read
+        function markAllAsRead() {
+            fetch('/notifications/mark-all-as-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotificationCount();
+                    loadRecentNotifications();
+
+                    // Show success toast
+                    if (window.flowbiteToast) {
+                        window.flowbiteToast.success('All notifications marked as read');
+                    }
+                }
+            })
+            .catch(error => console.error('Error marking notifications as read:', error));
+        }
+
+        // Format date helper function
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
         // Start real-time notification checking when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Check for new notifications every 5 seconds
-            setInterval(checkForNewNotifications, 5000);
+            // Load initial notification count
+            loadNotificationCount();
+
+            // Check for new notifications every 10 seconds
+            setInterval(checkForNewNotifications, 10000);
+
+            // Update notification count every 30 seconds
+            setInterval(loadNotificationCount, 30000);
         });
     </script>
 
     @stack('scripts')
+
+    {{-- Include SweetAlert Flash Messages --}}
+    @include('components.sweetalert-flash')
 
     {{-- Include Global Confirmation Modal --}}
     @include('components.confirmation-modal')

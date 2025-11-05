@@ -1,0 +1,178 @@
+/* Modal Animation Styles - Following Prenatal Record approach */
+.modal-overlay {
+    transition: opacity 0.3s ease-out;
+}
+
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+}
+
+.modal-overlay.show .modal-content {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Form Input Focus Styles - Consistent with Prenatal Record */
+.form-input {
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(236, 185, 158, 0.15); /* Peach shadow */
+}
+
+/* Error and Success Styles */
+.error-border {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+.success-border {
+    border-color: #10b981 !important;
+    background-color: #f0fdf4 !important;
+}
+
+/* Button Styles */
+.btn-minimal {
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.btn-minimal:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary-clean {
+    background-color: #D4A373;
+    color: white;
+}
+
+.btn-primary-clean:hover {
+    background-color: #B8956B;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+/* Action Button Styles */
+.btn-view {
+    background-color: #f8fafc;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.btn-view:hover {
+    background-color: #68727A;
+    color: white;
+    border-color: #68727A;
+}
+
+.btn-edit {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.btn-edit:hover {
+    background-color: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+}
+
+/* Delete button keeps red for safety */
+.btn-delete {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+
+/* Input styles */
+.input-clean {
+    transition: all 0.15s ease;
+    border: 1px solid #d1d5db;
+}
+
+.input-clean:focus {
+    outline: none;
+    border-color: #68727A;
+    box-shadow: 0 0 0 3px rgba(104, 114, 122, 0.1);
+}
+
+/* Phone input specific styling */
+.phone-input {
+    padding-left: 2.5rem;
+}
+
+.phone-prefix {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 0.875rem;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Responsive styles */
+@media (max-width: 640px) {
+    .table-row-hover td, .table-row-hover th {
+        font-size: 0.875rem;
+        padding: 0.75rem 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .btn-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hide-mobile {
+        display: none;
+    }
+
+    .modal-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper table {
+    min-width: 800px;
+}

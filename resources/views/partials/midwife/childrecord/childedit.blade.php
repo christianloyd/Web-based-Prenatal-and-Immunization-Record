@@ -55,11 +55,31 @@
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Child Name *</label>
-                            <input type="text" id="edit-child-name" name="child_name" required 
-                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('child_name') error-border @enderror"
-                                   placeholder="Enter child's full name">
-                            @error('child_name')
+                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                            <input type="text" id="edit-first-name" name="first_name" required
+                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('first_name') error-border @enderror"
+                                   placeholder="Enter first name">
+                            @error('first_name')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
+                            <input type="text" id="edit-middle-name" name="middle_name"
+                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('middle_name') error-border @enderror"
+                                   placeholder="Enter middle name (optional)">
+                            @error('middle_name')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                            <input type="text" id="edit-last-name" name="last_name" required
+                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg @error('last_name') error-border @enderror"
+                                   placeholder="Enter last name">
+                            @error('last_name')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -232,55 +252,55 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    // Show success alert
-                    if (window.healthcareAlert) {
-                        window.healthcareAlert.success(data.message || 'Child record updated successfully!');
-                    }
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
 
-                    // Close modal
+                if (data.success) {
+                    // Close modal first
                     closeEditChildModal();
 
-                    // Reload page after short delay
+                    // Show success SweetAlert after modal closes
                     setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    // Show error alert
-                    if (window.healthcareAlert) {
-                        window.healthcareAlert.error(data.message || 'Failed to update child record.');
-                    }
-
-                    // Re-enable submit button
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-
-                    // Display validation errors if any
-                    if (data.errors) {
-                        Object.keys(data.errors).forEach(key => {
-                            const errorMessages = data.errors[key];
-                            const inputField = editForm.querySelector(`[name="${key}"]`);
-                            if (inputField) {
-                                inputField.classList.add('error-border');
-                                // Display first error message
-                                const errorP = document.createElement('p');
-                                errorP.className = 'text-red-500 text-xs mt-1';
-                                errorP.textContent = errorMessages[0];
-                                inputField.parentElement.appendChild(errorP);
-                            }
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message || 'Child record updated successfully!',
+                            confirmButtonColor: '#D4A373',
+                            confirmButtonText: 'Great!'
+                        }).then(() => {
+                            // Reload page to show updated record
+                            window.location.reload();
                         });
+                    }, 400);
+                } else {
+                    // Show error SweetAlert
+                    let errorMessage = data.message || 'Failed to update child record.';
+
+                    // If there are validation errors, show them
+                    if (data.errors && Object.keys(data.errors).length > 0) {
+                        const errorList = Object.values(data.errors).flat();
+                        errorMessage += '\n\n' + errorList.join('\n');
                     }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage,
+                        confirmButtonColor: '#D4A373'
+                    });
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                if (window.healthcareAlert) {
-                    window.healthcareAlert.error('An unexpected error occurred. Please try again.');
-                }
-
-                // Re-enable submit button
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
+
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'An unexpected error occurred. Please try again.',
+                    confirmButtonColor: '#D4A373'
+                });
             });
         });
     }

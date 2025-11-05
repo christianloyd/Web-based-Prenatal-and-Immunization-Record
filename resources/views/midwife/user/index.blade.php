@@ -10,8 +10,6 @@
 @endpush
 
 @section('content')
-@include('components.flowbite-alert')
-
 <div class="space-y-6">
      
 

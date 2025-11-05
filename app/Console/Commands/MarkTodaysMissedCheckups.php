@@ -29,18 +29,18 @@ class MarkTodaysMissedCheckups extends Command
     {
         $this->info('Starting to check for missed prenatal checkups...');
 
-        // Get today's upcoming checkups that haven't been completed
+        // Get all upcoming checkups where the checkup_date has passed (including today and past dates)
         $missedCheckups = PrenatalCheckup::where('status', 'upcoming')
-            ->whereDate('checkup_date', today())
+            ->whereDate('checkup_date', '<', now()->addDay()->toDateString()) // Include today and all past dates
             ->with('patient')
             ->get();
 
         if ($missedCheckups->isEmpty()) {
-            $this->info('No missed checkups found for today.');
+            $this->info('No missed checkups found.');
             return 0;
         }
 
-        $this->info("Found {$missedCheckups->count()} checkups to mark as missed...");
+        $this->info("Found {$missedCheckups->count()} checkup(s) to mark as missed...");
 
         foreach ($missedCheckups as $checkup) {
             // Update checkup status

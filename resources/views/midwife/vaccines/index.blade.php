@@ -114,9 +114,6 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success/Error Messages -->
-    @include('components.flowbite-alert')
-
     <!-- Header Actions -->
     <div class="flex justify-between items-center">
         <div></div>
@@ -420,28 +417,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const nameInput = this.querySelector('input[name="name"]');
             const categoryInput = this.querySelector('select[name="category"]');
             const expiryInput = this.querySelector('input[name="expiry_date"]');
-            
+
             if (!nameInput || !nameInput.value.trim()) {
                 e.preventDefault();
                 if (nameInput) nameInput.focus();
-                alert('Vaccine name is required.');
+                showError('Vaccine name is required.');
                 return;
             }
-            
+
             if (!categoryInput || !categoryInput.value) {
                 e.preventDefault();
                 if (categoryInput) categoryInput.focus();
-                alert('Category is required.');
+                showError('Category is required.');
                 return;
             }
-            
+
             if (expiryInput && expiryInput.value) {
                 const today = new Date();
                 const expiry = new Date(expiryInput.value);
                 if (expiry <= today) {
                     e.preventDefault();
                     if (expiryInput) expiryInput.focus();
-                    alert('Expiry date must be in the future.');
+                    showError('Expiry date must be in the future.');
                     return;
                 }
             }

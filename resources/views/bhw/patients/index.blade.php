@@ -11,6 +11,27 @@
         --neutral: #FFFFFF; /* White for view content backgrounds */
     }
 
+    /* SweetAlert2 button styling - prevent hover color change */
+    .swal2-confirm {
+        background-color: #D4A373 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .swal2-confirm:hover {
+        background-color: #D4A373 !important;
+        background-image: none !important;
+    }
+
+    .swal2-confirm:focus {
+        background-color: #D4A373 !important;
+        box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.3) !important;
+    }
+
+    .swal2-confirm:active {
+        background-color: #D4A373 !important;
+    }
+
      /* Action Button Styles */
      .btn-action {
         padding: 6px 12px;
@@ -484,39 +505,126 @@ document.addEventListener('keydown', e => {
     }
 });
 
-// Form validation
+// Form validation with SweetAlert2
 document.addEventListener('DOMContentLoaded', function() {
-    const forms = document.querySelectorAll('form[id*="patient-form"]');
-    
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
+    const addPatientForm = document.getElementById('patient-form');
+
+    if (addPatientForm) {
+        addPatientForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
             const firstNameInput = this.querySelector('input[name="first_name"]');
             const lastNameInput = this.querySelector('input[name="last_name"]');
             const ageInput = this.querySelector('input[name="age"]');
 
+            // Client-side validation with SweetAlert
             if (!firstNameInput || !firstNameInput.value.trim()) {
-                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'First name is required.',
+                    confirmButtonColor: '#D4A373'
+                });
                 if (firstNameInput) firstNameInput.focus();
-                alert('First name is required.');
                 return;
             }
 
             if (!lastNameInput || !lastNameInput.value.trim()) {
-                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Last name is required.',
+                    confirmButtonColor: '#D4A373'
+                });
                 if (lastNameInput) lastNameInput.focus();
-                alert('Last name is required.');
                 return;
             }
-            
+
             if (!ageInput || !ageInput.value || ageInput.value < 15 || ageInput.value > 50) {
-                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Age must be between 15 and 50 years.',
+                    confirmButtonColor: '#D4A373'
+                });
                 if (ageInput) ageInput.focus();
-                alert('Age must be between 15 and 50 years.');
                 return;
             }
+
+            // Show loading state
+            const submitBtn = this.querySelector('#add-submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Registering...';
+
+            // Prepare form data
+            const formData = new FormData(this);
+
+            // Send AJAX request
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+
+                if (data.success) {
+                    // Close modal first
+                    closePatientModal();
+
+                    // Then show success SweetAlert after a short delay
+                    setTimeout(() => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message || 'Patient registered successfully!',
+                            confirmButtonColor: '#D4A373',
+                            confirmButtonText: 'Great!'
+                        }).then((result) => {
+                            // Reload page after user clicks Great!
+                            window.location.reload();
+                        });
+                    }, 400); // Wait for modal close animation
+                } else {
+                    // Error SweetAlert
+                    let errorMessage = data.message || 'An error occurred while registering the patient.';
+
+                    // If there are validation errors, show them
+                    if (data.errors) {
+                        const errorList = Object.values(data.errors).flat();
+                        errorMessage += '\n\n' + errorList.join('\n');
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Registration Failed',
+                        text: errorMessage,
+                        confirmButtonColor: '#D4A373'
+                    });
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'An unexpected error occurred. Please try again.',
+                    confirmButtonColor: '#D4A373'
+                });
+            });
         });
-    });
-    
+    }
+
     // Auto-hide success/error messages after 5 seconds (but not status badges)
     const alerts = document.querySelectorAll('.bg-green-100[role="alert"], .bg-red-100[role="alert"]');
     alerts.forEach(alert => {
@@ -524,8 +632,29 @@ document.addEventListener('DOMContentLoaded', function() {
             alert.style.opacity = '0';
             alert.style.transform = 'translateY(-10px)';
             setTimeout(() => alert.remove(), 300);
-        }, 5000);
+        }, 2000);
     });
+
+    // Show SweetAlert for flash messages on page load
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: "{{ session('success') }}",
+            confirmButtonColor: '#D4A373',
+            timer: 3000,
+            timerProgressBar: true
+        });
+    @endif
+
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: "{{ session('error') }}",
+            confirmButtonColor: '#D4A373'
+        });
+    @endif
 });
 
 // Search form enhancement

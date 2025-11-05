@@ -18,6 +18,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PrenatalCheckupController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\SystemAnalysisController;
+
+
 // Redirect root to login
 Route::get('/', fn () => redirect()->route('login'));
 

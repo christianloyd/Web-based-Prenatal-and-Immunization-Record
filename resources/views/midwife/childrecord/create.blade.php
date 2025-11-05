@@ -514,11 +514,77 @@ document.getElementById('mother_id')?.addEventListener('change', function() {
     }
 });
 
-// Form submission with loading state
-document.getElementById('recordForm').addEventListener('submit', function() {
+// Form submission with AJAX and SweetAlert
+document.getElementById('recordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const form = this;
     const submitBtn = document.getElementById('submit-btn');
+    const originalBtnText = submitBtn.innerHTML;
+
+    // Disable button and show loading
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+
+    // Prepare form data
+    const formData = new FormData(form);
+
+    // Send AJAX request
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+
+        if (data.success) {
+            // Show success SweetAlert
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message || 'Child record created successfully!',
+                confirmButtonColor: '#D4A373',
+                confirmButtonText: 'Great!'
+            }).then(() => {
+                // Redirect to index page
+                window.location.href = '{{ route("midwife.childrecord.index") }}';
+            });
+        } else {
+            // Show error SweetAlert
+            let errorMessage = data.message || 'An error occurred while creating the child record.';
+
+            // If there are validation errors, show them
+            if (data.errors && Object.keys(data.errors).length > 0) {
+                const errorList = Object.values(data.errors).flat();
+                errorMessage += '\n\n' + errorList.join('\n');
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessage,
+                confirmButtonColor: '#D4A373'
+            });
+        }
+    })
+    .catch(error => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'An unexpected error occurred. Please try again.',
+            confirmButtonColor: '#D4A373'
+        });
+    });
 });
 
 // Set max date for birthdate to today

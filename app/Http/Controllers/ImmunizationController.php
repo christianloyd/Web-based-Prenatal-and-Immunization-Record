@@ -40,8 +40,8 @@ class ImmunizationController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        // Base query with relationships
-        $query = Immunization::with(['childRecord', 'vaccine']);
+        // Base query with relationships (including rescheduled relationship)
+        $query = Immunization::with(['childRecord', 'vaccine', 'rescheduledToImmunization']);
 
         // Search filter
         if ($request->filled('search')) {

@@ -147,7 +147,7 @@ class PrenatalCheckupService
                 'conducted_by' => Auth::id(),
             ]);
 
-            // Send SMS reminder for next visit
+            // Send SMS reminder for next visit (Prenatal Checkup Reminder type)
             $this->sendCheckupReminder($patient, $nextCheckup);
         }
     }

@@ -344,6 +344,18 @@ class ImmunizationService
                         'notes' => 'Rescheduled from missed appointment on ' . Carbon::parse($immunization->schedule_date)->format('M d, Y')
                     ]);
 
+                    // Mark original immunization as rescheduled and link to new immunization
+                    $immunization->rescheduled = true;
+                    $immunization->rescheduled_to_immunization_id = $rescheduledImmunization->id;
+
+                    Log::info('Immunization rescheduled', [
+                        'original_id' => $immunization->id,
+                        'new_id' => $rescheduledImmunization->id,
+                        'child_id' => $immunization->child_record_id,
+                        'original_date' => $immunization->schedule_date,
+                        'new_date' => $newScheduleDate
+                    ]);
+
                     // Send SMS for rescheduled immunization
                     $mother = $child->mother;
                     $contactNumber = $mother ? $mother->contact : null;

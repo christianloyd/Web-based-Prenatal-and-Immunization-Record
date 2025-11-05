@@ -160,14 +160,20 @@ class PatientController extends Controller
 
             // Additional business logic validations
             $validatedData = $validator->validated();
-            
+
             // Check for duplicate patient (same first name, last name and age combination)
-            $existingPatient = Patient::where('first_name', 'LIKE', $validatedData['first_name'])
-                ->where('last_name', 'LIKE', $validatedData['last_name'])
+            $existingPatient = Patient::where('first_name', $validatedData['first_name'])
+                ->where('last_name', $validatedData['last_name'])
                 ->where('age', $validatedData['age'])
                 ->first();
-                
+
             if ($existingPatient) {
+                Log::info('Duplicate patient detected', [
+                    'existing_id' => $existingPatient->id,
+                    'existing_name' => $existingPatient->name,
+                    'attempted_name' => $validatedData['first_name'] . ' ' . $validatedData['last_name']
+                ]);
+
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => false,
@@ -193,8 +199,19 @@ class PatientController extends Controller
             // Combine first_name and last_name to create name field
             $validatedData['name'] = $validatedData['first_name'] . ' ' . $validatedData['last_name'];
 
+            // Log before creating patient
+            Log::info('Creating new patient', [
+                'name' => $validatedData['first_name'] . ' ' . $validatedData['last_name'],
+                'age' => $validatedData['age']
+            ]);
+
             // Create the patient record
             $patient = Patient::create($validatedData);
+
+            Log::info('Patient created successfully', [
+                'patient_id' => $patient->id,
+                'patient_name' => $patient->name
+            ]);
 
             // Send notification to all healthcare workers about new patient registration
             // If BHW is registering, send high-priority notification to midwives

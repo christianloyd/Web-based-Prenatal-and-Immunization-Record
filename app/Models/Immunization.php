@@ -20,7 +20,9 @@ class Immunization extends Model
         'schedule_time',
         'status',
         'notes',
-        'next_due_date'
+        'next_due_date',
+        'rescheduled',         // Track if this immunization was rescheduled
+        'rescheduled_to_immunization_id'  // Link to the new rescheduled immunization
     ];
 
     protected $casts = [
@@ -59,6 +61,18 @@ class Immunization extends Model
     public function vaccine()
     {
         return $this->belongsTo(Vaccine::class);
+    }
+
+    // Relationship for rescheduled immunization
+    public function rescheduledToImmunization()
+    {
+        return $this->belongsTo(Immunization::class, 'rescheduled_to_immunization_id');
+    }
+
+    // Inverse relationship - original immunization that was rescheduled
+    public function originalImmunization()
+    {
+        return $this->hasOne(Immunization::class, 'rescheduled_to_immunization_id');
     }
 
     // Status options
@@ -280,8 +294,23 @@ class Immunization extends Model
         if ($this->status === 'Done' || $this->status === 'Missed') {
             return false;
         }
-        
+
         return $this->schedule_date < now()->toDateString();
+    }
+
+    // Check if this immunization has been rescheduled
+    public function hasBeenRescheduled()
+    {
+        return $this->rescheduled === true || $this->rescheduled === 1;
+    }
+
+    // Check if this immunization can be rescheduled
+    public function canBeRescheduled()
+    {
+        // Can only reschedule if:
+        // 1. Status is Upcoming (not Done or Missed)
+        // 2. Has not already been rescheduled
+        return $this->status === 'Upcoming' && !$this->hasBeenRescheduled();
     }
 
     // Scopes

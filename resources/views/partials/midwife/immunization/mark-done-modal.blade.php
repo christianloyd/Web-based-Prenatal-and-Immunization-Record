@@ -1,11 +1,10 @@
 <!-- Mark as Done Confirmation Modal - COMPLETELY REVISED -->
 <div id="markDoneModal"
-     style="display: none; position: fixed; inset: 0; z-index: 9999; background-color: rgba(17, 24, 39, 0.5); overflow-y: auto; width: 100%; height: 100%;"
+     class="modal-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4"
      onclick="if(event.target === this) closeMarkDoneModal()">
 
-    <div style="display: flex; align-items: center; justify-content: center; min-height: 100%; padding: 1rem;">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
-             onclick="event.stopPropagation()">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+         onclick="event.stopPropagation()">
             <div class="text-center">
                 <!-- Success Icon -->
                 <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">

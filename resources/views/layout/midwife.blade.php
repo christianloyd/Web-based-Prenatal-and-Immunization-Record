@@ -60,8 +60,66 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Flowbite CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
-    
+
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Midwife SweetAlert Handler -->
+    <script src="{{ asset('js/midwife/sweetalert-handler.js') }}"></script>
+
     <style>
+        /* SweetAlert2 Global Button Styling */
+        .swal2-confirm {
+            background-color: #D4A373 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .swal2-confirm:hover {
+            background-color: #D4A373 !important;
+            background-image: none !important;
+        }
+
+        .swal2-confirm:focus {
+            background-color: #D4A373 !important;
+            box-shadow: none !important;
+        }
+
+        .swal2-confirm:active {
+            background-color: #D4A373 !important;
+        }
+
+        /* Notification Badge and Bell Ring Animation */
+        .notification-badge-count {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+
+        .ring-bell {
+            animation: ring 0.8s ease-in-out;
+        }
+
+        @keyframes ring {
+            0% { transform: rotate(0); }
+            10% { transform: rotate(14deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(14deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(10deg); }
+            60% { transform: rotate(0); }
+            100% { transform: rotate(0); }
+        }
         /* Apply Inter font system-wide with better fallbacks */
         * {
             font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
@@ -821,14 +879,15 @@
                         // Update the last check timestamp
                         lastNotificationCheck = data.timestamp;
 
-                        // Show toast for each new notification
-                        data.notifications.forEach(notification => {
-                            showNotificationToast(notification);
-                        });
-
-                        // Update notification count and recent notifications
+                        // Update notification count badge
                         loadNotificationCount();
-                        loadRecentNotifications();
+
+                        // Animate the bell icon
+                        const bellIcon = document.querySelector('.fa-bell');
+                        if (bellIcon) {
+                            bellIcon.classList.add('ring-bell');
+                            setTimeout(() => bellIcon.classList.remove('ring-bell'), 800);
+                        }
 
                         // Play notification sound if available
                         try {
@@ -1129,8 +1188,11 @@
 
     {{-- Include Toast Notification System --}}
     @include('components.toast-notification')
-    
+
     {{-- Include Modal Form Reset System --}}
     @include('components.modal-form-reset')
+
+    {{-- Include SweetAlert Flash Messages --}}
+    @include('components.sweetalert-flash')
 </body>
 </html>

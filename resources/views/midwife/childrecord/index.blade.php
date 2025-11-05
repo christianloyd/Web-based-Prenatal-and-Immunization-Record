@@ -189,9 +189,6 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Success/Error Messages -->
-    @include('components.flowbite-alert')
-
     <!-- Header Actions -->
     <div class="flex justify-between items-center mb-6">
         <div>
@@ -951,7 +948,9 @@ function openEditRecordModal(record) {
     // Populate form fields
     const fieldMappings = [
         { id: 'edit-record-id', value: record.id },
-        { id: 'edit-child-name', value: record.child_name },
+        { id: 'edit-first-name', value: record.first_name },
+        { id: 'edit-middle-name', value: record.middle_name },
+        { id: 'edit-last-name', value: record.last_name },
         { id: 'edit-birthdate', value: formatDate(record.birthdate) },
         { id: 'edit-birth-height', value: record.birth_height },
         { id: 'edit-birth-weight', value: record.birth_weight },
@@ -1003,7 +1002,7 @@ function openEditRecordModal(record) {
 
     // Focus first input
     setTimeout(() => {
-        const nameInput = document.getElementById('edit-child-name');
+        const nameInput = document.getElementById('edit-first-name');
         if (nameInput) nameInput.focus();
     }, 100);
 }
@@ -1268,6 +1267,88 @@ function setupRealTimeSearch() {
     });
 }
 
+// Add Child Record Form Submission with AJAX and SweetAlert
+function setupAddChildFormAjax() {
+    const form = document.getElementById('recordForm');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent traditional form submission
+
+        const submitBtn = document.getElementById('submit-btn');
+        const originalBtnText = submitBtn.innerHTML;
+
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+
+        // Prepare form data
+        const formData = new FormData(form);
+
+        // Send AJAX request
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+
+            if (data.success) {
+                // Close modal first
+                closeModal();
+
+                // Show success SweetAlert after modal closes
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message || 'Child record created successfully!',
+                        confirmButtonColor: '#D4A373',
+                        confirmButtonText: 'Great!'
+                    }).then(() => {
+                        // Reload page to show new record
+                        window.location.reload();
+                    });
+                }, 400);
+            } else {
+                // Show error SweetAlert
+                let errorMessage = data.message || 'An error occurred while creating the child record.';
+
+                // If there are validation errors, show them
+                if (data.errors && Object.keys(data.errors).length > 0) {
+                    const errorList = Object.values(data.errors).flat();
+                    errorMessage += '\n\n' + errorList.join('\n');
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessage,
+                    confirmButtonColor: '#D4A373'
+                });
+            }
+        })
+        .catch(error => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'An unexpected error occurred. Please try again.',
+                confirmButtonColor: '#D4A373'
+            });
+        });
+    });
+}
+
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Make closeEditChildModal globally available
@@ -1284,6 +1365,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Setup real-time search
     setupRealTimeSearch();
+
+    // Setup AJAX form submission for add child modal
+    setupAddChildFormAjax();
 
     // Check for validation errors and reopen modal if needed
     checkAndReopenModalOnErrors();

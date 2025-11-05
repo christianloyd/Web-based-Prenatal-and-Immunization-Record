@@ -716,6 +716,12 @@ class PrenatalCheckupController extends Controller
                     ->with('error', 'Only missed checkups can be rescheduled.');
             }
 
+            // Check if this missed checkup has already been rescheduled
+            if ($missedCheckup->rescheduled) {
+                return redirect()->back()
+                    ->with('error', 'This checkup has already been rescheduled and cannot be rescheduled again.');
+            }
+
             // Check if a checkup already exists on the new date
             $existingCheckup = PrenatalCheckup::where('patient_id', $missedCheckup->patient_id)
                 ->whereDate('checkup_date', $request->new_checkup_date)
@@ -745,6 +751,8 @@ class PrenatalCheckupController extends Controller
             // Update the missed checkup to indicate it has been rescheduled
             // Keep it as 'missed' status so it remains in the history
             $missedCheckup->update([
+                'rescheduled' => true,
+                'rescheduled_to_checkup_id' => $newCheckup->id,
                 'notes' => ($missedCheckup->notes ?? '') . "\n\n[RESCHEDULED] This appointment was rescheduled to " .
                           Carbon::parse($request->new_checkup_date)->format('M j, Y') . " at " .
                           Carbon::parse($request->new_checkup_time)->format('g:i A') .

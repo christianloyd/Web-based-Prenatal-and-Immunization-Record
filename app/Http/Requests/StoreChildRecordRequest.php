@@ -21,15 +21,38 @@ class StoreChildRecordRequest extends FormRequest
     public function rules(): array
     {
         $baseRules = [
-            'first_name' => 'required|string|max:255|min:2',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255|min:2',
+            'first_name' => [
+                'required',
+                'string',
+                'min:2',
+                'max:255',
+                'regex:/^[a-zA-Z\s\.\-\']+$/'
+            ],
+            'middle_name' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s\.\-\']+$/'
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'min:2',
+                'max:255',
+                'regex:/^[a-zA-Z\s\.\-\']+$/'
+            ],
             'gender' => ['required', Rule::in(['Male', 'Female'])],
             'birthdate' => 'required|date|before_or_equal:today|after:1900-01-01',
             'birth_height' => 'required|numeric|min:0|max:999.99',
             'birth_weight' => 'required|numeric|min:0|max:99.999',
             'birthplace' => 'nullable|string|max:255',
-            'father_name' => 'nullable|string|max:255|min:2',
+            'father_name' => [
+                'nullable',
+                'string',
+                'min:2',
+                'max:255',
+                'regex:/^[a-zA-Z\s\.\-\']+$/'
+            ],
             'phone_number' => ['required', 'string', 'max:13', 'regex:/^(\+63|0)[0-9]{10}$/'],
             'address' => 'nullable|string|max:1000',
             'mother_exists' => 'required|in:yes,no'
@@ -39,7 +62,13 @@ class StoreChildRecordRequest extends FormRequest
         if ($this->input('mother_exists') === 'yes') {
             $baseRules['mother_id'] = 'required|exists:patients,id';
         } else {
-            $baseRules['mother_name'] = 'required|string|max:255|min:2';
+            $baseRules['mother_name'] = [
+                'required',
+                'string',
+                'min:2',
+                'max:255',
+                'regex:/^[a-zA-Z\s\.\-\']+$/'
+            ];
             $baseRules['mother_age'] = 'required|integer|min:15|max:50';
             $baseRules['mother_contact'] = ['required', 'string', 'max:13', 'regex:/^(\+63|0)[0-9]{10}$/'];
             $baseRules['mother_address'] = 'required|string|max:1000';
@@ -56,10 +85,15 @@ class StoreChildRecordRequest extends FormRequest
         return [
             'first_name.required' => 'First name is required.',
             'first_name.min' => 'First name must be at least 2 characters.',
+            'first_name.regex' => 'First name should only contain letters, spaces, dots, hyphens, and apostrophes.',
+            'middle_name.regex' => 'Middle name should only contain letters, spaces, dots, hyphens, and apostrophes.',
             'last_name.required' => 'Last name is required.',
             'last_name.min' => 'Last name must be at least 2 characters.',
+            'last_name.regex' => 'Last name should only contain letters, spaces, dots, hyphens, and apostrophes.',
+            'father_name.regex' => 'Father\'s name should only contain letters, spaces, dots, hyphens, and apostrophes.',
             'mother_name.required' => 'Mother\'s name is required when adding a new mother.',
             'mother_name.min' => 'Mother\'s name must be at least 2 characters.',
+            'mother_name.regex' => 'Mother\'s name should only contain letters, spaces, dots, hyphens, and apostrophes.',
             'mother_age.required' => 'Mother\'s age is required when adding a new mother.',
             'mother_age.min' => 'Mother must be at least 15 years old.',
             'mother_age.max' => 'Mother cannot be older than 50 years.',
