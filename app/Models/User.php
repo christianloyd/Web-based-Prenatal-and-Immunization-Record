@@ -47,13 +47,29 @@ class User extends Authenticatable
             'contact_number' => 'required|regex:/^9\d{9}$/|unique:users,contact_number',
             'address' => 'nullable|string|max:500',
             'role' => 'required|in:midwife,bhw',
-            'password' => 'required|string|min:8',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',      // Must contain at least one lowercase letter
+                'regex:/[A-Z]/',      // Must contain at least one uppercase letter
+                'regex:/[0-9]/',      // Must contain at least one number
+                'regex:/[@$!%*#?&]/', // Must contain at least one special character
+            ],
             'is_active' => 'sometimes|boolean', // Add validation for is_active
         ];
 
         if ($isUpdate) {
-            $rules['password'] = 'nullable|string|min:8';
-        } 
+            $rules['password'] = [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',      // Must contain at least one lowercase letter
+                'regex:/[A-Z]/',      // Must contain at least one uppercase letter
+                'regex:/[0-9]/',      // Must contain at least one number
+                'regex:/[@$!%*#?&]/', // Must contain at least one special character
+            ];
+        }
 
         return $rules;
     }
@@ -135,7 +151,15 @@ class User extends Authenticatable
             'contact_number' => 'required|regex:/^9\d{9}$/|unique:users,contact_number,' . $userId,
             'address' => 'nullable|string|max:500',
             'role' => 'required|in:midwife,bhw',
-            'password' => 'nullable|string|min:8',
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',      // Must contain at least one lowercase letter
+                'regex:/[A-Z]/',      // Must contain at least one uppercase letter
+                'regex:/[0-9]/',      // Must contain at least one number
+                'regex:/[@$!%*#?&]/', // Must contain at least one special character
+            ],
         ];
     }
 
@@ -162,6 +186,7 @@ class User extends Authenticatable
             'role.in' => 'Role must be midwife or bhw.',
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters long.',
+            'password.regex' => 'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character (@$!%*#?&).',
         ];
     }
 

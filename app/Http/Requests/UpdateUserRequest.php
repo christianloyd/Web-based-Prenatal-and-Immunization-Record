@@ -45,7 +45,15 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'password' => 'nullable|string|min:6', // Password is optional when updating
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',      // Must contain at least one lowercase letter
+                'regex:/[A-Z]/',      // Must contain at least one uppercase letter
+                'regex:/[0-9]/',      // Must contain at least one number
+                'regex:/[@$!%*#?&]/', // Must contain at least one special character
+            ],
             'role' => 'required|in:midwife,bhw',
             'gender' => 'required|in:Male,Female',
             'contact_number' => 'nullable|string|max:20',
@@ -72,7 +80,8 @@ class UpdateUserRequest extends FormRequest
             'email.max' => 'Email must not exceed 255 characters.',
             'email.unique' => 'Email is already registered in the system.',
 
-            'password.min' => 'Password must be at least 6 characters long.',
+            'password.min' => 'Password must be at least 8 characters long.',
+            'password.regex' => 'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character (@$!%*#?&).',
 
             'role.required' => 'Role is required.',
             'role.in' => 'Role must be either midwife or bhw.',
