@@ -5,12 +5,12 @@ use App\Http\Controllers\PrenatalCheckupController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Prenatal Records API
-Route::middleware('auth')->prefix('prenatal-records')->group(function () {
+// Prenatal Records API with rate limiting
+Route::middleware(['auth', 'throttle:60,1'])->prefix('prenatal-records')->group(function () {
     Route::get('/', [PrenatalRecordController::class, 'index']);
     Route::post('/', [PrenatalRecordController::class, 'store']);
     Route::get('/{id}', [PrenatalRecordController::class, 'show']);
@@ -18,8 +18,8 @@ Route::middleware('auth')->prefix('prenatal-records')->group(function () {
     Route::delete('/{id}', [PrenatalRecordController::class, 'destroy']);
 });
 
-// Prenatal Checkups API
-Route::middleware('auth')->prefix('prenatal-checkups')->group(function () {
+// Prenatal Checkups API with rate limiting
+Route::middleware(['auth', 'throttle:60,1'])->prefix('prenatal-checkups')->group(function () {
     Route::get('/', [PrenatalCheckupController::class, 'index']);
     Route::post('/', [PrenatalCheckupController::class, 'store']);
     Route::get('/{id}', [PrenatalCheckupController::class, 'show']);
