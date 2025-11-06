@@ -18,7 +18,6 @@ let isEditMode = false;
  * Open Add User Modal
  */
 function openAddModal() {
-    console.log('Opening add modal...'); // Debug log
     resetForm();
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus text-[#68727A] mr-2"></i>Add User';
     document.getElementById('userForm').action = window.userManagementRoutes.store;
@@ -54,7 +53,6 @@ function openAddModal() {
  * Open Edit User Modal
  */
 function openEditUserModal(user) {
-    console.log('Opening edit modal for user:', user); // Debug log
     resetForm();
     populateEditForm(user);
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit text-[#68727A] mr-2"></i>Edit User';
@@ -90,7 +88,6 @@ function openEditUserModal(user) {
  * Open View User Modal
  */
 function openViewUserModal(user) {
-    console.log('Opening view modal for user:', user); // Debug log
     currentViewUser = user;
     populateViewModal(user);
     showModal('viewUserModal');
@@ -153,7 +150,6 @@ function activateUser(userId) {
 // ====================================
 
 function showModal(modalId) {
-    console.log('Showing modal:', modalId); // Debug log
     const modal = document.getElementById(modalId);
     if (!modal) {
         console.error(`Modal with id '${modalId}' not found`);
@@ -654,15 +650,9 @@ function hideSkeletonLoaders() {
 // ====================================
 
 function initializeUserManagement() {
-    console.log('DOM loaded, initializing user management...'); // Debug log
-
     setupPhoneNumberFormatting();
     setupFormValidation();
     setupModalEventListeners();
-
-    // Debug: Check if modals exist
-    console.log('User Modal found:', document.getElementById('userModal') !== null);
-    console.log('View User Modal found:', document.getElementById('viewUserModal') !== null);
 
     // Check for server-side validation errors and show modal if needed
     if (document.querySelectorAll('.error-border').length > 0 ||

@@ -125,7 +125,6 @@ class ReportController extends Controller
         if ($month && !empty($month) && $month !== '') {
             try {
                 $filterDate = Carbon::createFromFormat('Y-m', $month);
-                // Debug log to verify filtering is working
                 \Log::info('Midwife report filter - Month: ' . $month . ', FilterDate: ' . ($filterDate ? $filterDate->toDateString() : 'null'));
             } catch (\Exception $e) {
                 // If month format is invalid, log error and use null (show all data)
@@ -139,7 +138,7 @@ class ReportController extends Controller
         // Base statistics
         $totalPatients = Patient::count();
 
-        // Build checkups query with debugging
+        // Build checkups query
         $checkupsQuery = PrenatalRecord::query();
         if ($filterDate) {
             $checkupsQuery->whereMonth('created_at', $filterDate->month)
@@ -148,7 +147,7 @@ class ReportController extends Controller
         }
         $totalCheckups = $checkupsQuery->count();
 
-        // Build vaccinations query with debugging
+        // Build vaccinations query
         $vaccinationsQuery = Immunization::where('status', 'Done');
         if ($filterDate) {
             $vaccinationsQuery->whereMonth('schedule_date', $filterDate->month)
@@ -445,28 +444,42 @@ class ReportController extends Controller
 
         $demographics = [];
 
+        // OPTIMIZED: Get all patient demographics in a single query
+        $patientStats = Patient::selectRaw('
+            COUNT(*) as total_all,
+            COUNT(CASE WHEN age BETWEEN 18 AND 24 THEN 1 END) as age_18_24_total,
+            COUNT(CASE WHEN age BETWEEN 25 AND 34 THEN 1 END) as age_25_34_total,
+            COUNT(CASE WHEN age BETWEEN 35 AND 44 THEN 1 END) as age_35_44_total,
+            COUNT(CASE WHEN age >= 45 THEN 1 END) as age_45_plus_total
+        ')->first();
+
+        $patientNewStats = $filterDate
+            ? Patient::whereMonth('created_at', $filterDate->month)
+                     ->whereYear('created_at', $filterDate->year)
+                     ->selectRaw('
+                        COUNT(CASE WHEN age BETWEEN 18 AND 24 THEN 1 END) as age_18_24_new,
+                        COUNT(CASE WHEN age BETWEEN 25 AND 34 THEN 1 END) as age_25_34_new,
+                        COUNT(CASE WHEN age BETWEEN 35 AND 44 THEN 1 END) as age_35_44_new,
+                        COUNT(CASE WHEN age >= 45 THEN 1 END) as age_45_plus_new
+                     ')->first()
+            : $patientStats;
+
         // Add patient demographics (prenatal care)
         foreach ($patientAgeGroups as $group) {
-            $totalPatients = Patient::whereBetween('age', [$group['min'], $group['max']])->count();
-            $newPatients = $filterDate
-                ? Patient::whereBetween('age', [$group['min'], $group['max']])
-                         ->whereMonth('created_at', $filterDate->month)
-                         ->whereYear('created_at', $filterDate->year)
-                         ->count()
-                : Patient::whereBetween('age', [$group['min'], $group['max']])
-                         ->count();
+            $ageKey = str_replace([' ', '-'], '_', strtolower($group['label']));
+            $totalKey = $ageKey . '_total';
+            $newKey = $ageKey . '_new';
 
             $demographics[] = [
                 'age_group' => $group['label'],
-                'total_patients' => $totalPatients,
-                'new_patients' => $newPatients,
+                'total_patients' => $patientStats->$totalKey ?? 0,
+                'new_patients' => $patientNewStats->$newKey ?? $patientStats->$totalKey ?? 0,
                 'immunized_count' => 0, // Not applicable for adult patients
             ];
         }
 
-        // Add child demographics (immunization records)
+        // OPTIMIZED: Get all child demographics in a single query
         foreach ($childAgeGroups as $group) {
-            // Calculate birthdate range for this age group
             $maxBirthdate = now()->subYears($group['min'])->format('Y-m-d');
             $minBirthdate = now()->subYears($group['max'])->format('Y-m-d');
 

@@ -64,11 +64,14 @@ class CloudBackupController extends Controller
             $driveFiles = $googleDriveService->listBackupFiles();
             $syncedCount = 0;
 
-            foreach ($driveFiles as $driveFile) {
-                // Check if backup already exists in database
-                $existingBackup = CloudBackup::where('google_drive_file_id', $driveFile['id'])->first();
+            // OPTIMIZED: Batch lookup to avoid N+1 queries
+            $existingFileIds = CloudBackup::whereIn('google_drive_file_id', collect($driveFiles)->pluck('id'))
+                ->pluck('google_drive_file_id')
+                ->toArray();
 
-                if (!$existingBackup) {
+            foreach ($driveFiles as $driveFile) {
+                // Check if backup already exists in database using batch-loaded data
+                if (!in_array($driveFile['id'], $existingFileIds)) {
                     // Create database entry for Google Drive backup
                     CloudBackup::create([
                         'name' => $driveFile['name'],
@@ -318,7 +321,6 @@ class CloudBackupController extends Controller
         try {
             $backup = CloudBackup::findOrFail($request->backup_id);
 
-            // Debug: Log what restore options we received
             \Log::info('Restore request received', [
                 'backup_id' => $request->backup_id,
                 'restore_options' => $request->restore_options,

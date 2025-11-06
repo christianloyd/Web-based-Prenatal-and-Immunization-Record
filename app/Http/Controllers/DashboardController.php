@@ -103,7 +103,11 @@ class DashboardController extends Controller
                                        });
 
         // Upcoming Prenatal Checkups - only upcoming status for active pregnancies (exclude completed pregnancies)
+        // OPTIMIZED: Add withCount to avoid N+1 query in determineAppointmentType
         $upcomingAppointments = PrenatalCheckup::with(['patient', 'prenatalRecord'])
+                                             ->withCount(['prenatalRecord as previous_checkups_count' => function ($query) {
+                                                 $query->whereDate('checkup_date', '<', today());
+                                             }])
                                              ->where('status', 'Upcoming') // Specifically look for 'Upcoming' status
                                              ->where('checkup_date', '>=', Carbon::now()->toDateString()) // Future dates only
                                              ->whereHas('prenatalRecord', function($q) {
@@ -353,11 +357,12 @@ class DashboardController extends Controller
             return 'Urgent';
         }
 
-        // Check if it's first visit by counting previous checkups
-        $previousCheckups = PrenatalCheckup::where('prenatal_record_id', $appointment->prenatal_record_id)
-                                         ->where('checkup_date', '<', $appointment->checkup_date)
-                                         ->count();
-        
+        // Check if it's first visit by using eager-loaded count (avoids N+1 query)
+        $previousCheckups = $appointment->previous_checkups_count ??
+                          PrenatalCheckup::where('prenatal_record_id', $appointment->prenatal_record_id)
+                                       ->where('checkup_date', '<', $appointment->checkup_date)
+                                       ->count();
+
         if ($previousCheckups == 0) {
             return 'First visit';
         }

@@ -587,18 +587,19 @@ class PrenatalCheckupController extends Controller
     private function checkTodaysMissed()
     {
         // If it's after 5 PM, mark today's upcoming checkups as missed
+        // OPTIMIZED: Use batch update instead of individual updates
         if (now()->hour >= 17) {
-            $missedCheckups = PrenatalCheckup::where('status', 'upcoming')
+            $updated = PrenatalCheckup::where('status', 'upcoming')
                 ->whereDate('checkup_date', today())
-                ->get();
-
-            foreach ($missedCheckups as $checkup) {
-                $checkup->update([
+                ->update([
                     'status' => 'missed',
                     'missed_date' => now(),
                     'auto_missed' => true,
                     'missed_reason' => 'Did not show up for upcoming appointment'
                 ]);
+
+            if ($updated > 0) {
+                \Log::info('Auto-marked checkups as missed (batch)', ['count' => $updated]);
             }
         }
     }

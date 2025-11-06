@@ -103,15 +103,6 @@
         opacity: 1;
     }
     
-    /* Debug styles - remove after testing */
-    #prenatal-modal {
-        border: 2px solid red !important; /* Temporary debug border */
-    }
-    
-    #prenatal-modal.show {
-        border: 2px solid green !important; /* Shows when modal is active */
-    }
-    
     /* Form Input Focus Styles */
     .form-input {
         transition: all 0.2s ease;
