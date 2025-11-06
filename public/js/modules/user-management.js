@@ -477,12 +477,46 @@ function validateForm() {
 
     // Validate password
     const passwordInput = document.getElementById('password');
-    if (passwordInput && passwordInput.value && passwordInput.value.length < 8) {
-        passwordInput.classList.add('error-border');
-        errors.push('Password must be at least 8 characters long.');
-        isValid = false;
+    if (passwordInput && passwordInput.value) {
+        const password = passwordInput.value;
+
+        // Check minimum length
+        if (password.length < 8) {
+            passwordInput.classList.add('error-border');
+            errors.push('Password must be at least 8 characters long.');
+            isValid = false;
+        }
+
+        // Check for lowercase letter
+        if (!/[a-z]/.test(password)) {
+            passwordInput.classList.add('error-border');
+            errors.push('Password must contain at least one lowercase letter.');
+            isValid = false;
+        }
+
+        // Check for uppercase letter
+        if (!/[A-Z]/.test(password)) {
+            passwordInput.classList.add('error-border');
+            errors.push('Password must contain at least one uppercase letter.');
+            isValid = false;
+        }
+
+        // Check for number
+        if (!/[0-9]/.test(password)) {
+            passwordInput.classList.add('error-border');
+            errors.push('Password must contain at least one number.');
+            isValid = false;
+        }
+
+        // Check for special character
+        if (!/[@$!%*#?&]/.test(password)) {
+            passwordInput.classList.add('error-border');
+            errors.push('Password must contain at least one special character (@$!%*#?&).');
+            isValid = false;
+        }
     }
 
+    // Password is required for new users
     if (!isEditMode && passwordInput && !passwordInput.value.trim()) {
         passwordInput.classList.add('error-border');
         errors.push('Password is required.');

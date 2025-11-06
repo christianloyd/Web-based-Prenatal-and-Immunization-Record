@@ -28,7 +28,15 @@ class StoreUserRequest extends FormRequest
             'username' => 'required|string|max:255|unique:users,username',
             'age' => 'nullable|integer|min:0|max:120',
             'email' => 'nullable|email|max:255|unique:users,email',
-            'password' => 'required|string|min:6',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',      // Must contain at least one lowercase letter
+                'regex:/[A-Z]/',      // Must contain at least one uppercase letter
+                'regex:/[0-9]/',      // Must contain at least one number
+                'regex:/[@$!%*#?&]/', // Must contain at least one special character
+            ],
             'role' => 'required|in:midwife,bhw',
             'gender' => 'required|in:Male,Female',
             'contact_number' => 'nullable|string|max:20',
@@ -56,7 +64,8 @@ class StoreUserRequest extends FormRequest
             'email.unique' => 'Email is already registered in the system.',
 
             'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 6 characters long.',
+            'password.min' => 'Password must be at least 8 characters long.',
+            'password.regex' => 'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character (@$!%*#?&).',
 
             'role.required' => 'Role is required.',
             'role.in' => 'Role must be either midwife or bhw.',
