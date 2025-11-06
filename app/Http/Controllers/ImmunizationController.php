@@ -142,6 +142,15 @@ class ImmunizationController extends Controller
         try {
             $immunization = $this->immunizationService->createImmunization($request->validated());
 
+            // Check if this is an AJAX request
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Immunization schedule created successfully!',
+                    'immunization' => $immunization
+                ]);
+            }
+
             $redirectRoute = $user->role === 'bhw'
                 ? 'bhw.immunization.index'
                 : 'midwife.immunization.index';
@@ -150,6 +159,14 @@ class ImmunizationController extends Controller
                              ->with('success', 'Immunization schedule created successfully!');
 
         } catch (\Exception $e) {
+            // Check if this is an AJAX request
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 422);
+            }
+
             return back()->withInput()
                         ->withErrors(['error' => $e->getMessage()]);
         }
@@ -323,6 +340,13 @@ class ImmunizationController extends Controller
                 'status' => 'Upcoming',
                 'notes' => 'Rescheduled from missed appointment on ' . \Carbon\Carbon::parse($missedImmunization->schedule_date)->format('M d, Y')
             ]);
+
+            // Mark the original immunization as rescheduled and link to new appointment
+            $missedImmunization->rescheduled = true;
+            $missedImmunization->rescheduled_to_immunization_id = $newImmunization->id;
+            $missedImmunization->save();
+
+            
 
             // Send SMS if contact available
             $child = $missedImmunization->childRecord;

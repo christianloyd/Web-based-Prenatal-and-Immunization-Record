@@ -359,21 +359,13 @@
                                 {{ $immunization->dose ?? 'N/A' }}
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
-                                <div class="flex flex-col gap-1">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
-                                        {{ $immunization->status === 'Upcoming' ? 'status-upcoming' : '' }}
-                                        {{ $immunization->status === 'Done' ? 'status-done' : '' }}
-                                        {{ $immunization->status === 'Missed' ? 'status-missed' : '' }}">
-                                        <i class="fas {{ $immunization->status === 'Done' ? 'fa-check' : ($immunization->status === 'Upcoming' ? 'fa-clock' : 'fa-times') }} mr-1"></i>
-                                        {{ $immunization->status }}
-                                    </span>
-                                    @if($immunization->rescheduled || $immunization->hasBeenRescheduled())
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                                            <i class="fas fa-calendar-alt mr-1"></i>
-                                            Rescheduled
-                                        </span>
-                                    @endif
-                                </div>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                                    {{ $immunization->status === 'Upcoming' ? 'status-upcoming' : '' }}
+                                    {{ $immunization->status === 'Done' ? 'status-done' : '' }}
+                                    {{ $immunization->status === 'Missed' ? 'status-missed' : '' }}">
+                                    <i class="fas {{ $immunization->status === 'Done' ? 'fa-check' : ($immunization->status === 'Upcoming' ? 'fa-clock' : 'fa-times') }} mr-1"></i>
+                                    {{ $immunization->status }}
+                                </span>
                             </td>
                             <td class="px-2 sm:px-4 py-3 whitespace-nowrap text-center align-middle">
                             <div class="flex items-center justify-center gap-1 flex-wrap">
@@ -443,15 +435,10 @@
                                             <i class="fas fa-calendar-plus"></i>
                                         </button>
                                     @else
-                                        <!-- Show link to new appointment if rescheduled -->
-                                        @if($immunization->rescheduledToImmunization)
-                                            <a href="{{ route('midwife.immunization.index') }}"
-                                               class="btn-action btn-view inline-flex items-center justify-center"
-                                               title="View New Appointment">
-                                                <i class="fas fa-arrow-right mr-1"></i>
-                                                View New
-                                            </a>
-                                        @endif
+                                        <!-- Show indicator that it has been rescheduled (matching prenatal checkup style) -->
+                                        <span class="text-xs text-gray-500 italic" title="This immunization has been rescheduled">
+                                            <i class="fas fa-check-circle text-green-500"></i> Rescheduled
+                                        </span>
                                     @endif
                                 @else
                                     <!-- For completed immunizations - only show edit -->
@@ -1064,7 +1051,7 @@ function validateField(field) {
 }
 
 /**
- * Sets up form validation and submission handling
+ * Sets up form validation and submission handling with AJAX + SweetAlert
  */
 function setupFormHandling(form, submitBtn, loadingText) {
     if (!form || !submitBtn) return;
@@ -1078,10 +1065,15 @@ function setupFormHandling(form, submitBtn, loadingText) {
             this.classList.remove('error-border');
         });
     });
-    
+
     form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent default form submission
+
         const originalText = submitBtn.innerHTML;
-        
+        const formData = new FormData(this);
+        const formAction = this.action;
+
+        // Disable submit button and show loading state
         submitBtn.disabled = true;
         submitBtn.innerHTML = `
             <svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1090,13 +1082,81 @@ function setupFormHandling(form, submitBtn, loadingText) {
             </svg>
             ${loadingText}
         `;
-        
-        setTimeout(() => {
-            if (submitBtn.disabled) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+
+        // Send AJAX request
+        fetch(formAction, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
             }
-        }, 10000);
+        })
+        .then(response => response.json().then(data => ({status: response.status, body: data})))
+        .then(result => {
+            // Restore button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+
+            if (result.status === 200 && result.body.success) {
+                // Close modal ONLY on success
+                closeModal();
+
+                // Show success SweetAlert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: result.body.message || 'Immunization schedule created successfully!',
+                    confirmButtonColor: '#68727A',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Reload page to show new data
+                    window.location.reload();
+                });
+            } else {
+                // DON'T close modal - keep it open for corrections
+                // Format validation errors
+                let errorMessage = '';
+                if (result.body.errors) {
+                    // Laravel validation errors format
+                    errorMessage = '<div class="text-left"><strong>Please correct the following errors:</strong><ul class="mt-2 ml-4 list-disc">';
+                    Object.keys(result.body.errors).forEach(key => {
+                        result.body.errors[key].forEach(error => {
+                            errorMessage += `<li class="mb-1">${error}</li>`;
+                        });
+                    });
+                    errorMessage += '</ul></div>';
+                } else {
+                    errorMessage = result.body.message || 'Please correct the errors and try again.';
+                }
+
+                // Show validation error with SweetAlert (modal stays open in background)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: errorMessage,
+                    confirmButtonColor: '#68727A',
+                    confirmButtonText: 'OK',
+                    allowOutsideClick: false
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+
+            // Restore button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+
+            // Show error SweetAlert
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred. Please try again.',
+                confirmButtonColor: '#68727A',
+                confirmButtonText: 'OK'
+            });
+        });
     });
 }
 
@@ -1164,30 +1224,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Setup reschedule form submission
-    const rescheduleForm = document.getElementById('rescheduleForm');
-    if (rescheduleForm) {
-        rescheduleForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!window.currentRescheduleImmunization) {
-                console.error('No immunization selected for rescheduling');
-                // Don't show error - form should still work
-            }
-            const userRole = document.body.getAttribute('data-user-role') || 'midwife';
-            const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
-
-            // Get immunization ID from hidden input if currentRescheduleImmunization is not set
-            const immunizationId = window.currentRescheduleImmunization?.id || document.getElementById('reschedule-immunization-id')?.value;
-
-            if (!immunizationId) {
-                showError('No immunization selected for rescheduling');
-                return;
-            }
-
-            this.action = `/${userRole}/${endpoint}/${immunizationId}/reschedule`;
-            this.submit();
-        });
-    }
+    // Note: Reschedule form submission is handled in reschedule_modal.blade.php
 
     // Setup mark missed reschedule checkbox
     const missedRescheduleCheckbox = document.getElementById('missed-reschedule-checkbox');

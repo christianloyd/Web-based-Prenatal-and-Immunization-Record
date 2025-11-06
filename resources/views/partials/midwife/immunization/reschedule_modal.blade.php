@@ -104,7 +104,9 @@ function openImmunizationRescheduleModal(immunization) {
         return;
     }
 
+    // Set both local and global variable for compatibility
     currentRescheduleImmunization = immunization;
+    window.currentRescheduleImmunization = immunization;
 
     // Populate immunization details
     const childNameEl = document.getElementById('reschedule-child-name');
@@ -182,6 +184,7 @@ function closeImmunizationRescheduleModal(event) {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
         currentRescheduleImmunization = null;
+        window.currentRescheduleImmunization = null;
 
         const form = document.getElementById('rescheduleForm');
         if (form) form.reset();
@@ -196,8 +199,17 @@ document.addEventListener('DOMContentLoaded', function() {
         rescheduleForm.addEventListener('submit', function(e) {
             e.preventDefault();
             console.log('Reschedule form submitted');
+            console.log('currentRescheduleImmunization:', currentRescheduleImmunization);
 
-            if (!currentRescheduleImmunization) {
+            const userRole = '{{ auth()->user()->role }}';
+            const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
+
+            // Get immunization ID - try currentRescheduleImmunization first, then window global
+            const immunizationId = currentRescheduleImmunization?.id || window.currentRescheduleImmunization?.id;
+
+            console.log('Immunization ID:', immunizationId);
+
+            if (!immunizationId) {
                 console.error('No immunization selected for rescheduling');
                 if (window.healthcareAlert) {
                     window.healthcareAlert.error('No immunization selected for rescheduling');
@@ -207,10 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            console.log('Current reschedule immunization:', currentRescheduleImmunization);
-            const userRole = '{{ auth()->user()->role }}';
-            const endpoint = userRole === 'bhw' ? 'immunizations' : 'immunization';
-            this.action = `/${userRole}/${endpoint}/${currentRescheduleImmunization.id}/reschedule`;
+            this.action = `/${userRole}/${endpoint}/${immunizationId}/reschedule`;
 
             console.log('Form action URL:', this.action);
             console.log('Submitting form...');
