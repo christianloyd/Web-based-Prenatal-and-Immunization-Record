@@ -16,6 +16,7 @@
         "vite": "^7.0.6"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^7.1.0",
         "@tailwindcss/cli": "^4.1.11"
     }
 }

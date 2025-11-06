@@ -103,15 +103,45 @@ class ImmunizationController extends Controller
         $childRecords = ChildRecord::orderBy('first_name')->orderBy('last_name')->get();
         $availableVaccines = Vaccine::orderBy('name')->get();
 
-        // Build vaccine completion data for each child
+        // OPTIMIZED: Build vaccine completion data with a single query
+        // Get all completed doses grouped by child and vaccine
+        $completedDosesData = Immunization::selectRaw('child_record_id, vaccine_id, COUNT(*) as completed_count')
+            ->where('status', 'Done')
+            ->groupBy('child_record_id', 'vaccine_id')
+            ->get()
+            ->groupBy('child_record_id')
+            ->map(function ($childImmunizations) {
+                return $childImmunizations->keyBy('vaccine_id');
+            });
+
+        // Build completion data structure efficiently
         $vaccineCompletionData = [];
         foreach ($childRecords as $child) {
             $vaccineCompletionData[$child->id] = [];
+            $childDoses = $completedDosesData->get($child->id, collect());
+
             foreach ($availableVaccines as $vaccine) {
+                $completedCount = $childDoses->get($vaccine->id)->completed_count ?? 0;
+                $doseCount = $vaccine->dose_count ?? 0;
+                $isCompleted = $doseCount > 0 && $completedCount >= $doseCount;
+                $remaining = $doseCount > 0 ? max(0, $doseCount - $completedCount) : 0;
+
+                // Calculate next dose label
+                $nextDose = null;
+                if (!$isCompleted && $doseCount > 0) {
+                    $doseNumber = $completedCount + 1;
+                    $nextDose = match($doseNumber) {
+                        1 => '1st Dose',
+                        2 => '2nd Dose',
+                        3 => '3rd Dose',
+                        default => $doseNumber . 'th Dose'
+                    };
+                }
+
                 $vaccineCompletionData[$child->id][$vaccine->id] = [
-                    'completed' => $vaccine->isCompletedForChild($child->id),
-                    'remaining' => $vaccine->getRemainingDosesForChild($child->id),
-                    'next_dose' => $vaccine->getNextDoseForChild($child->id)
+                    'completed' => $isCompleted,
+                    'remaining' => $remaining,
+                    'next_dose' => $nextDose
                 ];
             }
         }

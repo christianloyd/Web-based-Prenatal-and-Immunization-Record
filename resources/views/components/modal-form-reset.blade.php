@@ -244,20 +244,4 @@ window.testFormReset = function() {
         console.log('✨ All forms have been reset!');
     }, 10000);
 };
-
-// Debug function (remove in production)
-window.debugModalReset = function() {
-    console.log('Available modal forms:', document.querySelectorAll('.modal-overlay form, [id*="modal"] form'));
-    console.log('Modal reset manager:', window.modalFormResetManager);
-    
-    // Show all available modals
-    const modals = document.querySelectorAll('[id*="modal"], .modal-overlay');
-    console.log('Found modals:', modals);
-    
-    modals.forEach(modal => {
-        const forms = modal.querySelectorAll('form');
-        const cancelButtons = modal.querySelectorAll('button[onclick*="close"], button[onclick*="Cancel"]');
-        console.log(`Modal ${modal.id}: ${forms.length} forms, ${cancelButtons.length} cancel buttons`);
-    });
-};
 </script>
