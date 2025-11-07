@@ -499,6 +499,15 @@
         color: var(--primary);
         font-weight: 600;
     }
+
+    /* SweetAlert2 Z-Index Fix - Ensure it appears above modals */
+    .swal2-container {
+        z-index: 99999 !important;
+    }
+
+    .swal2-overlay {
+        z-index: 99999 !important;
+    }
     }
 </style>
 @endpush

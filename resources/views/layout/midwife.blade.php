@@ -72,6 +72,15 @@
     <script src="{{ asset('js/midwife/sweetalert-handler.js') }}"></script>
 
     <style>
+        /* SweetAlert2 Z-Index Fix - Ensure it appears above all modals */
+        .swal2-container {
+            z-index: 99999 !important;
+        }
+
+        .swal2-overlay {
+            z-index: 99999 !important;
+        }
+
         /* SweetAlert2 Global Button Styling */
         .swal2-confirm {
             background-color: #D4A373 !important;
