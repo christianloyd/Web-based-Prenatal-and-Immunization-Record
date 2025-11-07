@@ -17,7 +17,7 @@
         </div>
 
         <div class="flex-1 overflow-y-auto">
-            <form id="checkupForm" action="{{ route('midwife.prenatalcheckup.store') }}" method="POST" class="p-6">
+            <form id="checkupForm" action="{{ route('midwife.prenatalcheckup.store') }}" method="POST" class="p-6" onsubmit="return validateCheckupForm(event)">
             @csrf
             <!-- Hidden field for conducted_by -->
             <input type="hidden" name="conducted_by" value="{{ auth()->id() }}">
@@ -229,3 +229,173 @@
         </div>
     </div>
 </div>
+
+<script>
+/**
+ * Validate prenatal checkup form before submission
+ */
+function validateCheckupForm(event) {
+    const patientId = document.getElementById('selected-patient-id')?.value;
+    const checkupDate = document.querySelector('input[name="checkup_date"]')?.value;
+    const checkupTime = document.querySelector('input[name="checkup_time"]')?.value;
+
+    // Check required fields
+    const errors = [];
+
+    console.log('Validation Debug:', {
+        patientId,
+        checkupDate,
+        checkupTime
+    });
+
+    if (!patientId || patientId.trim() === '') {
+        errors.push('Please select a patient');
+    }
+
+    if (!checkupDate || checkupDate.trim() === '') {
+        errors.push('Checkup date is required');
+    }
+
+    if (!checkupTime || checkupTime.trim() === '') {
+        errors.push('Checkup time is required');
+    }
+
+    // Validate blood pressure - if one is filled, both must be filled
+    const bpSystolic = document.querySelector('input[name="blood_pressure_systolic"]').value;
+    const bpDiastolic = document.querySelector('input[name="blood_pressure_diastolic"]').value;
+
+    if ((bpSystolic && !bpDiastolic) || (!bpSystolic && bpDiastolic)) {
+        errors.push('Both systolic and diastolic blood pressure values are required if you enter blood pressure');
+    }
+
+    // Validate BP ranges if both are provided
+    if (bpSystolic && bpDiastolic) {
+        const systolic = parseInt(bpSystolic);
+        const diastolic = parseInt(bpDiastolic);
+
+        if (systolic < 70 || systolic > 250) {
+            errors.push('Systolic blood pressure must be between 70 and 250 mmHg');
+        }
+
+        if (diastolic < 40 || diastolic > 150) {
+            errors.push('Diastolic blood pressure must be between 40 and 150 mmHg');
+        }
+
+        if (systolic <= diastolic) {
+            errors.push('Systolic blood pressure must be higher than diastolic blood pressure');
+        }
+    }
+
+    // Validate weight if provided
+    const weight = document.querySelector('input[name="weight_kg"]').value;
+    if (weight) {
+        const weightValue = parseFloat(weight);
+        if (weightValue < 30 || weightValue > 200) {
+            errors.push('Weight must be between 30 and 200 kg');
+        }
+    }
+
+    // Validate fetal heart rate if provided
+    const fetalHR = document.querySelector('input[name="fetal_heart_rate"]').value;
+    if (fetalHR) {
+        const fetalHRValue = parseInt(fetalHR);
+        if (fetalHRValue < 100 || fetalHRValue > 180) {
+            errors.push('Fetal heart rate must be between 100 and 180 bpm');
+        }
+    }
+
+    // Validate fundal height if provided
+    const fundalHeight = document.querySelector('input[name="fundal_height_cm"]').value;
+    if (fundalHeight) {
+        const fundalHeightValue = parseFloat(fundalHeight);
+        if (fundalHeightValue < 10 || fundalHeightValue > 50) {
+            errors.push('Fundal height must be between 10 and 50 cm');
+        }
+    }
+
+    // Validate next visit if schedule_next is checked
+    const scheduleNext = document.getElementById('scheduleNext');
+
+    console.log('Schedule Next Debug:', {
+        checkbox: scheduleNext,
+        checked: scheduleNext?.checked
+    });
+
+    if (scheduleNext && scheduleNext.checked) {
+        const nextVisitDate = document.querySelector('input[name="next_visit_date"]')?.value;
+        const nextVisitTime = document.querySelector('input[name="next_visit_time"]')?.value;
+
+        console.log('Next Visit Fields:', {
+            nextVisitDate,
+            nextVisitTime
+        });
+
+        if (!nextVisitDate || nextVisitDate.trim() === '') {
+            errors.push('Next visit date is required when scheduling next visit');
+        }
+
+        if (!nextVisitTime || nextVisitTime.trim() === '') {
+            errors.push('Next visit time is required when scheduling next visit');
+        }
+
+        // Check if next visit date is at least 8 days from today (only if date is provided)
+        if (nextVisitDate && nextVisitDate.trim() !== '') {
+            const nextDate = new Date(nextVisitDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const minDate = new Date(today);
+            minDate.setDate(minDate.getDate() + 8);
+
+            console.log('Date Comparison:', {
+                nextDate,
+                minDate,
+                isValid: nextDate >= minDate
+            });
+
+            if (nextDate < minDate) {
+                errors.push('Next visit date must be at least 8 days from today');
+            }
+        }
+    }
+
+    // If there are errors, show SweetAlert and prevent submission
+    if (errors.length > 0) {
+        event.preventDefault();
+
+        console.error('Validation errors:', errors);
+
+        let errorHtml = '<div class="text-left"><ul class="list-disc list-inside space-y-1">';
+        errors.forEach(error => {
+            errorHtml += `<li class="text-sm">${error}</li>`;
+        });
+        errorHtml += '</ul></div>';
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            html: errorHtml,
+            confirmButtonColor: '#D4A373',
+            confirmButtonText: 'OK, I\'ll fix it',
+            customClass: {
+                popup: 'animate__animated animate__shakeX',
+                container: 'swal2-container-high-z'
+            },
+            heightAuto: false
+        });
+
+        return false;
+    }
+
+    console.log('Form validation passed! Submitting...');
+
+    // Show loading state while submitting
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving Checkup...';
+    }
+
+    return true;
+}
+</script>

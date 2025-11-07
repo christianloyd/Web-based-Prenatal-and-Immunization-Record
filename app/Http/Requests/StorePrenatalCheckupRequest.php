@@ -32,11 +32,13 @@ class StorePrenatalCheckupRequest extends FormRequest
             'blood_pressure_systolic' => [
                 'nullable',
                 'integer',
+                'required_with:blood_pressure_diastolic',
                 new ValidBloodPressure('systolic', $this->blood_pressure_diastolic)
             ],
             'blood_pressure_diastolic' => [
                 'nullable',
                 'integer',
+                'required_with:blood_pressure_systolic',
                 new ValidBloodPressure('diastolic')
             ],
             'fetal_heart_rate' => 'nullable|integer|min:100|max:180',
@@ -65,8 +67,12 @@ class StorePrenatalCheckupRequest extends FormRequest
             'checkup_time.required' => 'Checkup time is required.',
             'weight_kg.min' => 'Weight must be at least 30 kg.',
             'weight_kg.max' => 'Weight cannot exceed 200 kg.',
+            'blood_pressure_systolic.required_with' => 'If you enter diastolic BP, systolic BP is also required.',
+            'blood_pressure_diastolic.required_with' => 'If you enter systolic BP, diastolic BP is also required.',
             'fetal_heart_rate.min' => 'Fetal heart rate must be at least 100 bpm.',
             'fetal_heart_rate.max' => 'Fetal heart rate cannot exceed 180 bpm.',
+            'fundal_height_cm.min' => 'Fundal height must be at least 10 cm.',
+            'fundal_height_cm.max' => 'Fundal height cannot exceed 50 cm.',
             'next_visit_date.after' => 'Next visit date must be after the checkup date.',
         ];
     }

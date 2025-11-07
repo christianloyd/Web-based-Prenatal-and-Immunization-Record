@@ -508,12 +508,34 @@
     .swal2-overlay {
         z-index: 99999 !important;
     }
+
+    /* Force SweetAlert to appear above modals */
+    .swal2-container-high-z {
+        z-index: 99999 !important;
+    }
     }
 </style>
 @endpush
 
 @section('content')
 <div class="space-y-6">
+    <!-- Hidden flash message containers for SweetAlert -->
+    @if(session('success'))
+        <div data-flash-success="{{ session('success') }}" class="hidden"></div>
+    @endif
+
+    @if(session('error'))
+        <div data-flash-error="{{ session('error') }}" class="hidden"></div>
+    @endif
+
+    @if(session('warning'))
+        <div data-flash-warning="{{ session('warning') }}" class="hidden"></div>
+    @endif
+
+    @if(session('info'))
+        <div data-flash-info="{{ session('info') }}" class="hidden"></div>
+    @endif
+
     @if($errors->any())
     <div class="alert alert-error">
         <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">

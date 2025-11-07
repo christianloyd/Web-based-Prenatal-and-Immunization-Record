@@ -190,12 +190,42 @@ function handleAjaxSubmit(form, successMessage, onSuccess, loadingMessage = 'Sub
 }
 
 /**
+ * Show warning message
+ * @param {string} message - Warning message
+ */
+function showWarning(message) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: message,
+        confirmButtonColor: SwalConfig.confirmButtonColor,
+        confirmButtonText: 'OK'
+    });
+}
+
+/**
+ * Show info message
+ * @param {string} message - Info message
+ */
+function showInfo(message) {
+    Swal.fire({
+        icon: 'info',
+        title: 'Information',
+        text: message,
+        confirmButtonColor: SwalConfig.confirmButtonColor,
+        confirmButtonText: 'OK'
+    });
+}
+
+/**
  * Initialize SweetAlert for flash messages on page load
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Check for Laravel flash messages
     const flashSuccess = document.querySelector('[data-flash-success]');
     const flashError = document.querySelector('[data-flash-error]');
+    const flashWarning = document.querySelector('[data-flash-warning]');
+    const flashInfo = document.querySelector('[data-flash-info]');
 
     if (flashSuccess) {
         const message = flashSuccess.getAttribute('data-flash-success');
@@ -210,11 +240,27 @@ document.addEventListener('DOMContentLoaded', function() {
             showError(message);
         }
     }
+
+    if (flashWarning) {
+        const message = flashWarning.getAttribute('data-flash-warning');
+        if (message) {
+            showWarning(message);
+        }
+    }
+
+    if (flashInfo) {
+        const message = flashInfo.getAttribute('data-flash-info');
+        if (message) {
+            showInfo(message);
+        }
+    }
 });
 
 // Make functions globally available
 window.showSuccess = showSuccess;
 window.showError = showError;
+window.showWarning = showWarning;
+window.showInfo = showInfo;
 window.showConfirmation = showConfirmation;
 window.showDeleteConfirmation = showDeleteConfirmation;
 window.showLoading = showLoading;
