@@ -37,8 +37,8 @@ class PrenatalCheckupController extends Controller
         // Auto-check for today's missed checkups (if after business hours)
         $this->checkTodaysMissed();
 
-        // Optimize: Load only necessary relationships (removed redundant 'patient')
-        $query = PrenatalCheckup::with(['prenatalRecord.patient']);
+        // Load necessary relationships including direct patient relationship
+        $query = PrenatalCheckup::with(['patient', 'prenatalRecord.patient']);
 
         // Status filter - apply FIRST if provided
         if ($request->filled('status')) {

@@ -47,7 +47,8 @@ class PrenatalCheckupService
             }
 
             // If scheduling next visit, create another upcoming checkup
-            if (isset($data['next_visit_date']) && isset($data['schedule_next']) && $data['schedule_next']) {
+            // Since next visit is now REQUIRED, we don't check for schedule_next anymore
+            if (isset($data['next_visit_date']) && isset($data['next_visit_time'])) {
                 $this->scheduleNextVisit($data, $patient, $prenatalRecord);
             }
 

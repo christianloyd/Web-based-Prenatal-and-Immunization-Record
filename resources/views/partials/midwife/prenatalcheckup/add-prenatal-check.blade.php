@@ -169,45 +169,39 @@
                         </div>
                     </div>
 
-                    <!-- Next Visit -->
+                    <!-- Next Visit (Always Required) -->
                     <div class="bg-gray-50 rounded-lg p-3">
                         <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
-                            <i class="fas fa-calendar mr-2 text-purple-600"></i>Next Visit
+                            <i class="fas fa-calendar mr-2 text-purple-600"></i>Next Visit Schedule *
                         </h3>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <input type="checkbox" id="scheduleNext" name="schedule_next" value="1" class="text-blue-600"
-                                onchange="toggleNextVisit()" {{ old('schedule_next') ? 'checked' : '' }}>
-                            <label for="scheduleNext" class="text-sm font-medium text-gray-700">Schedule next visit</label>
-                        </div>
-
-                        <div id="nextVisitFields" class="{{ old('schedule_next') ? '' : 'hidden' }} space-y-3">
+                        
+                        <div class="space-y-3">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Next Visit Date</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Next Visit Date *</label>
                                     <input type="date"
                                            name="next_visit_date"
-                                           id="next-visit-date"
+                                           id="next_visit_date"
                                            class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
                                            value="{{ old('next_visit_date') }}"
-                                           min="{{ date('Y-m-d', strtotime('+8 days')) }}">
+                                           min="{{ date('Y-m-d', strtotime('+8 days')) }}"
+                                           required>
                                     <p class="text-xs text-gray-500 mt-1">Minimum 1 week gap required from today</p>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                                    <input type="time" name="next_visit_time" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                           value="{{ old('next_visit_time') }}">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                                    <input type="time" 
+                                           name="next_visit_time" 
+                                           id="next_visit_time"
+                                           class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                           value="{{ old('next_visit_time') }}"
+                                           required>
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Reminder Notes</label>
                                 <textarea name="next_visit_notes" rows="2" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
                                           placeholder="What to prepare or remember for next visit...">{{ old('next_visit_notes') }}</textarea>
-                            </div>
-                        </div>
-
-                        <div id="noNextVisitMessage" class="{{ old('schedule_next') ? 'hidden' : '' }}">
-                            <div class="bg-gray-100 rounded-lg p-3 text-center">
-                                <p class="text-gray-600 text-sm">No next visit will be scheduled.</p>
                             </div>
                         </div>
                     </div>

@@ -45,11 +45,10 @@ class StorePrenatalCheckupRequest extends FormRequest
             'baby_movement' => 'nullable|in:active,normal,less,none',
             'symptoms' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
-            'next_visit_date' => 'nullable|date|after:checkup_date',
-            'next_visit_time' => 'nullable|date_format:H:i',
+            'next_visit_date' => 'required|date|after:checkup_date',
+            'next_visit_time' => 'required|date_format:H:i',
             'next_visit_notes' => 'nullable|string|max:500',
             'conducted_by' => 'nullable|exists:users,id',
-            'schedule_next' => 'nullable|boolean',
         ];
     }
 
@@ -67,7 +66,9 @@ class StorePrenatalCheckupRequest extends FormRequest
             'weight_kg.max' => 'Weight cannot exceed 200 kg.',
             'fetal_heart_rate.min' => 'Fetal heart rate must be at least 100 bpm.',
             'fetal_heart_rate.max' => 'Fetal heart rate cannot exceed 180 bpm.',
+            'next_visit_date.required' => 'Next visit date is required.',
             'next_visit_date.after' => 'Next visit date must be after the checkup date.',
+            'next_visit_time.required' => 'Next visit time is required.',
         ];
     }
 

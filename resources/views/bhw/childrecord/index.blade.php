@@ -169,7 +169,11 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/bhw/childrecord-index.js') }}"></script>
+{{-- Modular Child Record JavaScript - ES6 Modules --}}
+<script type="module" src="{{ asset('js/bhw/childrecord/index.js') }}"></script>
+
+{{-- Fallback to monolithic version for older browsers --}}
+<script nomodule src="{{ asset('js/bhw/childrecord-index.js') }}"></script>
 
 {{-- Include Refresh Data Script --}}
 @include('components.refresh-data-script', [

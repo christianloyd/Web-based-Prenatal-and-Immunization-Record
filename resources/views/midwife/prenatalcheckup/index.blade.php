@@ -853,20 +853,7 @@
         showError('Edit scheduled checkup functionality - Patient ID: ' + patientId);
     }
 
-    // Toggle next visit fields
-    function toggleNextVisit() {
-        const checkbox = document.getElementById('scheduleNext');
-        const fields = document.getElementById('nextVisitFields');
-        const noMessage = document.getElementById('noNextVisitMessage');
-
-        if (checkbox.checked) {
-            fields.classList.remove('hidden');
-            if (noMessage) noMessage.classList.add('hidden');
-        } else {
-            fields.classList.add('hidden');
-            if (noMessage) noMessage.classList.remove('hidden');
-        }
-    }
+    // toggleNextVisit function removed - next visit is now always required
 
     // Handle "None" swelling checkbox
     function toggleNoneSwelling(noneCheckbox) {
