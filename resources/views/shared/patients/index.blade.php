@@ -6,7 +6,7 @@
 @section('page-subtitle', 'Manage patient basic information')
 
 @push('styles')
-<link rel="stylesheet" href="@roleCss('{{ auth()->user()->role }}.css')">
+<link rel="stylesheet" href="{{ asset('css/' . auth()->user()->role . '/' . auth()->user()->role . '.css') }}">
 <link rel="stylesheet" href="@roleCss('patients-index.css')">
 @endpush
 
@@ -169,6 +169,6 @@
 </script>
 
 {{-- Role-based Scripts --}}
-<script src="@roleJs('{{ auth()->user()->role }}.js')"></script>
+<script src="{{ asset('js/' . auth()->user()->role . '/' . auth()->user()->role . '.js') }}"></script>
 <script src="@roleJs('patients-index.js')"></script>
 @endpush
