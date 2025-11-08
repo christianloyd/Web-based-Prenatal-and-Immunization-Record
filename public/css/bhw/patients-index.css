@@ -1,0 +1,80 @@
+/**
+ * Patients Index Page Styles
+ * Specific styles for the patients management page
+ */
+
+/* Color Variables for Patients Module */
+:root {
+    --patients-primary: #D4A373; /* Warm brown for sidebar and primary elements */
+    --patients-secondary: #ecb99e; /* Peach for buttons and accents */
+    --patients-neutral: #FFFFFF; /* White for view content backgrounds */
+}
+
+/* ============================================
+   SWEETALERT2 CUSTOMIZATION
+   ============================================ */
+
+/* SweetAlert2 button styling - prevent hover color change */
+.swal2-confirm {
+    background-color: var(--patients-primary) !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.swal2-confirm:hover {
+    background-color: var(--patients-primary) !important;
+    background-image: none !important;
+}
+
+.swal2-confirm:focus {
+    background-color: var(--patients-primary) !important;
+    box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.3) !important;
+}
+
+.swal2-confirm:active {
+    background-color: var(--patients-primary) !important;
+}
+
+/* ============================================
+   PATIENT AVATAR STYLES
+   ============================================ */
+
+.patient-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* ============================================
+   FORM SPECIFIC STYLES
+   ============================================ */
+
+/* Form Input Focus Styles with Peach shadow */
+.form-input:focus {
+    box-shadow: 0 4px 12px rgba(236, 185, 158, 0.15); /* Peach shadow */
+}
+
+/* ============================================
+   BUTTON SPECIFIC STYLES
+   ============================================ */
+
+/* Button Hover Effects with Peach shadow */
+.btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(236, 185, 158, 0.3); /* Peach shadow */
+}
+
+/* ============================================
+   CARD STYLES
+   ============================================ */
+
+/* Keep cards clean and white */
+.bg-white {
+    background-color: white !important;
+}

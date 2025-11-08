@@ -6,80 +6,11 @@
 <link rel="icon" type="image/png" sizes="40x40" href="{{ asset('images/dash1.png') }}">
 
 @push('styles')
-<style>
-    .primary-bg { background-color: #D4A373; } /* Warm brown for sidebar and primary elements */
-    .secondary-bg { background-color: #ecb99e; } /* Peach for buttons and accents */
-    .primary-text { color: #D4A373; } /* Warm brown for text */
-    .secondary-text { color: #B8956A; } /* Darker brown for better text readability */
-    .neutral-bg { background-color: #FFFFFF; } /* White for view content */
+{{-- Include shared BHW CSS --}}
+<link rel="stylesheet" href="{{ asset('css/bhw/bhw.css') }}">
 
-    .stat-card {
-        transition: all 0.3s ease;
-        border: 1px solid #e5e7eb;
-        background: #FFFFFF; /* White background for view content */
-        border-radius: 0.5rem;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(212, 163, 115, 0.15); /* Warm brown shadow */
-    }
-    
-    .chart-container {
-        position: relative;
-        height: 300px;
-        width: 100%;
-        display: block;
-        background: #fafafa;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-    }
-    
-    .chart-container canvas {
-        display: block !important;
-        width: 100% !important;
-        height: 100% !important;
-        max-width: none !important;
-        max-height: none !important;
-    }
-    
-    .chart-card {
-        min-height: 400px;
-        background: #FFFFFF; /* White background for view content */
-        border-radius: 0.5rem;
-        border: 1px solid #e5e7eb;
-        padding: 1.5rem;
-    }
-    
-    .fade-in {
-        animation: fadeIn 0.6s ease-in;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .dashboard-grid {
-        display: grid;
-        gap: 1.5rem;
-    }
-
-    @media (min-width: 768px) {
-        .dashboard-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
-        .dashboard-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-    }
-
-    @media (max-width: 767px) {
-        .dashboard-grid { grid-template-columns: 1fr; }
-    }
-
-    /* Custom large stat numbers */
-    .stat-number {
-        font-size: 2rem !important;
-        line-height: 1 !important;
-    }
-</style>
+{{-- Include dashboard specific CSS --}}
+<link rel="stylesheet" href="{{ asset('css/bhw/dashboard.css') }}">
 @endpush
 
 @section('content')
@@ -262,187 +193,18 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" 
+{{-- Include Chart.js library with fallback --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"
         onerror="console.error('Primary CDN failed, trying fallback...'); this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js';"></script>
+
+{{-- Configuration data for dashboard charts --}}
 <script>
-    function initializeCharts() {
-        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
-        console.log('Chart Data:', {!! json_encode($charts) !!});
-        
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js failed to load!');
-            document.querySelectorAll('.chart-container').forEach(container => {
-                container.innerHTML = '<div class="flex items-center justify-center h-full text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Chart library failed to load</div>';
-            });
-            return;
-        }
-        
-        console.log('DOM loaded, initializing charts...');
-    
-        const primaryColor = '#243b55';
-        const secondaryColor = '#141e30';
-        const chartColors = {
-            primary: primaryColor,
-            secondary: secondaryColor,
-            success: '#10b981',
-            warning: '#f59e0b',
-            danger: '#ef4444',
-            info: '#3b82f6'
-        };
-
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    backgroundColor: secondaryColor,
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    borderColor: primaryColor,
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: true
-                }
-            }
-        };
-
-        // Prenatal Status Pie Chart
-        try {
-            const prenatalCtx = document.getElementById('prenatalChart');
-            if (prenatalCtx) {
-                new Chart(prenatalCtx.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Active Prenatal', 'Completed Prenatal'],
-                        datasets: [{
-                            data: [
-                                {{ $charts['prenatal']['active'] ?? 0 }},
-                                {{ $charts['prenatal']['completed'] ?? 0 }}
-                            ],
-                            backgroundColor: [
-                                chartColors.info,
-                                chartColors.success
-                            ],
-                            borderWidth: 0,
-                            hoverOffset: 10
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 20,
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                ...commonOptions.plugins.tooltip,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.label + ': ' + context.parsed + '%';
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '60%'
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error creating prenatal chart:', error);
-        }
-
-        // Monthly Patient Registrations Line Chart
-        try {
-            const registrationsCtx = document.getElementById('registrationsChart');
-            if (registrationsCtx) {
-                new Chart(registrationsCtx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: {!! json_encode($charts['monthly_registrations']['labels'] ?? []) !!},
-                        datasets: [{
-                            label: 'New Patient Registrations',
-                            data: {!! json_encode($charts['monthly_registrations']['data'] ?? []) !!},
-                            borderColor: chartColors.primary,
-                            backgroundColor: chartColors.primary + '20',
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 5,
-                            pointHoverRadius: 8,
-                            pointBackgroundColor: '#fff',
-                            pointBorderColor: chartColors.primary,
-                            pointBorderWidth: 2
-                        }]
-                    },
-                    options: {
-                        ...commonOptions,
-                        scales: {
-                            x: {
-                                grid: { 
-                                    color: '#f3f4f6',
-                                    borderColor: '#e5e7eb'
-                                },
-                                ticks: { 
-                                    color: '#6b7280',
-                                    font: { size: 12 }
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                grid: { 
-                                    color: '#f3f4f6',
-                                    borderColor: '#e5e7eb'
-                                },
-                                ticks: { 
-                                    color: '#6b7280',
-                                    font: { size: 12 }
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Number of Registrations',
-                                    color: '#6b7280'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error creating registrations chart:', error);
-        }
-
-        // Auto-hide success/error messages after 5 seconds
-        const alerts = document.querySelectorAll('.bg-green-100[role="alert"], .bg-red-100[role="alert"]');
-        alerts.forEach(alert => {
-            setTimeout(() => {
-                alert.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                alert.style.opacity = '0';
-                alert.style.transform = 'translateY(-10px)';
-                setTimeout(() => alert.remove(), 300);
-            }, 5000);
-        });
-
-    } // Close initializeCharts function
-
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(initializeCharts, 100);
-    });
-
-    window.addEventListener('resize', function() {
-        Chart.helpers.each(Chart.instances, function(instance) {
-            instance.resize();
-        });
-    });
+    window.DASHBOARD_DATA = {!! json_encode($charts) !!};
 </script>
+
+{{-- Include shared BHW JavaScript --}}
+<script src="{{ asset('js/bhw/bhw.js') }}"></script>
+
+{{-- Include dashboard specific JavaScript --}}
+<script src="{{ asset('js/bhw/dashboard.js') }}"></script>
 @endpush

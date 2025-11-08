@@ -4,93 +4,8 @@
 @section('page-subtitle', $childRecord->full_name . ' - Complete Child Record & Immunization History')
 
 @push('styles')
-<style>
-    /* Compact Button Styles */
-    .btn-action {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        transition: all 0.15s ease;
-        border: 1px solid transparent;
-    }
-
-    .btn-view {
-        background-color: #f8fafc;
-        color: #475569;
-        border-color: #e2e8f0;
-    }
-
-    .btn-view:hover {
-        background-color: #68727A;
-        color: white;
-        border-color: #68727A;
-    }
-
-    .btn-edit {
-        background-color: #fef3c7;
-        color: #92400e;
-        border-color: #fde68a;
-    }
-
-    .btn-edit:hover {
-        background-color: #f59e0b;
-        color: white;
-        border-color: #f59e0b;
-    }
-
-    .btn-success {
-        background-color: #f0fdf4;
-        color: #166534;
-        border-color: #bbf7d0;
-    }
-
-    .btn-success:hover {
-        background-color: #10b981;
-        color: white;
-        border-color: #10b981;
-    }
-
-    /* Compact Status Badge Styles */
-    .status-done {
-        background-color: #10b981;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.65rem;
-        font-weight: 500;
-    }
-
-    .status-upcoming {
-        background-color: #f59e0b;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.65rem;
-        font-weight: 500;
-    }
-
-    .status-missed {
-        background-color: #ef4444;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.65rem;
-        font-weight: 500;
-    }
-
-    /* Compact Cards */
-    .compact-card {
-        padding: 8px 12px;
-        margin-bottom: 8px;
-    }
-
-    /* Small Icon Size */
-    .icon-sm {
-        width: 8px;
-        height: 8px;
-    }
-</style>
+<link rel="stylesheet" href="{{ asset('css/bhw/childrecord.css') }}">
+<link rel="stylesheet" href="{{ asset('css/bhw/childrecord-show.css') }}">
 @endpush
 
 @section('content')
@@ -165,7 +80,7 @@
                     </div>
                     <!-- Mini progress bar -->
                     <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
-                        <div class="bg-green-600 h-1 rounded-full transition-all duration-300" style="width: {{ $progressPercentage }}%"></div>
+                        <div class="progress-bar" style="width: {{ $progressPercentage }}%"></div>
                     </div>
                 </div>
                 <div class="bg-gray-50 rounded p-2 text-center">

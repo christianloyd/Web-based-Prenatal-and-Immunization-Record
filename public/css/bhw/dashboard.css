@@ -1,0 +1,97 @@
+/**
+ * BHW Dashboard Styles
+ * Styles for the dashboard page with statistics and charts
+ */
+
+/* ============================================
+   COLOR SCHEME
+   ============================================ */
+
+.primary-bg { background-color: #D4A373; } /* Warm brown for sidebar and primary elements */
+.secondary-bg { background-color: #ecb99e; } /* Peach for buttons and accents */
+.primary-text { color: #D4A373; } /* Warm brown for text */
+.secondary-text { color: #B8956A; } /* Darker brown for better text readability */
+.neutral-bg { background-color: #FFFFFF; } /* White for view content */
+
+/* ============================================
+   STAT CARDS
+   ============================================ */
+
+.stat-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+    background: #FFFFFF; /* White background for view content */
+    border-radius: 0.5rem;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(212, 163, 115, 0.15); /* Warm brown shadow */
+}
+
+/* Custom large stat numbers */
+.stat-number {
+    font-size: 2rem !important;
+    line-height: 1 !important;
+}
+
+/* ============================================
+   CHART CONTAINER
+   ============================================ */
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    display: block;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+}
+
+.chart-container canvas {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
+.chart-card {
+    min-height: 400px;
+    background: #FFFFFF; /* White background for view content */
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+.fade-in {
+    animation: fadeIn 0.6s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   DASHBOARD GRID
+   ============================================ */
+
+.dashboard-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .dashboard-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 767px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,216 @@
+/**
+ * Midwife Prenatal Record Create Page Styles
+ * Styles for creating new prenatal records
+ */
+
+/* ============================================
+   COLOR VARIABLES
+   ============================================ */
+
+:root {
+    --primary: #243b55;
+    --secondary: #141e30;
+}
+
+
+/* ============================================
+   FORM SECTION STYLES
+   ============================================ */
+
+.form-section {
+    background: white;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary);
+}
+
+
+/* ============================================
+   FORM INPUT STYLES
+   ============================================ */
+
+.form-input {
+    transition: all 0.2s ease;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.625rem;
+    width: 100%;
+    font-size: 0.875rem;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(36, 59, 85, 0.1);
+}
+
+.form-input.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+
+/* ============================================
+   PATIENT SEARCH STYLES
+   ============================================ */
+
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.search-dropdown.show {
+    display: block;
+}
+
+.search-option {
+    padding: 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.15s ease;
+}
+
+.search-option:hover {
+    background-color: #f9fafb;
+}
+
+.search-option:last-child {
+    border-bottom: none;
+}
+
+.search-option.selected {
+    background-color: #eff6ff;
+    color: var(--primary);
+}
+
+.patient-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.patient-name {
+    font-weight: 500;
+    color: #000000; /* Changed to pure black for better visibility */
+}
+
+.patient-details {
+    font-size: 0.75rem;
+    color: #374151; /* Changed to darker gray for better visibility */
+    margin-top: 0.25rem;
+}
+
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary:hover {
+    background-color: #1e2f3f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(36, 59, 85, 0.3);
+}
+
+.btn-secondary {
+    background-color: #f9fafb;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+
+/* ============================================
+   STATE STYLES
+   ============================================ */
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+
+/* ============================================
+   SELECTED PATIENT DISPLAY
+   ============================================ */
+
+.selected-patient {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.selected-patient .patient-name {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+
+/* ============================================
+   RESPONSIVE GRID
+   ============================================ */
+
+@media (min-width: 768px) {
+    .form-grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

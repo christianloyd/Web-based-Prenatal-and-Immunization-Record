@@ -1,0 +1,140 @@
+/**
+ * Prenatal Record Index Page Styles
+ * Specific styles for the prenatal records management page
+ */
+
+/* ============================================
+   COLOR VARIABLES
+   ============================================ */
+
+:root {
+    --prenatal-primary: #243b55;
+    --prenatal-secondary: #141e30;
+}
+
+/* ============================================
+   BUTTON COMPLETE STYLES
+   ============================================ */
+
+.btn-complete {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+
+.btn-complete:hover {
+    background-color: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+/* ============================================
+   MODAL SPECIFIC STYLES
+   ============================================ */
+
+/* Modal overlay z-index override */
+.modal-overlay {
+    z-index: 9999 !important; /* Ensure modal is on top */
+}
+
+.modal-overlay.hidden {
+    visibility: hidden;
+}
+
+.modal-overlay.show {
+    visibility: visible;
+}
+
+.modal-content {
+    z-index: 10000;
+}
+
+/* ============================================
+   FORM INPUT FOCUS - BLUE THEME
+   ============================================ */
+
+.form-input:focus {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================
+   BUTTON HOVER - BLUE THEME
+   ============================================ */
+
+.btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================
+   STATUS BADGE STYLES
+   ============================================ */
+
+.status-normal {
+    background-color: #10b981;
+    color: white;
+}
+
+.status-monitor {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.status-high-risk {
+    background-color: #ef4444;
+    color: white;
+}
+
+.status-due {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.status-completed {
+    background-color: #6b7280;
+    color: white;
+}
+
+/* ============================================
+   NAVIGATION TEXT VISIBILITY FIX
+   ============================================ */
+
+/* Force navigation text visibility - FIXED VERSION */
+.w-64.bg-secondary nav a,
+.w-64.bg-secondary nav li a,
+.w-64.bg-secondary .nav-link,
+.bg-secondary nav a,
+.bg-secondary nav li a,
+.bg-secondary .nav-link {
+    color: white !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure all text elements in sidebar navigation are visible */
+.w-64.bg-secondary nav,
+.w-64.bg-secondary nav *,
+.bg-secondary nav,
+.bg-secondary nav * {
+    color: white !important;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
+
+@media (max-width: 640px) {
+    .modal-content {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+
+    .btn-action {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+
+    .btn-action .fas {
+        margin-right: 2px;
+    }
+}

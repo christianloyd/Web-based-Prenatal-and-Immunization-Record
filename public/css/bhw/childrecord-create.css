@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #243b55;
+    --secondary: #141e30;
+}
+
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+.section-header {
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-input {
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(36, 59, 85, 0.15);
+    border-color: var(--primary);
+    outline: none;
+}
+
+.btn-primary-clean {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-primary-clean:hover {
+    background-color: var(--secondary);
+}
+
+.error-border {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.step.active .step-number {
+    background-color: var(--primary);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.step.active .step-label {
+    color: var(--primary);
+    font-weight: 600;
+}

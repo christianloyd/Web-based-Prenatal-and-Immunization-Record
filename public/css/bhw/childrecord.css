@@ -1,0 +1,146 @@
+/**
+ * Shared Child Record Styles
+ * Common styles used across all child record views
+ */
+
+/* Common Variables */
+:root {
+    --primary-color: #243b55;
+    --secondary-color: #141e30;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+}
+
+/* Common Button Styles */
+.btn-minimal {
+    transition: all 0.2s ease;
+}
+
+.btn-minimal:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Common Card Styles */
+.card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--gray-200);
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Common Badge Styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-primary {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Gender Badge Styles */
+.gender-badge-male {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.gender-badge-female {
+    background-color: #fce7f3;
+    color: #9f1239;
+}
+
+/* Common Table Styles */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-container {
+    min-width: 100%;
+    background-color: white;
+}
+
+.table-row-hover {
+    transition: background-color 0.15s ease;
+}
+
+.table-row-hover:hover {
+    background-color: var(--gray-50);
+}
+
+/* Responsive Utilities */
+@media (max-width: 640px) {
+    .hide-mobile {
+        display: none;
+    }
+}
+
+/* Action Button Group */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Loading State */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+}
+
+.empty-state-icon {
+    width: 4rem;
+    height: 4rem;
+    background-color: var(--gray-100);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}

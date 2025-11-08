@@ -1,0 +1,20 @@
+/**
+ * Midwife Module - Shared Styles
+ * Common CSS used across all midwife module pages
+ */
+
+/* ============================================
+   COLOR VARIABLES
+   ============================================ */
+
+:root {
+    --midwife-primary: #D4A373; /* Warm brown for primary elements */
+    --midwife-secondary: #ecb99e; /* Peach for buttons and accents */
+    --midwife-neutral: #FFFFFF; /* White for content backgrounds */
+}
+
+/* ============================================
+   COMMON STYLES
+   ============================================ */
+
+/* These styles will be populated as we extract common patterns from modules */

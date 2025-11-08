@@ -288,5 +288,11 @@
     </script>
 
     <!-- User Management Module JavaScript -->
-    <script src="{{ asset('js/modules/user-management.js') }}"></script>
+    <script src="{{ asset('js/midwife/user-index.js') }}"></script>
+
+    <!-- Modular User Management JavaScript - ES6 Modules -->
+    <script type="module" src="{{ asset('js/modules/usermanagement/index.js') }}"></script>
+
+    <!-- Fallback to monolithic version for older browsers -->
+    <script nomodule src="{{ asset('js/modules/user-management.js') }}"></script>
 @endpush

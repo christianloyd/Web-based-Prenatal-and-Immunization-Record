@@ -1,0 +1,499 @@
+/**
+ * BHW Shared Styles
+ * Common styles used across all BHW modules
+ * Includes: modals, buttons, forms, badges, animations
+ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   ============================================ */
+:root {
+    --primary-color: #243b55;
+    --secondary-color: #141e30;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #3b82f6;
+
+    /* Neutral Colors */
+    --neutral-50: #f8fafc;
+    --neutral-100: #f1f5f9;
+    --neutral-200: #e2e8f0;
+    --neutral-300: #cbd5e1;
+    --neutral-400: #94a3b8;
+    --neutral-500: #64748b;
+    --neutral-600: #475569;
+    --neutral-700: #334155;
+    --neutral-800: #1e293b;
+    --neutral-900: #0f172a;
+
+    /* Transition Speeds */
+    --transition-fast: 0.15s;
+    --transition-normal: 0.2s;
+    --transition-slow: 0.3s;
+}
+
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity var(--transition-normal) ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+}
+
+/* Modal Content Container */
+.modal-content {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform var(--transition-normal) ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+/* Modal Header */
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--neutral-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--neutral-900);
+}
+
+/* Modal Body */
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Modal Footer */
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--neutral-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+
+/* Base Button */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all var(--transition-normal) ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Action Buttons */
+.btn-action {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+}
+
+.btn-view {
+    background-color: var(--neutral-50);
+    color: var(--neutral-700);
+    border-color: var(--neutral-200);
+}
+
+.btn-view:hover {
+    background-color: var(--neutral-600);
+    color: white;
+    border-color: var(--neutral-600);
+}
+
+.btn-edit {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.btn-edit:hover {
+    background-color: var(--warning-color);
+    color: white;
+    border-color: var(--warning-color);
+}
+
+.btn-delete {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+.btn-delete:hover {
+    background-color: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+
+.btn-success {
+    background-color: #f0fdf4;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+.btn-success:hover {
+    background-color: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+}
+
+.btn-secondary {
+    background-color: var(--neutral-200);
+    color: var(--neutral-700);
+}
+
+.btn-secondary:hover {
+    background-color: var(--neutral-300);
+}
+
+/* ============================================
+   FORM STYLES
+   ============================================ */
+
+/* Form Input */
+.form-input {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--neutral-300);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all var(--transition-normal) ease;
+    outline: none;
+}
+
+.form-input:focus {
+    transform: translateY(-1px);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(36, 59, 85, 0.15);
+}
+
+.form-input:disabled {
+    background-color: var(--neutral-100);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Form Label */
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--neutral-700);
+}
+
+.form-label.required::after {
+    content: ' *';
+    color: var(--danger-color);
+}
+
+/* Form Group */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Form Error State */
+.form-input.error {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-error-message {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--danger-color);
+}
+
+/* ============================================
+   BADGE STYLES
+   ============================================ */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-primary {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+/* Status Badges (Compact) */
+.status-badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.status-done,
+.status-completed {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.status-upcoming,
+.status-pending {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.status-missed,
+.status-overdue {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+/* ============================================
+   CARD STYLES
+   ============================================ */
+
+.card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--neutral-200);
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--neutral-200);
+}
+
+/* Hover Effect for Interactive Cards */
+.card-hover {
+    transition: all var(--transition-normal) ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   TABLE STYLES
+   ============================================ */
+
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-container {
+    min-width: 100%;
+    background-color: white;
+}
+
+.table-row-hover {
+    transition: background-color var(--transition-fast) ease;
+}
+
+.table-row-hover:hover {
+    background-color: var(--neutral-50);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fadeIn var(--transition-slow) ease;
+}
+
+.slide-in-up {
+    animation: slideInUp var(--transition-slow) ease;
+}
+
+.slide-in-down {
+    animation: slideInDown var(--transition-slow) ease;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Loading State */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Hidden */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Utilities */
+@media (max-width: 640px) {
+    .hide-mobile {
+        display: none !important;
+    }
+}
+
+@media (min-width: 641px) {
+    .show-mobile {
+        display: none !important;
+    }
+}
+
+/* Text Utilities */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ============================================
+   SWEETALERT2 OVERRIDES
+   ============================================ */
+
+/* Prevent SweetAlert2 button color changes on hover */
+.swal2-confirm:hover {
+    background-color: inherit !important;
+}
+
+.swal2-cancel:hover {
+    background-color: inherit !important;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Mobile Adjustments */
+@media (max-width: 640px) {
+    .modal-content {
+        max-width: 95%;
+    }
+
+    .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.813rem;
+    }
+
+    .btn-action {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+    }
+}
