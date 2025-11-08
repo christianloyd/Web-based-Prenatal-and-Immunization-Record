@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Pagination\Paginator;
 use App\View\Composers\ChildRecordComposer;
 use App\Models\Patient;
@@ -74,5 +75,39 @@ class AppServiceProvider extends ServiceProvider
         Patient::observe(PatientObserver::class);
         Vaccine::observe(VaccineObserver::class);
         PrenatalCheckup::observe(PrenatalCheckupObserver::class);
+
+        // Register custom Blade directives for role-based content
+        $this->registerRoleBladeDirectives();
+    }
+
+    /**
+     * Register custom Blade directives for role-based views
+     */
+    private function registerRoleBladeDirectives()
+    {
+        // @midwife directive - shows content only to midwives
+        Blade::if('midwife', function () {
+            return auth()->check() && auth()->user()->role === 'midwife';
+        });
+
+        // @bhw directive - shows content only to BHWs
+        Blade::if('bhw', function () {
+            return auth()->check() && auth()->user()->role === 'bhw';
+        });
+
+        // @roleRoute directive - generates role-based route
+        Blade::directive('roleRoute', function ($expression) {
+            return "<?php echo route(auth()->user()->role . '.' . {$expression}); ?>";
+        });
+
+        // @roleCss directive - generates role-based CSS path
+        Blade::directive('roleCss', function ($expression) {
+            return "<?php echo asset('css/' . auth()->user()->role . '/' . {$expression}); ?>";
+        });
+
+        // @roleJs directive - generates role-based JS path
+        Blade::directive('roleJs', function ($expression) {
+            return "<?php echo asset('js/' . auth()->user()->role . '/' . {$expression}); ?>";
+        });
     }
 }

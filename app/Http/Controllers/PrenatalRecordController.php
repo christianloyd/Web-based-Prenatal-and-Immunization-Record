@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PrenatalRecord;
 use App\Models\Patient;
 use App\Models\User;
+use App\Repositories\Contracts\PrenatalRecordRepositoryInterface;
+use App\Repositories\Contracts\PatientRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -16,13 +18,20 @@ use App\Services\PrenatalRecordService;
 use App\Http\Requests\StorePrenatalRecordRequest;
 use App\Http\Requests\UpdatePrenatalRecordRequest;
 
-class PrenatalRecordController extends Controller
+class PrenatalRecordController extends BaseController
 {
     protected $prenatalRecordService;
+    protected $prenatalRecordRepository;
+    protected $patientRepository;
 
-    public function __construct(PrenatalRecordService $prenatalRecordService)
-    {
+    public function __construct(
+        PrenatalRecordService $prenatalRecordService,
+        PrenatalRecordRepositoryInterface $prenatalRecordRepository,
+        PatientRepositoryInterface $patientRepository
+    ) {
         $this->prenatalRecordService = $prenatalRecordService;
+        $this->prenatalRecordRepository = $prenatalRecordRepository;
+        $this->patientRepository = $patientRepository;
     }
     // Display a listing of prenatal records
     public function index(Request $request)
@@ -31,36 +40,25 @@ class PrenatalRecordController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $query = PrenatalRecord::with(['patient', 'latestCheckup'])->orderBy('created_at', 'desc');
+        // Use repository for search and filter
+        $prenatalRecords = $this->prenatalRecordRepository->searchAndFilter(
+            $request->filled('search') ? $request->search : null,
+            $request->filled('status') ? $request->status : null,
+            20
+        )->withQueryString();
 
-        // Search functionality
-        if ($request->filled('search')) {
-            $term = $request->search;
-            $query->whereHas('patient', function ($q) use ($term) {
-                $q->where('name', 'LIKE', "%{$term}%")
-                  ->orWhere('formatted_patient_id', 'LIKE', "%{$term}%");
-            });
-        }
+        // Get patients for the modal dropdown using repository
+        $patients = $this->patientRepository->all();
 
-        // Status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $prenatalRecords = $query->paginate(20)->withQueryString();
-
-        // Get patients for the modal dropdown
-        $patients = Patient::orderBy('name')->get(['id', 'name', 'formatted_patient_id', 'age']);
-        
         // Get options for dropdowns
         $gravida_options = [1 => 'G1', 2 => 'G2', 3 => 'G3', 4 => 'G4', 5 => 'G5+'];
         $para_options = [0 => 'P0', 1 => 'P1', 2 => 'P2', 3 => 'P3', 4 => 'P4+'];
 
         // Return appropriate view based on user role
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.prenatalrecord.index' 
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.prenatalrecord.index'
             : 'bhw.prenatalrecord.index';
-            
+
         return view($view, compact('prenatalRecords', 'patients', 'gravida_options', 'para_options'));
     }
 
@@ -69,14 +67,14 @@ class PrenatalRecordController extends Controller
     {
         $gravida_options = [1 => 'G1', 2 => 'G2', 3 => 'G3', 4 => 'G4', 5 => 'G5+'];
         $para_options = [0 => 'P0', 1 => 'P1', 2 => 'P2', 3 => 'P3', 4 => 'P4+'];
-        
-        // Get all patients for the dropdown
-        $patients = Patient::orderBy('name')->get(['id', 'name', 'formatted_patient_id', 'age']);
-        
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.prenatalrecord.create' 
+
+        // Get all patients for the dropdown using repository
+        $patients = $this->patientRepository->all();
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.prenatalrecord.create'
             : 'bhw.prenatalrecord.create';
-            
+
         return view($view, compact('gravida_options', 'para_options', 'patients'));
     }
 
@@ -106,34 +104,43 @@ class PrenatalRecordController extends Controller
     // Show a single prenatal record
     public function show($id)
     {
-        $prenatalRecord = PrenatalRecord::with([
+        $prenatalRecord = $this->prenatalRecordRepository->findWithRelations($id, [
             'patient.prenatalCheckups' => function($query) {
                 $query->orderBy('checkup_date', 'desc');
             },
             'patient.latestCheckup'
-        ])->findOrFail($id);
-        
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.prenatalrecord.show' 
+        ]);
+
+        if (!$prenatalRecord) {
+            abort(404, 'Prenatal record not found');
+        }
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.prenatalrecord.show'
             : 'bhw.prenatalrecord.show';
-            
+
         return view($view, compact('prenatalRecord'));
     }
 
     // Show form to edit prenatal record
     public function edit($id)
     {
-        $prenatal = PrenatalRecord::with('patient')->findOrFail($id);
+        $prenatal = $this->prenatalRecordRepository->findWithRelations($id, ['patient']);
+
+        if (!$prenatal) {
+            abort(404, 'Prenatal record not found');
+        }
+
         $gravida_options = [1 => 'G1', 2 => 'G2', 3 => 'G3', 4 => 'G4', 5 => 'G5+'];
         $para_options = [0 => 'P0', 1 => 'P1', 2 => 'P2', 3 => 'P3', 4 => 'P4+'];
-        
-        // Get all patients for the dropdown (in case they want to reassign)
-        $patients = Patient::orderBy('name')->get(['id', 'name', 'formatted_patient_id', 'age']);
-        
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.prenatalrecord.edit' 
+
+        // Get all patients for the dropdown (in case they want to reassign) using repository
+        $patients = $this->patientRepository->all();
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.prenatalrecord.edit'
             : 'bhw.prenatalrecord.edit';
-            
+
         return view($view, compact('prenatal', 'gravida_options', 'para_options', 'patients'));
     }
 
@@ -141,7 +148,11 @@ class PrenatalRecordController extends Controller
     public function update(UpdatePrenatalRecordRequest $request, $id)
     {
         try {
-            $prenatal = PrenatalRecord::with('patient')->findOrFail($id);
+            $prenatal = $this->prenatalRecordRepository->findWithRelations($id, ['patient']);
+
+            if (!$prenatal) {
+                abort(404, 'Prenatal record not found');
+            }
 
             // Update prenatal record using service
             $prenatal = $this->prenatalRecordService->updatePrenatalRecord($prenatal, $request->validated());
@@ -166,8 +177,13 @@ class PrenatalRecordController extends Controller
     public function destroy($id)
     {
         try {
-            $prenatal = PrenatalRecord::findOrFail($id);
-            $prenatal->delete();
+            $prenatal = $this->prenatalRecordRepository->find($id);
+
+            if (!$prenatal) {
+                abort(404, 'Prenatal record not found');
+            }
+
+            $this->prenatalRecordRepository->delete($id);
 
             $redirectRoute = Auth::user()->role === 'midwife'
                 ? 'midwife.prenatalrecord.index'
@@ -200,7 +216,11 @@ class PrenatalRecordController extends Controller
         }
 
         try {
-            $prenatal = PrenatalRecord::findOrFail($id);
+            $prenatal = $this->prenatalRecordRepository->find($id);
+
+            if (!$prenatal) {
+                abort(404, 'Prenatal record not found');
+            }
 
             // Complete pregnancy using service
             $this->prenatalRecordService->completePregnancy($prenatal);
@@ -242,8 +262,15 @@ class PrenatalRecordController extends Controller
     public function getRecordData($id)
     {
         try {
-            $record = PrenatalRecord::with('patient')->findOrFail($id);
-            
+            $record = $this->prenatalRecordRepository->findWithRelations($id, ['patient']);
+
+            if (!$record) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Record not found'
+                ], 404);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $record
@@ -260,13 +287,10 @@ class PrenatalRecordController extends Controller
     public function getPatients(Request $request)
     {
         $term = $request->get('q', ''); // Select2 uses 'q' parameter
-        
-        $patients = Patient::where('name', 'LIKE', "%{$term}%")
-                           ->orWhere('formatted_patient_id', 'LIKE', "%{$term}%")
-                           ->orderBy('name')
-                           ->limit(10)
-                           ->get(['id', 'name', 'formatted_patient_id', 'age']);
-                           
+
+        // Use repository to search patients with filters and limit
+        $patients = $this->patientRepository->searchWithFilters($term, [], 10);
+
         return response()->json([
             'results' => $patients->map(function ($patient) {
                 return [
