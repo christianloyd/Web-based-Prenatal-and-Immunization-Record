@@ -67,11 +67,7 @@ class PrenatalRecordController extends BaseController
         // Get all patients for the dropdown using repository
         $patients = $this->patientRepository->all();
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.create'
-            : 'bhw.prenatalrecord.create';
-
-        return view($view, compact('gravida_options', 'para_options', 'patients'));
+        return view($this->roleView('prenatalrecord.create'), compact('gravida_options', 'para_options', 'patients'));
     }
 
     // Store new prenatal record
@@ -111,11 +107,7 @@ class PrenatalRecordController extends BaseController
             abort(404, 'Prenatal record not found');
         }
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.show'
-            : 'bhw.prenatalrecord.show';
-
-        return view($view, compact('prenatalRecord'));
+        return view($this->roleView('prenatalrecord.show'), compact('prenatalRecord'));
     }
 
     // Show form to edit prenatal record
@@ -133,11 +125,7 @@ class PrenatalRecordController extends BaseController
         // Get all patients for the dropdown (in case they want to reassign) using repository
         $patients = $this->patientRepository->all();
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.edit'
-            : 'bhw.prenatalrecord.edit';
-
-        return view($view, compact('prenatal', 'gravida_options', 'para_options', 'patients'));
+        return view($this->roleView('prenatalrecord.edit'), compact('prenatal', 'gravida_options', 'para_options', 'patients'));
     }
 
     // Update prenatal record
