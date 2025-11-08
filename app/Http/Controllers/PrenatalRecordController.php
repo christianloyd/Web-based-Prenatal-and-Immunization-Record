@@ -54,12 +54,8 @@ class PrenatalRecordController extends BaseController
         $gravida_options = [1 => 'G1', 2 => 'G2', 3 => 'G3', 4 => 'G4', 5 => 'G5+'];
         $para_options = [0 => 'P0', 1 => 'P1', 2 => 'P2', 3 => 'P3', 4 => 'P4+'];
 
-        // Return appropriate view based on user role
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.index'
-            : 'bhw.prenatalrecord.index';
-
-        return view($view, compact('prenatalRecords', 'patients', 'gravida_options', 'para_options'));
+        // Use shared view for both roles
+        return view($this->roleView('prenatalrecord.index'), compact('prenatalRecords', 'patients', 'gravida_options', 'para_options'));
     }
 
     // Show form to create new prenatal record
