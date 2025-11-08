@@ -14,9 +14,10 @@ use Illuminate\Support\Facades\Cache;
 use App\Traits\NotifiesHealthcareWorkers;
 use App\Http\Resources\PatientSearchResource;
 
-class PatientController extends Controller
+class PatientController extends BaseController
 {
     use NotifiesHealthcareWorkers;
+
     // Display a listing of patients (mothers only)
     public function index(Request $request)
     {
@@ -39,11 +40,8 @@ class PatientController extends Controller
 
         $patients = $query->with('activePrenatalRecord')->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.patients.index' 
-            : 'bhw.patients.index';
-            
-        return view($view, compact('patients'));
+        // Use shared view for both roles
+        return view($this->roleView('patients.index'), compact('patients'));
     }
 
     // Show form to create new patient
@@ -53,11 +51,8 @@ class PatientController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.patients.create' 
-            : 'bhw.patients.create';
-            
-        return view($view);
+        // Use shared view for both roles
+        return view($this->roleView('patients.create'));
     }
 
     // Store new patient with comprehensive validation
