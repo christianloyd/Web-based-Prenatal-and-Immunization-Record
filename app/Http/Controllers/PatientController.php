@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Patient;
 use App\Models\User;
+use App\Repositories\Contracts\PatientRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -18,27 +19,36 @@ class PatientController extends BaseController
 {
     use NotifiesHealthcareWorkers;
 
-    // Display a listing of patients (mothers only)
+    protected $patientRepository;
+
+    /**
+     * Constructor - Inject Patient Repository
+     *
+     * @param PatientRepositoryInterface $patientRepository
+     */
+    public function __construct(PatientRepositoryInterface $patientRepository)
+    {
+        $this->patientRepository = $patientRepository;
+    }
+
+    /**
+     * Display a listing of patients (mothers only)
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
         if (!in_array(auth()->user()->role, ['bhw', 'midwife'])) {
             abort(403, 'Unauthorized access');
         }
 
-        $query = Patient::query();
+        // Clean controller - all query logic in repository
+        $patients = $request->filled('search')
+            ? $this->patientRepository->searchPaginated($request->search, 20)
+            : $this->patientRepository->paginate(20);
 
-        // Search functionality
-        if ($request->filled('search')) {
-            $term = $request->search;
-            $query->where(function($q) use ($term) {
-                $q->where('first_name', 'LIKE', "%{$term}%")
-                  ->orWhere('last_name', 'LIKE', "%{$term}%")
-                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$term}%"])
-                  ->orWhere('formatted_patient_id', 'LIKE', "%{$term}%");
-            });
-        }
-
-        $patients = $query->with('activePrenatalRecord')->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        $patients->withQueryString();
 
         // Use shared view for both roles
         return view($this->roleView('patients.index'), compact('patients'));
@@ -157,10 +167,11 @@ class PatientController extends BaseController
             $validatedData = $validator->validated();
 
             // Check for duplicate patient (same first name, last name and age combination)
-            $existingPatient = Patient::where('first_name', $validatedData['first_name'])
-                ->where('last_name', $validatedData['last_name'])
-                ->where('age', $validatedData['age'])
-                ->first();
+            $existingPatient = $this->patientRepository->findDuplicate(
+                $validatedData['first_name'],
+                $validatedData['last_name'],
+                $validatedData['age']
+            );
 
             if ($existingPatient) {
                 Log::info('Duplicate patient detected', [
@@ -200,8 +211,8 @@ class PatientController extends BaseController
                 'age' => $validatedData['age']
             ]);
 
-            // Create the patient record
-            $patient = Patient::create($validatedData);
+            // Create the patient record using repository
+            $patient = $this->patientRepository->create($validatedData);
 
             Log::info('Patient created successfully', [
                 'patient_id' => $patient->id,
@@ -272,7 +283,11 @@ class PatientController extends BaseController
     // Show a single patient
     public function show($id)
     {
-        $patient = Patient::with(['prenatalRecords'])->findOrFail($id);
+        $patient = $this->patientRepository->findWithRelations($id, ['prenatalRecords']);
+
+        if (!$patient) {
+            abort(404, 'Patient not found');
+        }
 
         $view = auth()->user()->role === 'midwife'
             ? 'midwife.patients.show'
@@ -288,29 +303,14 @@ class PatientController extends BaseController
             abort(403, 'Unauthorized access');
         }
 
-        // Load patient with all related data
-        $patient = Patient::with([
-            'prenatalRecords' => function($query) {
-                $query->orderBy('created_at', 'desc');
-            },
-            'prenatalCheckups' => function($query) {
-                $query->orderBy('checkup_date', 'desc');
-            },
-            'childRecords' => function($query) {
-                $query->orderBy('birthdate', 'desc');
-            },
-            'childRecords.immunizations' => function($query) {
-                $query->with('vaccine')->orderBy('schedule_date', 'desc');
-            },
-            'activePrenatalRecord',
-            'latestCheckup'
-        ])->findOrFail($id);
+        // Load patient with all related data using repository
+        $patient = $this->patientRepository->getFullProfile($id);
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.patients.profile'
-            : 'bhw.patients.profile';
+        if (!$patient) {
+            abort(404, 'Patient not found');
+        }
 
-        return view($view, compact('patient'));
+        return view($this->roleView('patients.profile'), compact('patient'));
     }
 
     // Print patient profile with A4 layout
@@ -320,40 +320,29 @@ class PatientController extends BaseController
             abort(403, 'Unauthorized access');
         }
 
-        // Load patient with all related data (same as profile method)
-        $patient = Patient::with([
-            'prenatalRecords' => function($query) {
-                $query->orderBy('created_at', 'asc');
-            },
-            'prenatalCheckups' => function($query) {
-                $query->orderBy('checkup_date', 'asc');
-            },
-            'childRecords' => function($query) {
-                $query->orderBy('birthdate', 'asc');
-            },
-            'childRecords.immunizations' => function($query) {
-                $query->with('vaccine')->orderBy('schedule_date', 'asc');
-            },
-            'activePrenatalRecord',
-            'latestCheckup'
-        ])->findOrFail($id);
+        // Load patient with all related data for printing using repository
+        $patient = $this->patientRepository->getFullProfileForPrint($id);
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.patients.print'
-            : 'bhw.patients.print';
+        if (!$patient) {
+            abort(404, 'Patient not found');
+        }
 
-        return view($view, compact('patient'));
+        return view($this->roleView('patients.print'), compact('patient'));
     }
 
     // Show form to edit patient
     public function edit($id)
     {
-        $patient = Patient::findOrFail($id);
-        
-        $view = auth()->user()->role === 'midwife' 
-            ? 'midwife.patients.edit' 
+        $patient = $this->patientRepository->find($id);
+
+        if (!$patient) {
+            abort(404, 'Patient not found');
+        }
+
+        $view = auth()->user()->role === 'midwife'
+            ? 'midwife.patients.edit'
             : 'bhw.patients.edit';
-            
+
         return view($view, compact('patient'));
     }
 
@@ -361,7 +350,11 @@ class PatientController extends BaseController
     public function update(Request $request, $id)
     {
         try {
-            $patient = Patient::findOrFail($id);
+            $patient = $this->patientRepository->find($id);
+
+            if (!$patient) {
+                abort(404, 'Patient not found');
+            }
 
             // Define comprehensive validation rules (same as store)
             $validator = Validator::make($request->all(), [
@@ -459,14 +452,15 @@ class PatientController extends BaseController
 
             // Additional business logic validations
             $validatedData = $validator->validated();
-            
+
             // Check for duplicate patient (excluding current patient)
-            $existingPatient = Patient::where('first_name', 'LIKE', $validatedData['first_name'])
-                ->where('last_name', 'LIKE', $validatedData['last_name'])
-                ->where('age', $validatedData['age'])
-                ->where('id', '!=', $patient->id)
-                ->first();
-                
+            $existingPatient = $this->patientRepository->findDuplicateExcept(
+                $validatedData['first_name'],
+                $validatedData['last_name'],
+                $validatedData['age'],
+                $patient->id
+            );
+
             if ($existingPatient) {
                 if ($request->ajax()) {
                     return response()->json([
@@ -493,8 +487,11 @@ class PatientController extends BaseController
             // Combine first_name and last_name to create name field
             $validatedData['name'] = $validatedData['first_name'] . ' ' . $validatedData['last_name'];
 
-            // Update the patient record
-            $patient->update($validatedData);
+            // Update the patient record using repository
+            $this->patientRepository->update($patient->id, $validatedData);
+
+            // Reload patient to get updated data
+            $patient = $this->patientRepository->find($patient->id);
 
             // Success response
             if ($request->ajax()) {
@@ -539,19 +536,23 @@ class PatientController extends BaseController
     public function destroy($id)
     {
         try {
-            $patient = Patient::with('prenatalRecords')->findOrFail($id);
+            $patient = $this->patientRepository->find($id);
 
-            if ($patient->prenatalRecords()->count() > 0) {
-                $redirectRoute = Auth::user()->role === 'midwife' 
-                    ? 'midwife.patients.index' 
+            if (!$patient) {
+                abort(404, 'Patient not found');
+            }
+
+            if ($this->patientRepository->hasPrenatalRecords($id)) {
+                $redirectRoute = Auth::user()->role === 'midwife'
+                    ? 'midwife.patients.index'
                     : 'bhw.patients.index';
-                    
+
                 return redirect()->route($redirectRoute)
                     ->with('error', 'Cannot delete patient with existing prenatal records.');
             }
 
             $patientName = $patient->name;
-            $patient->delete();
+            $this->patientRepository->delete($id);
 
             $redirectRoute = Auth::user()->role === 'midwife' 
                 ? 'midwife.patients.index' 
@@ -572,47 +573,32 @@ class PatientController extends BaseController
     }
 
     /**
- * Search patients for AJAX requests
- * Used by prenatal record creation and checkup forms
- */
-public function search(Request $request)
-{
-    try {
-        $query = Patient::query();
+     * Search patients for AJAX requests
+     * Used by prenatal record creation and checkup forms
+     */
+    public function search(Request $request)
+    {
+        try {
+            // Build filters array
+            $filters = [];
+            if ($request->has('without_prenatal') && $request->without_prenatal == 'true') {
+                $filters['without_prenatal'] = true;
+            }
 
-        // Filter patients without active prenatal records if requested
-        if ($request->has('without_prenatal') && $request->without_prenatal == 'true') {
-            $query->whereDoesntHave('prenatalRecords', function($q) {
-                $q->where('is_active', 1)
-                  ->where('status', '!=', 'completed');
-            });
+            // Get search term
+            $searchTerm = $request->has('q') ? $request->q : null;
+
+            // Use repository to search with filters
+            $patients = $this->patientRepository->searchWithFilters($searchTerm, $filters, 50);
+
+            // Use PatientSearchResource to return initials for privacy
+            return PatientSearchResource::collection($patients);
+
+        } catch (\Exception $e) {
+            \Log::error('Error in patient search: ' . $e->getMessage());
+            return response()->json([], 500);
         }
-
-        // If there's a search term, filter by it
-        if ($request->has('q') && !empty($request->q)) {
-            $searchTerm = $request->q;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('first_name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('formatted_patient_id', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('contact', 'LIKE', "%{$searchTerm}%");
-            });
-        }
-
-        // Get patients ordered by most recent first
-        $patients = $query->orderBy('created_at', 'desc')
-                         ->limit(50)
-                         ->get();
-
-        // Use PatientSearchResource to return initials for privacy
-        return PatientSearchResource::collection($patients);
-
-    } catch (\Exception $e) {
-        \Log::error('Error in patient search: ' . $e->getMessage());
-        return response()->json([], 500);
     }
-}
     /**
      * Format phone number to consistent format
      */
