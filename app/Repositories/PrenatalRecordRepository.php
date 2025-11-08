@@ -285,6 +285,47 @@ class PrenatalRecordRepository implements PrenatalRecordRepositoryInterface
     }
 
     /**
+     * Search and filter prenatal records with pagination
+     *
+     * @param string|null $searchTerm
+     * @param string|null $status
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function searchAndFilter(?string $searchTerm, ?string $status, int $perPage = 20): LengthAwarePaginator
+    {
+        $query = $this->model->with(['patient', 'latestCheckup'])
+            ->orderBy('created_at', 'desc');
+
+        // Apply search filter if provided
+        if (!empty($searchTerm)) {
+            $query->whereHas('patient', function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('formatted_patient_id', 'LIKE', "%{$searchTerm}%");
+            });
+        }
+
+        // Apply status filter if provided
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Find prenatal record with specified relationships
+     *
+     * @param int $id
+     * @param array $relations
+     * @return PrenatalRecord|null
+     */
+    public function findWithRelations(int $id, array $relations): ?PrenatalRecord
+    {
+        return $this->model->with($relations)->find($id);
+    }
+
+    /**
      * Clear prenatal record related caches
      *
      * @return void

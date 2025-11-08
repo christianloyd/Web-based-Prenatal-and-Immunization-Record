@@ -137,4 +137,23 @@ interface PrenatalRecordRepositoryInterface
      * @return LengthAwarePaginator
      */
     public function search(string $term, int $perPage = 20): LengthAwarePaginator;
+
+    /**
+     * Search and filter prenatal records with pagination
+     *
+     * @param string|null $searchTerm
+     * @param string|null $status
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function searchAndFilter(?string $searchTerm, ?string $status, int $perPage = 20): LengthAwarePaginator;
+
+    /**
+     * Find prenatal record with specified relationships
+     *
+     * @param int $id
+     * @param array $relations
+     * @return PrenatalRecord|null
+     */
+    public function findWithRelations(int $id, array $relations): ?PrenatalRecord;
 }
