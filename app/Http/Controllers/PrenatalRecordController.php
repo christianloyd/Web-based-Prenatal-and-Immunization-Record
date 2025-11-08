@@ -54,12 +54,8 @@ class PrenatalRecordController extends BaseController
         $gravida_options = [1 => 'G1', 2 => 'G2', 3 => 'G3', 4 => 'G4', 5 => 'G5+'];
         $para_options = [0 => 'P0', 1 => 'P1', 2 => 'P2', 3 => 'P3', 4 => 'P4+'];
 
-        // Return appropriate view based on user role
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.index'
-            : 'bhw.prenatalrecord.index';
-
-        return view($view, compact('prenatalRecords', 'patients', 'gravida_options', 'para_options'));
+        // Use shared view for both roles
+        return view($this->roleView('prenatalrecord.index'), compact('prenatalRecords', 'patients', 'gravida_options', 'para_options'));
     }
 
     // Show form to create new prenatal record
@@ -71,11 +67,7 @@ class PrenatalRecordController extends BaseController
         // Get all patients for the dropdown using repository
         $patients = $this->patientRepository->all();
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.create'
-            : 'bhw.prenatalrecord.create';
-
-        return view($view, compact('gravida_options', 'para_options', 'patients'));
+        return view($this->roleView('prenatalrecord.create'), compact('gravida_options', 'para_options', 'patients'));
     }
 
     // Store new prenatal record
@@ -115,11 +107,7 @@ class PrenatalRecordController extends BaseController
             abort(404, 'Prenatal record not found');
         }
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.show'
-            : 'bhw.prenatalrecord.show';
-
-        return view($view, compact('prenatalRecord'));
+        return view($this->roleView('prenatalrecord.show'), compact('prenatalRecord'));
     }
 
     // Show form to edit prenatal record
@@ -137,11 +125,7 @@ class PrenatalRecordController extends BaseController
         // Get all patients for the dropdown (in case they want to reassign) using repository
         $patients = $this->patientRepository->all();
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.prenatalrecord.edit'
-            : 'bhw.prenatalrecord.edit';
-
-        return view($view, compact('prenatal', 'gravida_options', 'para_options', 'patients'));
+        return view($this->roleView('prenatalrecord.edit'), compact('prenatal', 'gravida_options', 'para_options', 'patients'));
     }
 
     // Update prenatal record

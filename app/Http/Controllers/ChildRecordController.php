@@ -13,7 +13,7 @@ use App\Services\ChildRecordService;
 use App\Http\Requests\StoreChildRecordRequest;
 use App\Http\Requests\UpdateChildRecordRequest;
 
-class ChildRecordController extends Controller
+class ChildRecordController extends BaseController
 {
     protected $childRecordService;
 
@@ -61,9 +61,7 @@ class ChildRecordController extends Controller
             $q->where('status', 'completed');
         })->get();
 
-        $viewPath = $user->role === 'bhw' ? 'bhw.childrecord.index' : 'midwife.childrecord.index';
-
-        return view($viewPath, compact('childRecords', 'mothers'));
+        return view($this->roleView('childrecord.index'), compact('childRecords', 'mothers'));
     }
 
     /**
@@ -106,9 +104,7 @@ class ChildRecordController extends Controller
         $childRecords = $query->paginate(10)->appends($request->query());
 
         // Return HTML for the table content
-        $viewPath = $user->role === 'bhw' ? 'bhw.childrecord.table' : 'midwife.childrecord.table';
-
-        $html = view($viewPath, compact('childRecords'))->render();
+        $html = view($this->roleView('childrecord.table'), compact('childRecords'))->render();
 
         return response()->json([
             'success' => true,
@@ -132,9 +128,7 @@ class ChildRecordController extends Controller
             $q->where('status', 'completed');
         })->get();
 
-        $viewPath = $user->role === 'bhw' ? 'bhw.childrecord.create' : 'midwife.childrecord.create';
-
-        return view($viewPath, compact('mothers'));
+        return view($this->roleView('childrecord.create'), compact('mothers'));
     }
 
     /**
@@ -222,9 +216,7 @@ class ChildRecordController extends Controller
         }
 
         // For regular requests, return the view
-        $viewPath = $user->role === 'bhw' ? 'bhw.childrecord.show' : 'midwife.childrecord.show';
-
-        return view($viewPath, [
+        return view($this->roleView('childrecord.show'), [
             'childRecord' => $childrecord  // Keep original variable name for views
         ]);
     }
