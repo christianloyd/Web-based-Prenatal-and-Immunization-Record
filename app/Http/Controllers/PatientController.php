@@ -310,11 +310,7 @@ class PatientController extends BaseController
             abort(404, 'Patient not found');
         }
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.patients.profile'
-            : 'bhw.patients.profile';
-
-        return view($view, compact('patient'));
+        return view($this->roleView('patients.profile'), compact('patient'));
     }
 
     // Print patient profile with A4 layout
@@ -331,11 +327,7 @@ class PatientController extends BaseController
             abort(404, 'Patient not found');
         }
 
-        $view = auth()->user()->role === 'midwife'
-            ? 'midwife.patients.print'
-            : 'bhw.patients.print';
-
-        return view($view, compact('patient'));
+        return view($this->roleView('patients.print'), compact('patient'));
     }
 
     // Show form to edit patient
