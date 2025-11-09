@@ -162,9 +162,5 @@
 
 @push('scripts')
 {{-- Unified Patients Module - Works for both BHW and Midwife --}}
-<script type="module">
-    import { initializePatientsPage } from '@/shared/pages/patients';
-    // Module auto-initializes on DOMContentLoaded
-    // Exposes backward-compatible functions: openPatientModal(), closePatientModal(), etc.
-</script>
+@vite(['resources/js/pages/patients.js'])
 @endpush

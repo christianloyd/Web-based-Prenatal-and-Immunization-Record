@@ -19,6 +19,9 @@ export default defineConfig({
                 'resources/js/midwife/index.js',
                 'resources/js/bhw/index.js',
                 'resources/js/admin/index.js',
+
+                // Page-specific entries
+                'resources/js/pages/patients.js',
             ],
             refresh: true,
         }),

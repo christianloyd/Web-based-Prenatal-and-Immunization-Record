@@ -34,22 +34,32 @@ let state = {
 export function initializePatientsPage() {
     console.log('[Patients] Initializing...');
 
-    // Get current user routes
-    state.routes = getCurrentRoutes();
+    try {
+        // Get current user routes
+        state.routes = getCurrentRoutes();
+        console.log('[Patients] Routes loaded:', state.routes);
 
-    // Initialize modals
-    initializeModals();
+        // Initialize modals
+        initializeModals();
+        console.log('[Patients] Modals initialized');
 
-    // Initialize forms
-    initializeForms();
+        // Initialize forms
+        initializeForms();
+        console.log('[Patients] Forms initialized');
 
-    // Initialize table row actions
-    initializeTableActions();
+        // Initialize table row actions
+        initializeTableActions();
+        console.log('[Patients] Table actions initialized');
 
-    // Initialize search form
-    initializeSearchForm();
+        // Initialize search form
+        initializeSearchForm();
+        console.log('[Patients] Search form initialized');
 
-    console.log('[Patients] Initialization complete');
+        console.log('[Patients] Initialization complete');
+    } catch (error) {
+        console.error('[Patients] Initialization failed:', error);
+        throw error;
+    }
 }
 
 /**
@@ -57,6 +67,8 @@ export function initializePatientsPage() {
  * @private
  */
 function initializeModals() {
+    console.log('[Patients] Initializing modals...');
+
     state.modals = new ModalManager();
 
     // Register Add Patient modal
@@ -81,12 +93,23 @@ function initializeModals() {
     });
 
     // Expose global functions for backward compatibility with Blade templates
+    console.log('[Patients] Exposing global modal functions...');
     window.openPatientModal = () => state.modals.open('add');
     window.closePatientModal = () => state.modals.close('add');
     window.openViewPatientModal = (patient) => openViewPatient(patient);
     window.closeViewPatientModal = () => state.modals.close('view');
     window.openEditPatientModal = (patient) => openEditPatient(patient);
     window.closeEditPatientModal = () => state.modals.close('edit');
+
+    // Verify functions are exposed
+    console.log('[Patients] Global functions exposed:', {
+        openPatientModal: typeof window.openPatientModal,
+        closePatientModal: typeof window.closePatientModal,
+        openViewPatientModal: typeof window.openViewPatientModal,
+        closeViewPatientModal: typeof window.closeViewPatientModal,
+        openEditPatientModal: typeof window.openEditPatientModal,
+        closeEditPatientModal: typeof window.closeEditPatientModal
+    });
 }
 
 /**
@@ -103,7 +126,10 @@ function initializeForms() {
             validation: {
                 first_name: { required: true, minLength: 2 },
                 last_name: { required: true, minLength: 2 },
+                age: { required: true, min: 15, max: 50 },
+                occupation: { required: true },
                 contact: { required: true, phone: true },
+                emergency_contact: { required: true, phone: true },
                 address: { required: true }
             },
             successMessage: 'Patient added successfully!',
@@ -121,7 +147,10 @@ function initializeForms() {
             validation: {
                 first_name: { required: true, minLength: 2 },
                 last_name: { required: true, minLength: 2 },
+                age: { required: true, min: 15, max: 50 },
+                occupation: { required: true },
                 contact: { required: true, phone: true },
+                emergency_contact: { required: true, phone: true },
                 address: { required: true }
             },
             successMessage: 'Patient updated successfully!',
@@ -269,16 +298,30 @@ function openEditPatient(patient) {
         return;
     }
 
+    console.log('[Patients] Opening edit modal with data:', patient);
+
     // Store current patient data
     state.currentPatientData = patient;
 
     // Populate edit form
     const editForm = qs('#edit-patient-modal form');
     if (editForm && state.forms.edit) {
+        // Handle name splitting if first_name/last_name not provided
+        let firstName = patient.first_name || '';
+        let lastName = patient.last_name || '';
+
+        // If name exists but not first_name/last_name, split it
+        if (!firstName && !lastName && patient.name) {
+            const nameParts = patient.name.trim().split(' ');
+            firstName = nameParts[0] || '';
+            lastName = nameParts.slice(1).join(' ') || '';
+        }
+
         state.forms.edit.setData({
-            first_name: patient.first_name || '',
-            last_name: patient.last_name || '',
+            first_name: firstName,
+            last_name: lastName,
             middle_name: patient.middle_name || '',
+            age: patient.age || '',
             birthdate: patient.birthdate || '',
             contact: patient.contact || '',
             emergency_contact: patient.emergency_contact || '',
