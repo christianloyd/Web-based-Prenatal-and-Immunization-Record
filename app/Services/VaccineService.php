@@ -182,6 +182,20 @@ class VaccineService
     }
 
     /**
+     * Remove stock (alias for reduceStock)
+     *
+     * @param int $vaccineId
+     * @param int $quantity
+     * @param string|null $notes
+     * @return bool
+     * @throws \Exception
+     */
+    public function removeStock(int $vaccineId, int $quantity, ?string $notes = null): bool
+    {
+        return $this->reduceStock($vaccineId, $quantity, $notes);
+    }
+
+    /**
      * Get vaccines that are expiring soon
      *
      * @param int $days
@@ -224,6 +238,28 @@ class VaccineService
             'expiring_soon' => $this->getExpiringVaccines(30),
             'low_stock' => $this->getLowStockVaccines(10),
             'out_of_stock' => $this->getOutOfStockVaccines(),
+        ];
+    }
+
+    /**
+     * Get inventory statistics
+     *
+     * @return array
+     */
+    public function getInventoryStats(): array
+    {
+        $total = $this->vaccineRepository->all()->count();
+        $inStock = $this->vaccineRepository->all()->filter(function ($vaccine) {
+            return $vaccine->current_stock > ($vaccine->min_stock ?? 10);
+        })->count();
+        $lowStock = $this->getLowStockVaccines(10)->count();
+        $outOfStock = $this->getOutOfStockVaccines()->count();
+
+        return [
+            'total' => $total,
+            'in_stock' => $inStock,
+            'low_stock' => $lowStock,
+            'out_of_stock' => $outOfStock,
         ];
     }
 

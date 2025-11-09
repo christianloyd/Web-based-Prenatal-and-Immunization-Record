@@ -26,11 +26,12 @@ class VaccineRepository implements VaccineRepositoryInterface
     /**
      * Get all vaccines
      *
+     * @param array $columns
      * @return Collection
      */
-    public function all(): Collection
+    public function all(array $columns = ['*']): Collection
     {
-        return $this->model->all();
+        return $this->model->select($columns)->get();
     }
 
     /**
@@ -226,5 +227,65 @@ class VaccineRepository implements VaccineRepositoryInterface
         return $this->model->where('disease_target', 'LIKE', "%{$disease}%")
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * Get paginated vaccines with filters
+     *
+     * @param array $filters
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function getAllPaginated(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        $query = $this->model->query();
+
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('vaccine_code', 'LIKE', "%{$search}%")
+                    ->orWhere('disease_target', 'LIKE', "%{$search}%")
+                    ->orWhere('category', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Category filter
+        if (!empty($filters['category'])) {
+            $query->where('category', $filters['category']);
+        }
+
+        // Stock status filter
+        if (!empty($filters['stock_status'])) {
+            switch ($filters['stock_status']) {
+                case 'in_stock':
+                    $query->whereRaw('current_stock > min_stock');
+                    break;
+                case 'low_stock':
+                    $query->where('current_stock', '>', 0)
+                        ->where('current_stock', '<=', 10);
+                    break;
+                case 'out_of_stock':
+                    $query->where('current_stock', 0);
+                    break;
+            }
+        }
+
+        return $query->orderBy('name')->paginate($perPage);
+    }
+
+    /**
+     * Get distinct categories
+     *
+     * @return Collection
+     */
+    public function getCategories(): Collection
+    {
+        return $this->model->distinct('category')
+            ->pluck('category')
+            ->filter() // Remove null values
+            ->sort()
+            ->values();
     }
 }
