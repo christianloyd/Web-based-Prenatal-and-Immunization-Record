@@ -4,70 +4,80 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\UserService;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Utils\ResponseHelper;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    protected $userRepository;
+    protected $userService;
+
+    /**
+     * Constructor - Inject User Repository and Service
+     */
+    public function __construct(UserRepositoryInterface $userRepository, UserService $userService)
+    {
+        $this->userRepository = $userRepository;
+        $this->userService = $userService;
+    }
+
+    /**
+     * Check if user is authorized (midwife only)
+     */
+    private function checkAuthorization()
+    {
+        if (!Auth::check()) {
+            abort(401, 'Authentication required');
+        }
+
+        if (Auth::user()->role !== 'midwife') {
+            abort(403, 'Unauthorized access. Only Midwives can manage users.');
+        }
+    }
+
     /**
      * Display a listing of users
      */
     public function index(Request $request)
     {
-        // Check authorization first
-        if (!Auth::check()) {
-            abort(401, 'Authentication required');
-        }
-
-        $user = Auth::user();
-        
-        // Only Midwives can access user management
-        if ($user->role !== 'midwife') {
-            abort(403, 'Unauthorized access. Only Midwives can manage users.');
-        }
+        $this->checkAuthorization();
 
         try {
-            $query = User::query();
-
-            // Apply search filter
+            // Build filters array
+            $filters = [];
             if ($request->filled('search')) {
-                $search = $request->get('search');
-                $query->search($search);
+                $filters['search'] = $request->search;
             }
-
-            // Apply role filter
             if ($request->filled('role')) {
-                $query->byRole($request->get('role'));
+                $filters['role'] = $request->role;
             }
-
-            // Apply gender filter
             if ($request->filled('gender')) {
-                $query->byGender($request->get('gender'));
+                $filters['gender'] = $request->gender;
             }
-
-            // Apply status filter
             if ($request->filled('status')) {
-                $query->byStatus($request->get('status'));
+                $filters['status'] = $request->status;
             }
 
-            // Apply sorting
-            $sortField = $request->get('sort', 'name');
+            // Build sorting params
+            $sortField = in_array($request->get('sort', 'name'), ['name', 'username', 'role', 'created_at', 'is_active'])
+                ? $request->get('sort', 'name')
+                : 'name';
             $sortDirection = $request->get('direction', 'asc');
 
-            if (in_array($sortField, ['name', 'username', 'role', 'created_at', 'is_active'])) {
-                $query->orderBy($sortField, $sortDirection);
-            } else {
-                $query->orderBy('name', 'asc');
-            }
-
-            // Paginate results
-            $users = $query->paginate(15)->withQueryString();
+            // Use repository to get paginated users
+            $users = $this->userRepository->getAllPaginated($filters, $sortField, $sortDirection, 15);
 
             return view('midwife.user.index', compact('users'));
 
         } catch (\Exception $e) {
+            Log::error('Error loading users', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Error loading users: ' . $e->getMessage());
         }
     }
@@ -77,101 +87,44 @@ class UserController extends Controller
      */
     public function create()
     {
-        // Check authorization first
-        if (!Auth::check()) {
-            abort(401, 'Authentication required');
-        }
-
-        $user = Auth::user();
-        
-        // Only Midwives can access user creation
-        if ($user->role !== 'midwife') {
-            abort(403, 'Forbidden. Only Midwives can create users.');
-        }
-        
+        $this->checkAuthorization();
         return view('midwife.user.create');
     }
-    
+
     /**
      * Store a newly created user
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        // Check authorization
-        if (!Auth::check()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Authentication required.'
-                ], 401);
+        return DB::transaction(function () use ($request) {
+            try {
+                // Validation is handled by StoreUserRequest
+                // Create user using service (handles password hashing)
+                $newUser = $this->userService->createUser($request->validated());
+
+                if ($request->expectsJson()) {
+                    return ResponseHelper::success($newUser, 'User created successfully!', 201);
+                }
+
+                return redirect()->route('midwife.user.index')
+                    ->with('success', 'User "' . $newUser->name . '" has been successfully created.');
+
+            } catch (\Exception $e) {
+                Log::error('Error creating user', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'input' => $request->validated()
+                ]);
+
+                if ($request->expectsJson()) {
+                    return ResponseHelper::error($e->getMessage(), [], 500);
+                }
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Error creating user: ' . $e->getMessage());
             }
-            abort(401, 'Authentication required');
-        }
-
-        $user = Auth::user();
-        
-        // Only Midwives can create users
-        if ($user->role !== 'midwife') {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access.'
-                ], 403);
-            }
-            abort(403, 'Unauthorized access');
-        }
-
-        try {
-            // Validate the request
-            $validated = $request->validate(
-                User::validationRules(),
-                User::validationMessages()
-            );
-
-            // Hash the password
-            $validated['password'] = Hash::make($validated['password']);
-
-            // Create the user
-            $newUser = User::create($validated);
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'User created successfully!',
-                    'data' => $newUser
-                ], 201);
-            }
-
-            return redirect()->route('midwife.user.index')
-                           ->with('success', 'User "' . $newUser->name . '" has been successfully created.');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors' => $e->errors()
-                ], 422);
-            }
-            
-            return redirect()->back()
-                           ->withErrors($e->validator)
-                           ->withInput()
-                           ->with('error', 'Please correct the validation errors.');
-        } catch (\Exception $e) {
-            \Log::error('Error creating user: ' . $e->getMessage());
-            
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error creating user. Please try again.'
-                ], 500);
-            }
-
-            return redirect()->back()
-                           ->withInput()
-                           ->with('error', 'Error creating user: ' . $e->getMessage());
-        }
+        });
     }
 
     /**
