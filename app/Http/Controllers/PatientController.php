@@ -6,12 +6,14 @@ namespace App\Http\Controllers;
 use App\Models\Patient;
 use App\Models\User;
 use App\Repositories\Contracts\PatientRepositoryInterface;
+use App\Services\PatientService;
+use App\Http\Requests\StorePatientRequest;
+use App\Http\Requests\UpdatePatientRequest;
+use App\Utils\ResponseHelper;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Notifications\HealthcareNotification;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use App\Traits\NotifiesHealthcareWorkers;
 use App\Http\Resources\PatientSearchResource;
 
@@ -20,15 +22,18 @@ class PatientController extends BaseController
     use NotifiesHealthcareWorkers;
 
     protected $patientRepository;
+    protected $patientService;
 
     /**
-     * Constructor - Inject Patient Repository
+     * Constructor - Inject Patient Repository and Service
      *
      * @param PatientRepositoryInterface $patientRepository
+     * @param PatientService $patientService
      */
-    public function __construct(PatientRepositoryInterface $patientRepository)
+    public function __construct(PatientRepositoryInterface $patientRepository, PatientService $patientService)
     {
         $this->patientRepository = $patientRepository;
+        $this->patientService = $patientService;
     }
 
     /**
@@ -66,218 +71,43 @@ class PatientController extends BaseController
     }
 
     // Store new patient with comprehensive validation
-    public function store(Request $request)
+    public function store(StorePatientRequest $request)
     {
-        try {
-            // Define comprehensive validation rules
-            $validator = Validator::make($request->all(), [
-                'first_name' => [
-                    'required',
-                    'string',
-                    'min:2',
-                    'max:50',
-                    'regex:/^[a-zA-Z\s\.\-\']+$/'
-                ],
-                'last_name' => [
-                    'required',
-                    'string',
-                    'min:2',
-                    'max:50',
-                    'regex:/^[a-zA-Z\s\.\-\']+$/'
-                ],
-                'age' => [
-                    'required',
-                    'integer',
-                    'min:15',
-                    'max:50'
-                ],
-                'occupation' => [
-                    'required',
-                    'string',
-                    'max:50',
-                    'regex:/^[a-zA-Z\s\.\-\/]+$/'
-                ],
-                'contact' => [
-                    'required',
-                    'string',
-                    'max:13',
-                    'regex:/^(\+63|0)[0-9]{10}$/'
-                ],
-                'emergency_contact' => [
-                    'required',
-                    'string',
-                    'max:13',
-                    'regex:/^(\+63|0)[0-9]{10}$/'
-                ],
-                'address' => [
-                    'required',
-                    'string',
-                    'max:255'
-                ]
-            ], [
-                // Custom error messages
-                'first_name.required' => 'First name is required.',
-                'first_name.min' => 'First name must be at least 2 characters.',
-                'first_name.max' => 'First name cannot exceed 50 characters.',
-                'first_name.regex' => 'First name should only contain letters, spaces, dots, hyphens, and apostrophes.',
+        return DB::transaction(function () use ($request) {
+            try {
+                // Validation is handled automatically by StorePatientRequest
+                // Create patient using service (handles duplicate check, phone formatting, notifications)
+                $patient = $this->patientService->createPatient($request->validated());
 
-                'last_name.required' => 'Last name is required.',
-                'last_name.min' => 'Last name must be at least 2 characters.',
-                'last_name.max' => 'Last name cannot exceed 50 characters.',
-                'last_name.regex' => 'Last name should only contain letters, spaces, dots, hyphens, and apostrophes.',
-                
-                'age.required' => 'Age is required.',
-                'age.integer' => 'Age must be a valid number.',
-                'age.min' => 'Age must be at least 15 years.',
-                'age.max' => 'Age cannot exceed 50 years.',
-                
-                'occupation.required' => 'Occupation is required.',
-                'occupation.max' => 'Occupation cannot exceed 50 characters.',
-                'occupation.regex' => 'Occupation should only contain letters, spaces, dots, hyphens, and forward slashes.',
-
-                'contact.required' => 'Primary contact is required.',
-                'contact.max' => 'Contact number is too long.',
-                'contact.regex' => 'Please enter a valid Philippine phone number (e.g., +639123456789 or 09123456789).',
-
-                'emergency_contact.required' => 'Emergency contact is required.',
-                'emergency_contact.max' => 'Emergency contact number is too long.',
-                'emergency_contact.regex' => 'Please enter a valid Philippine phone number for emergency contact (e.g., +639123456789 or 09123456789).',
-
-                'address.required' => 'Address is required.',
-                'address.max' => 'Address cannot exceed 255 characters.'
-            ]);
-
-            // Check if validation fails
-            if ($validator->fails()) {
+                // Success response
                 if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Please correct the validation errors.',
-                        'errors' => $validator->errors()
-                    ], 422);
+                    return ResponseHelper::success($patient, 'Patient "' . $patient->name . '" has been registered successfully!');
                 }
 
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error', 'Please correct the validation errors and try again.');
-            }
+                $redirectRoute = Auth::user()->role === 'midwife'
+                    ? 'midwife.patients.index'
+                    : 'bhw.patients.index';
 
-            // Additional business logic validations
-            $validatedData = $validator->validated();
+                return redirect()->route($redirectRoute)
+                    ->with('success', 'Patient "' . $patient->name . '" has been registered successfully!');
 
-            // Check for duplicate patient (same first name, last name and age combination)
-            $existingPatient = $this->patientRepository->findDuplicate(
-                $validatedData['first_name'],
-                $validatedData['last_name'],
-                $validatedData['age']
-            );
-
-            if ($existingPatient) {
-                Log::info('Duplicate patient detected', [
-                    'existing_id' => $existingPatient->id,
-                    'existing_name' => $existingPatient->name,
-                    'attempted_name' => $validatedData['first_name'] . ' ' . $validatedData['last_name']
+            } catch (\Exception $e) {
+                // Log the error
+                Log::error('Patient registration failed', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'input' => $request->validated()
                 ]);
 
                 if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'A patient with the same name and age already exists.',
-                        'errors' => ['first_name' => ['A patient with the same name and age already exists.']]
-                    ], 422);
+                    return ResponseHelper::error($e->getMessage(), [], 500);
                 }
 
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'A patient with the same name and age already exists.');
+                    ->with('error', $e->getMessage());
             }
-
-            // Format phone numbers if provided
-            if (!empty($validatedData['contact'])) {
-                $validatedData['contact'] = $this->formatPhoneNumber($validatedData['contact']);
-            }
-            
-            if (!empty($validatedData['emergency_contact'])) {
-                $validatedData['emergency_contact'] = $this->formatPhoneNumber($validatedData['emergency_contact']);
-            }
-
-            // Combine first_name and last_name to create name field
-            $validatedData['name'] = $validatedData['first_name'] . ' ' . $validatedData['last_name'];
-
-            // Log before creating patient
-            Log::info('Creating new patient', [
-                'name' => $validatedData['first_name'] . ' ' . $validatedData['last_name'],
-                'age' => $validatedData['age']
-            ]);
-
-            // Create the patient record using repository
-            $patient = $this->patientRepository->create($validatedData);
-
-            Log::info('Patient created successfully', [
-                'patient_id' => $patient->id,
-                'patient_name' => $patient->name
-            ]);
-
-            // Send notification to all healthcare workers about new patient registration
-            // If BHW is registering, send high-priority notification to midwives
-            if (Auth::user()->role === 'bhw') {
-                $this->notifyMidwivesOfBHWAction(
-                    'New Patient Registered',
-                    "registered a new patient '{$patient->name}' in the system.",
-                    'success',
-                    route('midwife.patients.show', $patient->id),
-                    ['patient_id' => $patient->id, 'action' => 'patient_registered', 'patient_name' => $patient->name]
-                );
-            }
-
-            // Also send regular notification to all healthcare workers
-            $this->notifyHealthcareWorkers(
-                'New Patient Registered',
-                "A new patient '{$patient->name}' has been registered in the system.",
-                'success',
-                Auth::user()->role === 'midwife'
-                    ? route('midwife.patients.show', $patient->id)
-                    : route('bhw.patients.show', $patient->id),
-                ['patient_id' => $patient->id, 'action' => 'patient_registered']
-            );
-
-            // Success response
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Patient "' . $patient->name . '" has been registered successfully!',
-                    'patient' => $patient
-                ]);
-            }
-
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.patients.index' 
-                : 'bhw.patients.index';
-                
-            return redirect()->route($redirectRoute)
-                ->with('success', 'Patient "' . $patient->name . '" has been registered successfully!');
-
-        } catch (\Exception $e) {
-            // Log the error
-            Log::error('Patient registration failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'input' => $request->except(['_token'])
-            ]);
-
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'An unexpected error occurred. Please try again.',
-                    'errors' => []
-                ], 500);
-            }
-
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'An unexpected error occurred. Please try again.');
-        }
+        });
     }
 
     // Show a single patient
@@ -347,229 +177,83 @@ class PatientController extends BaseController
     }
 
     // Update patient with comprehensive validation
-    public function update(Request $request, $id)
+    public function update(UpdatePatientRequest $request, $id)
     {
-        try {
-            $patient = $this->patientRepository->find($id);
+        return DB::transaction(function () use ($request, $id) {
+            try {
+                $patient = $this->patientRepository->find($id);
 
-            if (!$patient) {
-                abort(404, 'Patient not found');
-            }
-
-            // Define comprehensive validation rules (same as store)
-            $validator = Validator::make($request->all(), [
-                'first_name' => [
-                    'required',
-                    'string',
-                    'min:2',
-                    'max:50',
-                    'regex:/^[a-zA-Z\s\.\-\']+$/'
-                ],
-                'last_name' => [
-                    'required',
-                    'string',
-                    'min:2',
-                    'max:50',
-                    'regex:/^[a-zA-Z\s\.\-\']+$/'
-                ],
-                'age' => [
-                    'required',
-                    'integer',
-                    'min:15',
-                    'max:50'
-                ],
-                'occupation' => [
-                    'required',
-                    'string',
-                    'max:50',
-                    'regex:/^[a-zA-Z\s\.\-\/]+$/'
-                ],
-                'contact' => [
-                    'required',
-                    'string',
-                    'max:13',
-                    'regex:/^(\+63|0)[0-9]{10}$/'
-                ],
-                'emergency_contact' => [
-                    'required',
-                    'string',
-                    'max:13',
-                    'regex:/^(\+63|0)[0-9]{10}$/'
-                ],
-                'address' => [
-                    'required',
-                    'string',
-                    'max:255'
-                ]
-            ], [
-                // Same custom error messages as store method
-                'first_name.required' => 'First name is required.',
-                'first_name.min' => 'First name must be at least 2 characters.',
-                'first_name.max' => 'First name cannot exceed 50 characters.',
-                'first_name.regex' => 'First name should only contain letters, spaces, dots, hyphens, and apostrophes.',
-
-                'last_name.required' => 'Last name is required.',
-                'last_name.min' => 'Last name must be at least 2 characters.',
-                'last_name.max' => 'Last name cannot exceed 50 characters.',
-                'last_name.regex' => 'Last name should only contain letters, spaces, dots, hyphens, and apostrophes.',
-                
-                'age.required' => 'Age is required.',
-                'age.integer' => 'Age must be a valid number.',
-                'age.min' => 'Age must be at least 15 years.',
-                'age.max' => 'Age cannot exceed 50 years.',
-                
-                'occupation.required' => 'Occupation is required.',
-                'occupation.max' => 'Occupation cannot exceed 50 characters.',
-                'occupation.regex' => 'Occupation should only contain letters, spaces, dots, hyphens, and forward slashes.',
-
-                'contact.required' => 'Primary contact is required.',
-                'contact.max' => 'Contact number is too long.',
-                'contact.regex' => 'Please enter a valid Philippine phone number (e.g., +639123456789 or 09123456789).',
-
-                'emergency_contact.required' => 'Emergency contact is required.',
-                'emergency_contact.max' => 'Emergency contact number is too long.',
-                'emergency_contact.regex' => 'Please enter a valid Philippine phone number for emergency contact (e.g., +639123456789 or 09123456789).',
-
-                'address.required' => 'Address is required.',
-                'address.max' => 'Address cannot exceed 255 characters.'
-            ]);
-
-            // Check if validation fails
-            if ($validator->fails()) {
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Please correct the validation errors.',
-                        'errors' => $validator->errors()
-                    ], 422);
+                if (!$patient) {
+                    abort(404, 'Patient not found');
                 }
 
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error', 'Please correct the validation errors and try again.');
-            }
+                // Validation is handled automatically by UpdatePatientRequest
+                // Update patient using service (handles duplicate check, phone formatting)
+                $patient = $this->patientService->updatePatient($patient, $request->validated());
 
-            // Additional business logic validations
-            $validatedData = $validator->validated();
-
-            // Check for duplicate patient (excluding current patient)
-            $existingPatient = $this->patientRepository->findDuplicateExcept(
-                $validatedData['first_name'],
-                $validatedData['last_name'],
-                $validatedData['age'],
-                $patient->id
-            );
-
-            if ($existingPatient) {
+                // Success response
                 if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Another patient with the same name and age already exists.',
-                        'errors' => ['first_name' => ['Another patient with the same name and age already exists.']]
-                    ], 422);
+                    return ResponseHelper::success($patient, 'Patient "' . $patient->name . '" has been updated successfully!');
                 }
 
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Another patient with the same name and age already exists.');
-            }
-
-            // Format phone numbers if provided
-            if (!empty($validatedData['contact'])) {
-                $validatedData['contact'] = $this->formatPhoneNumber($validatedData['contact']);
-            }
-            
-            if (!empty($validatedData['emergency_contact'])) {
-                $validatedData['emergency_contact'] = $this->formatPhoneNumber($validatedData['emergency_contact']);
-            }
-
-            // Combine first_name and last_name to create name field
-            $validatedData['name'] = $validatedData['first_name'] . ' ' . $validatedData['last_name'];
-
-            // Update the patient record using repository
-            $this->patientRepository->update($patient->id, $validatedData);
-
-            // Reload patient to get updated data
-            $patient = $this->patientRepository->find($patient->id);
-
-            // Success response
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Patient "' . $patient->name . '" has been updated successfully!',
-                    'patient' => $patient
-                ]);
-            }
-
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.patients.index' 
-                : 'bhw.patients.index';
-                
-            return redirect()->route($redirectRoute)
-                ->with('success', 'Patient "' . $patient->name . '" has been updated successfully!');
-
-        } catch (\Exception $e) {
-            // Log the error
-            Log::error('Patient update failed', [
-                'patient_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'input' => $request->except(['_token'])
-            ]);
-
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'An unexpected error occurred. Please try again.',
-                    'errors' => []
-                ], 500);
-            }
-
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'An unexpected error occurred. Please try again.');
-        }
-    }
-
-    // Delete patient (only if no prenatal records)
-    public function destroy($id)
-    {
-        try {
-            $patient = $this->patientRepository->find($id);
-
-            if (!$patient) {
-                abort(404, 'Patient not found');
-            }
-
-            if ($this->patientRepository->hasPrenatalRecords($id)) {
                 $redirectRoute = Auth::user()->role === 'midwife'
                     ? 'midwife.patients.index'
                     : 'bhw.patients.index';
 
                 return redirect()->route($redirectRoute)
-                    ->with('error', 'Cannot delete patient with existing prenatal records.');
+                    ->with('success', 'Patient "' . $patient->name . '" has been updated successfully!');
+
+            } catch (\Exception $e) {
+                // Log the error
+                Log::error('Patient update failed', [
+                    'patient_id' => $id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'input' => $request->validated()
+                ]);
+
+                if ($request->ajax()) {
+                    return ResponseHelper::error($e->getMessage(), [], 500);
+                }
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', $e->getMessage());
             }
+        });
+    }
 
-            $patientName = $patient->name;
-            $this->patientRepository->delete($id);
+    // Delete patient (only if no prenatal records)
+    public function destroy($id)
+    {
+        return DB::transaction(function () use ($id) {
+            try {
+                $patient = $this->patientRepository->find($id);
 
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.patients.index' 
-                : 'bhw.patients.index';
-                
-            return redirect()->route($redirectRoute)
-                ->with('success', "Patient \"{$patientName}\" has been deleted successfully.");
+                if (!$patient) {
+                    abort(404, 'Patient not found');
+                }
 
-        } catch (\Exception $e) {
-            Log::error('Error deleting patient: ' . $e->getMessage());
-            $redirectRoute = Auth::user()->role === 'midwife' 
-                ? 'midwife.patients.index' 
-                : 'bhw.patients.index';
-                
-            return redirect()->route($redirectRoute)
-                ->with('error', 'Error deleting patient. Please try again.');
-        }
+                // Use service to delete (handles prenatal records check)
+                $patientName = $this->patientService->deletePatient($patient);
+
+                $redirectRoute = Auth::user()->role === 'midwife'
+                    ? 'midwife.patients.index'
+                    : 'bhw.patients.index';
+
+                return redirect()->route($redirectRoute)
+                    ->with('success', "Patient \"{$patientName}\" has been deleted successfully.");
+
+            } catch (\Exception $e) {
+                Log::error('Error deleting patient: ' . $e->getMessage());
+                $redirectRoute = Auth::user()->role === 'midwife'
+                    ? 'midwife.patients.index'
+                    : 'bhw.patients.index';
+
+                return redirect()->route($redirectRoute)
+                    ->with('error', $e->getMessage());
+            }
+        });
     }
 
     /**
@@ -599,24 +283,4 @@ class PatientController extends BaseController
             return response()->json([], 500);
         }
     }
-    /**
-     * Format phone number to consistent format
-     */
-    private function formatPhoneNumber($phone)
-    {
-        // Remove all non-digit characters
-        $digits = preg_replace('/\D/', '', $phone);
-        
-        // Convert to +63 format
-        if (substr($digits, 0, 2) === '63') {
-            return '+' . $digits;
-        } elseif (substr($digits, 0, 1) === '0') {
-            return '+63' . substr($digits, 1);
-        } elseif (strlen($digits) === 10) {
-            return '+63' . $digits;
-        }
-        
-        return $phone; // Return original if can't format
-    }
-
 }

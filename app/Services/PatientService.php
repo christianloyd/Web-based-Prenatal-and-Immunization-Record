@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\HealthcareNotification;
 use Illuminate\Support\Facades\Cache;
+use App\Utils\PhoneNumberFormatter;
 
 class PatientService
 {
@@ -23,8 +24,8 @@ class PatientService
             }
 
             // Format phone numbers
-            $data['contact'] = $this->formatPhoneNumber($data['contact']);
-            $data['emergency_contact'] = $this->formatPhoneNumber($data['emergency_contact']);
+            $data['contact'] = PhoneNumberFormatter::format($data['contact']);
+            $data['emergency_contact'] = PhoneNumberFormatter::format($data['emergency_contact']);
 
             // Combine first_name and last_name to create name field
             $data['name'] = $data['first_name'] . ' ' . $data['last_name'];
@@ -59,8 +60,8 @@ class PatientService
             }
 
             // Format phone numbers
-            $data['contact'] = $this->formatPhoneNumber($data['contact']);
-            $data['emergency_contact'] = $this->formatPhoneNumber($data['emergency_contact']);
+            $data['contact'] = PhoneNumberFormatter::format($data['contact']);
+            $data['emergency_contact'] = PhoneNumberFormatter::format($data['emergency_contact']);
 
             // Combine first_name and last_name to create name field
             $data['name'] = $data['first_name'] . ' ' . $data['last_name'];
@@ -120,30 +121,6 @@ class PatientService
         }
 
         return $query->exists();
-    }
-
-    /**
-     * Format phone number to consistent format (+63 format)
-     */
-    public function formatPhoneNumber($phone)
-    {
-        if (empty($phone)) {
-            return $phone;
-        }
-
-        // Remove all non-digit characters
-        $digits = preg_replace('/\D/', '', $phone);
-
-        // Convert to +63 format
-        if (substr($digits, 0, 2) === '63') {
-            return '+' . $digits;
-        } elseif (substr($digits, 0, 1) === '0') {
-            return '+63' . substr($digits, 1);
-        } elseif (strlen($digits) === 10) {
-            return '+63' . $digits;
-        }
-
-        return $phone; // Return original if can't format
     }
 
     /**
