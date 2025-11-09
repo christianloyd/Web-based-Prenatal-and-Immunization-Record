@@ -161,14 +161,10 @@
 @endsection
 
 @push('scripts')
-{{-- Role-based Configuration --}}
-<script>
-    window.PATIENTS_CONFIG = {
-        prenatalRecordUrl: '@roleRoute("prenatalrecord.index")'
-    };
+{{-- Unified Patients Module - Works for both BHW and Midwife --}}
+<script type="module">
+    import { initializePatientsPage } from '@/shared/pages/patients';
+    // Module auto-initializes on DOMContentLoaded
+    // Exposes backward-compatible functions: openPatientModal(), closePatientModal(), etc.
 </script>
-
-{{-- Role-based Scripts --}}
-<script src="{{ asset('js/' . auth()->user()->role . '/' . auth()->user()->role . '.js') }}"></script>
-<script src="@roleJs('patients-index.js')"></script>
 @endpush
