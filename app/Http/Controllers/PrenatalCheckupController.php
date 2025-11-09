@@ -76,7 +76,9 @@ class PrenatalCheckupController extends Controller
 
         $nextCheckups = collect();
         if ($patientIds->isNotEmpty()) {
-            $nextCheckups = PrenatalCheckup::whereIn('patient_id', $patientIds)
+            // PERFORMANCE FIX: Eager load relationships to prevent N+1 queries
+            $nextCheckups = PrenatalCheckup::with(['patient', 'prenatalRecord'])
+                ->whereIn('patient_id', $patientIds)
                 ->where('status', 'upcoming')
                 ->where('checkup_date', '>', now())
                 ->orderBy('patient_id')

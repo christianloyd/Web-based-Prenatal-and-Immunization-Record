@@ -25,6 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
+        // Force HTTPS in production (must come first)
+        $middleware->prepend(\App\Http\Middleware\ForceHttps::class);
+
         // Add security headers to all responses
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
