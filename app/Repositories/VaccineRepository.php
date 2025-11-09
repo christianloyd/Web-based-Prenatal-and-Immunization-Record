@@ -260,11 +260,11 @@ class VaccineRepository implements VaccineRepositoryInterface
         if (!empty($filters['stock_status'])) {
             switch ($filters['stock_status']) {
                 case 'in_stock':
-                    $query->whereRaw('current_stock > min_stock');
+                    $query->whereColumn('current_stock', '>', 'min_stock');
                     break;
                 case 'low_stock':
                     $query->where('current_stock', '>', 0)
-                        ->where('current_stock', '<=', 10);
+                        ->whereColumn('current_stock', '<=', 'min_stock');
                     break;
                 case 'out_of_stock':
                     $query->where('current_stock', 0);

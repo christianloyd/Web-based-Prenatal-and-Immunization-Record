@@ -150,9 +150,10 @@ class Vaccine extends Model
     {
         switch ($status) {
             case 'in-stock':
-                return $query->whereRaw('current_stock > min_stock');
+                return $query->whereColumn('current_stock', '>', 'min_stock');
             case 'low-stock':
-                return $query->whereRaw('current_stock <= min_stock AND current_stock > 0');
+                return $query->whereColumn('current_stock', '<=', 'min_stock')
+                    ->where('current_stock', '>', 0);
             case 'out-of-stock':
                 return $query->where('current_stock', 0);
             default:

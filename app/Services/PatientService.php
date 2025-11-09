@@ -14,8 +14,12 @@ class PatientService
 {
     /**
      * Create a new patient record
+     *
+     * @param array $data
+     * @return Patient
+     * @throws \Exception
      */
-    public function createPatient(array $data)
+    public function createPatient(array $data): Patient
     {
         try {
             // Check for duplicate patient
@@ -50,8 +54,13 @@ class PatientService
 
     /**
      * Update an existing patient record
+     *
+     * @param Patient $patient
+     * @param array $data
+     * @return Patient
+     * @throws \Exception
      */
-    public function updatePatient(Patient $patient, array $data)
+    public function updatePatient(Patient $patient, array $data): Patient
     {
         try {
             // Check for duplicate patient (excluding current patient)
@@ -84,8 +93,12 @@ class PatientService
 
     /**
      * Delete a patient (only if no prenatal records)
+     *
+     * @param Patient $patient
+     * @return string Patient name
+     * @throws \Exception
      */
-    public function deletePatient(Patient $patient)
+    public function deletePatient(Patient $patient): string
     {
         try {
             // Check if patient has prenatal records
@@ -109,8 +122,14 @@ class PatientService
 
     /**
      * Check if patient already exists
+     *
+     * @param string $firstName
+     * @param string $lastName
+     * @param int $age
+     * @param int|null $excludeId
+     * @return bool
      */
-    public function patientExists($firstName, $lastName, $age, $excludeId = null)
+    public function patientExists(string $firstName, string $lastName, int $age, ?int $excludeId = null): bool
     {
         $query = Patient::where('first_name', 'LIKE', $firstName)
             ->where('last_name', 'LIKE', $lastName)
