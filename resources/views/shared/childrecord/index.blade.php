@@ -81,11 +81,7 @@
     </div>
 </div>
 
-<!-- Add Modal -->
-    @include('partials.shared.childrecord.childadd')
 
-<!-- View Child Record Modal -->
-    @include('partials.shared.childrecord.childview')
 
 <!-- Edit Modal -->
     @include('partials.shared.childrecord.childedit')
