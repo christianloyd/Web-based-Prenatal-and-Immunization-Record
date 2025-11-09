@@ -132,122 +132,51 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        // Check authorization
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentication required.'
-            ], 401);
-        }
-
-        $currentUser = Auth::user();
-        
-        // Only Midwives can view user details
-        if ($currentUser->role !== 'midwife') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access.'
-            ], 403);
-        }
+        $this->checkAuthorization();
 
         try {
-            return response()->json([
-                'success' => true,
-                'user' => $user->toArray()
-            ]);
+            return ResponseHelper::success($user->toArray());
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error loading user details: ' . $e->getMessage()
-            ], 500);
+            Log::error('Error loading user details', ['error' => $e->getMessage(), 'user_id' => $user->id]);
+            return ResponseHelper::error('Error loading user details: ' . $e->getMessage(), [], 500);
         }
     }
 
     /**
      * Update the specified user
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        // Check authorization
-        if (!Auth::check()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Authentication required.'
-                ], 401);
+        return DB::transaction(function () use ($request, $user) {
+            try {
+                // Validation is handled by UpdateUserRequest
+                // Update user using service (handles password hashing)
+                $updatedUser = $this->userService->updateUser($user->id, $request->validated());
+
+                if ($request->expectsJson()) {
+                    return ResponseHelper::success($updatedUser, 'User updated successfully!');
+                }
+
+                return redirect()->route('midwife.user.index')
+                    ->with('success', 'User "' . $updatedUser->name . '" has been successfully updated.');
+
+            } catch (\Exception $e) {
+                Log::error('Error updating user', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'input' => $request->validated()
+                ]);
+
+                if ($request->expectsJson()) {
+                    return ResponseHelper::error($e->getMessage(), [], 500);
+                }
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Error updating user: ' . $e->getMessage());
             }
-            abort(401, 'Authentication required');
-        }
-
-        $currentUser = Auth::user();
-        
-        // Only Midwives can update users
-        if ($currentUser->role !== 'midwife') {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access.'
-                ], 403);
-            }
-            abort(403, 'Unauthorized access');
-        }
-
-        try {
-            // Validate the request with user-specific rules
-            $validated = $request->validate(
-                User::updateValidationRules($user->id),
-                User::validationMessages()
-            );
-
-            // Handle password update
-            if (!empty($validated['password'])) {
-                $validated['password'] = Hash::make($validated['password']);
-            } else {
-                // Remove password from validated data if empty
-                unset($validated['password']);
-            }
-
-            // Update the user
-            $user->update($validated);
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'User updated successfully!',
-                    'data' => $user->fresh()
-                ], 200);
-            }
-
-            return redirect()->route('midwife.user.index')
-                           ->with('success', 'User "' . $user->name . '" has been successfully updated.');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors' => $e->errors()
-                ], 422);
-            }
-            
-            return redirect()->back()
-                           ->withErrors($e->validator, 'edit_errors')
-                           ->withInput()
-                           ->with('error', 'Please correct the validation errors.');
-        } catch (\Exception $e) {
-            \Log::error('Error updating user: ' . $e->getMessage());
-            
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error updating user. Please try again.'
-                ], 500);
-            }
-
-            return redirect()->back()
-                           ->withInput()
-                           ->with('error', 'Error updating user: ' . $e->getMessage());
-        }
+        });
     }
 
     /**
@@ -255,171 +184,68 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // Check authorization
-        if (!Auth::check()) {
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Authentication required.'
-                ], 401);
-            }
-            abort(401, 'Authentication required');
-        }
+        $this->checkAuthorization();
 
-        $currentUser = Auth::user();
-        
-        // Only Midwives can delete users
-        if ($currentUser->role !== 'midwife') {
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access.'
-                ], 403);
-            }
-            abort(403, 'Unauthorized access');
-        }
+        return DB::transaction(function () use ($user) {
+            try {
+                // Use service to delete (handles safety checks: can't delete self, can't delete last midwife)
+                $userName = $this->userService->deleteUser($user->id);
 
-        try {
-            // Prevent deletion of the current user
-            if ($user->id === Auth::id()) {
                 if (request()->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You cannot delete your own account.'
-                    ], 422);
+                    return ResponseHelper::success(null, "User \"{$userName}\" has been deleted successfully!");
                 }
-                return redirect()->back()->with('error', 'You cannot delete your own account.');
-            }
 
-            // Prevent deletion if it's the only Midwife
-            if ($user->role === 'midwife') {
-                $midwifeCount = User::where('role', 'midwife')->count();
-                if ($midwifeCount <= 1) {
-                    if (request()->expectsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Cannot delete the last Midwife account.'
-                        ], 422);
-                    }
-                    return redirect()->back()->with('error', 'Cannot delete the last Midwife account.');
-                }
-            }
+                return redirect()->route('midwife.user.index')
+                    ->with('success', 'User "' . $userName . '" has been successfully deleted.');
 
-            $userName = $user->name;
-            $user->delete();
-
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "User \"{$userName}\" has been deleted successfully!"
+            } catch (\Exception $e) {
+                Log::error('Error deleting user', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
                 ]);
+
+                if (request()->expectsJson()) {
+                    return ResponseHelper::error($e->getMessage(), [], 422);
+                }
+
+                return redirect()->back()->with('error', $e->getMessage());
             }
-
-            return redirect()->route('midwife.user.index')
-                           ->with('success', 'User "' . $userName . '" has been successfully deleted.');
-
-        } catch (\Exception $e) {
-            \Log::error('Error deleting user: ' . $e->getMessage());
-            
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error deleting user. Please try again.'
-                ], 500);
-            }
-
-            return redirect()->back()->with('error', 'Error deleting user: ' . $e->getMessage());
-        }
+        });
     }
     
+    /**
+     * Deactivate the specified user
+     */
     public function deactivate(User $user)
     {
-        // Check authorization
-        if (!Auth::check()) {
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Authentication required.'
-                ], 401);
-            }
-            abort(401, 'Authentication required');
-        }
+        $this->checkAuthorization();
 
-        $currentUser = Auth::user();
-        
-        // Only Midwives can deactivate users
-        if ($currentUser->role !== 'midwife') {
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access.'
-                ], 403);
-            }
-            abort(403, 'Unauthorized access');
-        }
+        return DB::transaction(function () use ($user) {
+            try {
+                // Use service to toggle status (handles safety checks)
+                $updatedUser = $this->userService->toggleActiveStatus($user->id);
+                $userName = $updatedUser->name;
 
-        try {
-            // Prevent deactivation of the current user
-            if ($user->id === Auth::id()) {
                 if (request()->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You cannot deactivate your own account.'
-                    ], 422);
+                    return ResponseHelper::success($updatedUser, "User \"{$userName}\" has been deactivated successfully!");
                 }
-                return redirect()->back()->with('error', 'You cannot deactivate your own account.');
-            }
 
-            // Prevent deactivation if it's the only active Midwife
-            if ($user->role === 'midwife' && $user->is_active) {
-                $activeMidwifeCount = User::where('role', 'midwife')->where('is_active', true)->count();
-                if ($activeMidwifeCount <= 1) {
-                    if (request()->expectsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Cannot deactivate the last active Midwife account.'
-                        ], 422);
-                    }
-                    return redirect()->back()->with('error', 'Cannot deactivate the last active Midwife account.');
-                }
-            }
+                return redirect()->route('midwife.user.index')
+                    ->with('success', 'User "' . $userName . '" has been successfully deactivated.');
 
-            // Check if user is already inactive
-            if (!$user->is_active) {
-                if (request()->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'User is already inactive.'
-                    ], 422);
-                }
-                return redirect()->back()->with('error', 'User is already inactive.');
-            }
-
-            $userName = $user->name;
-            $user->update(['is_active' => false]);
-
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "User \"{$userName}\" has been deactivated successfully!"
+            } catch (\Exception $e) {
+                Log::error('Error deactivating user', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
                 ]);
+
+                if (request()->expectsJson()) {
+                    return ResponseHelper::error($e->getMessage(), [], 422);
+                }
+
+                return redirect()->back()->with('error', $e->getMessage());
             }
-
-            return redirect()->route('midwife.user.index')
-                           ->with('success', 'User "' . $userName . '" has been successfully deactivated.');
-
-        } catch (\Exception $e) {
-            \Log::error('Error deactivating user: ' . $e->getMessage());
-            
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error deactivating user. Please try again.'
-                ], 500);
-            }
-
-            return redirect()->back()->with('error', 'Error deactivating user: ' . $e->getMessage());
-        }
+        });
     }
 
     /**
@@ -427,106 +253,63 @@ class UserController extends Controller
      */
     public function activate(User $user)
     {
-        // Check authorization
-        if (!Auth::check()) {
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Authentication required.'
-                ], 401);
-            }
-            abort(401, 'Authentication required');
-        }
+        $this->checkAuthorization();
 
-        $currentUser = Auth::user();
-        
-        // Only Midwives can activate users
-        if ($currentUser->role !== 'midwife') {
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access.'
-                ], 403);
-            }
-            abort(403, 'Unauthorized access');
-        }
+        return DB::transaction(function () use ($user) {
+            try {
+                // Use service to toggle status
+                $updatedUser = $this->userService->toggleActiveStatus($user->id);
+                $userName = $updatedUser->name;
 
-        try {
-            // Check if user is already active
-            if ($user->is_active) {
                 if (request()->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'User is already active.'
-                    ], 422);
+                    return ResponseHelper::success($updatedUser, "User \"{$userName}\" has been activated successfully!");
                 }
-                return redirect()->back()->with('error', 'User is already active.');
-            }
 
-            $userName = $user->name;
-            $user->update(['is_active' => true]);
+                return redirect()->route('midwife.user.index')
+                    ->with('success', 'User "' . $userName . '" has been successfully activated.');
 
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "User \"{$userName}\" has been activated successfully!"
+            } catch (\Exception $e) {
+                Log::error('Error activating user', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
                 ]);
+
+                if (request()->expectsJson()) {
+                    return ResponseHelper::error($e->getMessage(), [], 422);
+                }
+
+                return redirect()->back()->with('error', $e->getMessage());
             }
-
-            return redirect()->route('midwife.user.index')
-                           ->with('success', 'User "' . $userName . '" has been successfully activated.');
-
-        } catch (\Exception $e) {
-            \Log::error('Error activating user: ' . $e->getMessage());
-            
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error activating user. Please try again.'
-                ], 500);
-            }
-
-            return redirect()->back()->with('error', 'Error activating user: ' . $e->getMessage());
-        }
+        });
     }
     /**
      * Check username availability
      */
     public function checkUsername(Request $request)
     {
-        // Check authorization
-        if (!Auth::check()) {
+        $this->checkAuthorization();
+
+        try {
+            $username = $request->get('username');
+            $userId = $request->get('user_id');
+
+            // Check if username exists (excluding specified user ID if provided)
+            $exists = $this->userRepository->usernameExists($username, $userId);
+
+            return response()->json([
+                'available' => !$exists,
+                'message' => $exists ? 'Username is already taken' : 'Username is available'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error checking username availability', [
+                'username' => $request->get('username'),
+                'error' => $e->getMessage()
+            ]);
             return response()->json([
                 'available' => false,
-                'message' => 'Authentication required'
-            ], 401);
+                'message' => 'Error checking username availability'
+            ], 500);
         }
-
-        $user = Auth::user();
-        
-        // Only Midwives can check usernames
-        if ($user->role !== 'midwife') {
-            return response()->json([
-                'available' => false,
-                'message' => 'Unauthorized access'
-            ], 403);
-        }
-
-        $username = $request->get('username');
-        $userId = $request->get('user_id');
-
-        $query = User::where('username', $username);
-        
-        if ($userId) {
-            $query->where('id', '!=', $userId);
-        }
-
-        $exists = $query->exists();
-
-        return response()->json([
-            'available' => !$exists,
-            'message' => $exists ? 'Username is already taken' : 'Username is available'
-        ]);
     }
 
     /**
@@ -534,41 +317,16 @@ class UserController extends Controller
      */
     public function getUsersForSelect()
     {
-        // Check authorization
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentication required.'
-            ], 401);
-        }
-
-        $user = Auth::user();
-        
-        // Only Midwives can get user lists
-        if ($user->role !== 'midwife') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access.'
-            ], 403);
-        }
+        $this->checkAuthorization();
 
         try {
-            $users = User::select('id', 'name', 'username', 'role')
-                        ->where('id', '!=', Auth::id())
-                        ->orderBy('name')
-                        ->get();
+            // Use repository to get users excluding current user
+            $users = $this->userRepository->getAllExcludingUser(Auth::id(), ['id', 'name', 'username', 'role']);
 
-            return response()->json([
-                'success' => true,
-                'users' => $users
-            ]);
+            return ResponseHelper::success($users);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error loading users: ' . $e->getMessage()
-            ], 500);
+            Log::error('Error loading users for select', ['error' => $e->getMessage()]);
+            return ResponseHelper::error('Error loading users: ' . $e->getMessage(), [], 500);
         }
     }
-
-    
 }

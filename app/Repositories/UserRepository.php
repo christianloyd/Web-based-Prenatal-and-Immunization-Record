@@ -186,4 +186,82 @@ class UserRepository implements UserRepositoryInterface
         $user->is_active = !$user->is_active;
         return $user->save();
     }
+
+    /**
+     * Get paginated users with filters and sorting
+     *
+     * @param array $filters
+     * @param string $sortField
+     * @param string $sortDirection
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function getAllPaginated(array $filters = [], string $sortField = 'name', string $sortDirection = 'asc', int $perPage = 15): LengthAwarePaginator
+    {
+        $query = $this->model->query();
+
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('username', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Role filter
+        if (!empty($filters['role'])) {
+            $query->where('role', $filters['role']);
+        }
+
+        // Gender filter
+        if (!empty($filters['gender'])) {
+            $query->where('gender', $filters['gender']);
+        }
+
+        // Status filter
+        if (!empty($filters['status'])) {
+            if ($filters['status'] === 'active') {
+                $query->where('is_active', true);
+            } elseif ($filters['status'] === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        return $query->orderBy($sortField, $sortDirection)->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Check if username exists (optionally excluding a specific user)
+     *
+     * @param string $username
+     * @param int|null $excludeId
+     * @return bool
+     */
+    public function usernameExists(string $username, ?int $excludeId = null): bool
+    {
+        $query = $this->model->where('username', $username);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    /**
+     * Get all users excluding a specific user ID
+     *
+     * @param int $excludeId
+     * @param array $columns
+     * @return Collection
+     */
+    public function getAllExcludingUser(int $excludeId, array $columns = ['*']): Collection
+    {
+        return $this->model->select($columns)
+            ->where('id', '!=', $excludeId)
+            ->orderBy('name')
+            ->get();
+    }
 }
