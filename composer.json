@@ -13,7 +13,8 @@
         "barryvdh/laravel-dompdf": "*",
         "google/apiclient": "^2.18",
         "laravel/framework": "^11.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "predis/predis": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

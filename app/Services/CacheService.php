@@ -24,15 +24,14 @@ class CacheService
     const SHORT_CACHE = 300;
 
     /**
-     * Get all active vaccines (cached)
+     * Get all vaccines (cached)
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public static function getActiveVaccines()
     {
         return Cache::remember('active_vaccines', self::CACHE_DURATION, function () {
-            return Vaccine::where('is_active', true)
-                ->orderBy('name')
+            return Vaccine::orderBy('name')
                 ->get();
         });
     }
@@ -69,15 +68,14 @@ class CacheService
     }
 
     /**
-     * Get all active users (cached)
+     * Get all users (cached)
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public static function getActiveUsers()
     {
         return Cache::remember('active_users', self::CACHE_DURATION, function () {
-            return User::where('is_active', true)
-                ->orderBy('name')
+            return User::orderBy('name')
                 ->get();
         });
     }
@@ -92,7 +90,6 @@ class CacheService
     {
         return Cache::remember("users_role_{$role}", self::CACHE_DURATION, function () use ($role) {
             return User::where('role', $role)
-                ->where('is_active', true)
                 ->orderBy('name')
                 ->get();
         });
@@ -176,6 +173,118 @@ class CacheService
     }
 
     /**
+     * Get low stock vaccines (cached for 15 minutes)
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getLowStockVaccines()
+    {
+        return Cache::remember('vaccines:low_stock', 900, function () {
+            return Vaccine::whereColumn('current_stock', '<=', 'min_stock')->get();
+        });
+    }
+
+    /**
+     * Get patient statistics (cached for 30 minutes)
+     *
+     * @return array
+     */
+    public static function getPatientStats(): array
+    {
+        return Cache::remember('patients:statistics', 1800, function () {
+            return [
+                'total' => \App\Models\Patient::count(),
+                'active_prenatal' => \App\Models\PrenatalRecord::where('is_active', true)->count(),
+                'completed_prenatal' => \App\Models\PrenatalRecord::where('is_active', false)->count(),
+                'children' => \App\Models\ChildRecord::count(),
+            ];
+        });
+    }
+
+    /**
+     * Get upcoming checkups (cached for 10 minutes)
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getUpcomingCheckups()
+    {
+        return Cache::remember('checkups:upcoming', 600, function () {
+            return \App\Models\PrenatalCheckup::where('status', 'scheduled')
+                ->where('checkup_date', '>=', now())
+                ->orderBy('checkup_date')
+                ->limit(10)
+                ->get();
+        });
+    }
+
+    /**
+     * Clear patient-related cache
+     *
+     * @param int|null $patientId
+     */
+    public static function clearPatientCache(?int $patientId = null): void
+    {
+        Cache::forget('patients:statistics');
+        Cache::forget('checkups:upcoming');
+        Cache::forget('dashboard_stats_midwife');
+        Cache::forget('dashboard_stats_bhw');
+        Cache::forget('dashboard_stats_admin');
+
+        if ($patientId) {
+            Cache::forget("patient:{$patientId}");
+            Cache::forget("patient:{$patientId}:checkups");
+            Cache::forget("patient:{$patientId}:prenatal");
+        }
+    }
+
+    /**
+     * Clear prenatal-related cache
+     */
+    public static function clearPrenatalCache(): void
+    {
+        Cache::forget('patients:statistics');
+        Cache::forget('checkups:upcoming');
+        self::clearDashboardCache();
+    }
+
+    /**
+     * Clear immunization-related cache
+     */
+    public static function clearImmunizationCache(): void
+    {
+        Cache::forget('vaccines:low_stock');
+        self::clearDashboardCache();
+    }
+
+    /**
+     * Get cache statistics
+     *
+     * @return array
+     */
+    public static function getCacheStats(): array
+    {
+        $keys = [
+            'active_vaccines',
+            'active_users',
+            'users_role_midwife',
+            'users_role_bhw',
+            'dashboard_stats_midwife',
+            'dashboard_stats_bhw',
+            'dashboard_stats_admin',
+            'vaccines:low_stock',
+            'patients:statistics',
+            'checkups:upcoming',
+        ];
+
+        $cached = [];
+        foreach ($keys as $key) {
+            $cached[$key] = Cache::has($key);
+        }
+
+        return $cached;
+    }
+
+    /**
      * Warm up cache with frequently accessed data
      */
     public static function warmUp(): void
@@ -184,5 +293,11 @@ class CacheService
         self::getActiveUsers();
         self::getUsersByRole('midwife');
         self::getUsersByRole('bhw');
+        self::getDashboardStats('midwife');
+        self::getDashboardStats('bhw');
+        self::getDashboardStats('admin');
+        self::getLowStockVaccines();
+        self::getPatientStats();
+        self::getUpcomingCheckups();
     }
 }
