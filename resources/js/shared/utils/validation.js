@@ -385,6 +385,26 @@ export function validateForm(form, rules) {
             continue;
         }
 
+        // Min numeric value validation
+        if (fieldRules.min !== undefined && isNumeric(value)) {
+            const numValue = parseFloat(value);
+            if (numValue < fieldRules.min) {
+                showValidationError(input, `${fieldName} must be at least ${fieldRules.min}`);
+                isValid = false;
+                continue;
+            }
+        }
+
+        // Max numeric value validation
+        if (fieldRules.max !== undefined && isNumeric(value)) {
+            const numValue = parseFloat(value);
+            if (numValue > fieldRules.max) {
+                showValidationError(input, `${fieldName} cannot exceed ${fieldRules.max}`);
+                isValid = false;
+                continue;
+            }
+        }
+
         // Date validation
         if (fieldRules.date && !isValidDate(value)) {
             showValidationError(input, 'Please enter a valid date (YYYY-MM-DD)');
