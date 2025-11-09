@@ -148,6 +148,35 @@ export class Form {
     }
 
     /**
+     * Clean phone numbers in form data
+     * Removes spaces, dashes, and formats to backend-compatible format
+     * @private
+     *
+     * @param {Object} data - Form data object
+     * @returns {void}
+     */
+    cleanPhoneNumbers(data) {
+        // Common phone number field names
+        const phoneFields = ['contact', 'phone', 'emergency_contact', 'phone_number', 'mobile'];
+
+        phoneFields.forEach(field => {
+            if (data[field]) {
+                // Remove spaces and dashes
+                let cleaned = data[field].replace(/[\s-]/g, '');
+
+                // Normalize +639 or 639 to 09
+                if (cleaned.startsWith('+639')) {
+                    cleaned = '0' + cleaned.substring(3);
+                } else if (cleaned.startsWith('639')) {
+                    cleaned = '0' + cleaned.substring(2);
+                }
+
+                data[field] = cleaned;
+            }
+        });
+    }
+
+    /**
      * Disable form inputs
      * @private
      *
@@ -208,6 +237,10 @@ export class Form {
 
         try {
             const data = this.getData();
+
+            // Clean phone numbers before submission
+            this.cleanPhoneNumbers(data);
+
             const method = this.form.method?.toLowerCase() || 'post';
             const url = this.form.action;
 
