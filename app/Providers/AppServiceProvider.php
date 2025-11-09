@@ -21,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Register Repository Bindings
+        $this->registerRepositories();
+
         // Bind GoogleDriveService conditionally
         $this->app->bind(\App\Services\GoogleDriveService::class, function ($app) {
             $oauthCredentialsPath = storage_path('app/google/oauth_credentials.json');
@@ -109,5 +112,97 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('roleJs', function ($expression) {
             return "<?php echo asset('js/' . auth()->user()->role . '/' . {$expression}); ?>";
         });
+    }
+
+    /**
+     * Register all repository bindings
+     *
+     * @return void
+     */
+    private function registerRepositories(): void
+    {
+        // Patient Repository (already exists)
+        $this->app->bind(
+            \App\Repositories\Contracts\PatientRepositoryInterface::class,
+            \App\Repositories\PatientRepository::class
+        );
+
+        // Prenatal Record Repository (already exists)
+        $this->app->bind(
+            \App\Repositories\Contracts\PrenatalRecordRepositoryInterface::class,
+            \App\Repositories\PrenatalRecordRepository::class
+        );
+
+        // Child Record Repository (already exists)
+        $this->app->bind(
+            \App\Repositories\Contracts\ChildRecordRepositoryInterface::class,
+            \App\Repositories\ChildRecordRepository::class
+        );
+
+        // User Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\UserRepositoryInterface::class,
+            \App\Repositories\UserRepository::class
+        );
+
+        // Vaccine Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\VaccineRepositoryInterface::class,
+            \App\Repositories\VaccineRepository::class
+        );
+
+        // Immunization Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\ImmunizationRepositoryInterface::class,
+            \App\Repositories\ImmunizationRepository::class
+        );
+
+        // Prenatal Checkup Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\PrenatalCheckupRepositoryInterface::class,
+            \App\Repositories\PrenatalCheckupRepository::class
+        );
+
+        // Appointment Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\AppointmentRepositoryInterface::class,
+            \App\Repositories\AppointmentRepository::class
+        );
+
+        // Child Immunization Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\ChildImmunizationRepositoryInterface::class,
+            \App\Repositories\ChildImmunizationRepository::class
+        );
+
+        // Cloud Backup Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\CloudBackupRepositoryInterface::class,
+            \App\Repositories\CloudBackupRepository::class
+        );
+
+        // Stock Transaction Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\StockTransactionRepositoryInterface::class,
+            \App\Repositories\StockTransactionRepository::class
+        );
+
+        // Prenatal Visit Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\PrenatalVisitRepositoryInterface::class,
+            \App\Repositories\PrenatalVisitRepository::class
+        );
+
+        // Restore Operation Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\RestoreOperationRepositoryInterface::class,
+            \App\Repositories\RestoreOperationRepository::class
+        );
+
+        // SMS Log Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\SmsLogRepositoryInterface::class,
+            \App\Repositories\SmsLogRepository::class
+        );
     }
 }
