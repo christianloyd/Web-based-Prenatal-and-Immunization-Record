@@ -24,6 +24,9 @@ export * from './components/table.js';
 export * from './components/notifications.js';
 export * from './components/form.js';
 
+// Export all pages (unified modules)
+export * from './pages/patients.js';
+
 // Default exports for convenience
 export { default as sweetalert } from './utils/sweetalert.js';
 export { default as validation } from './utils/validation.js';
@@ -35,3 +38,4 @@ export { default as modal } from './components/modal.js';
 export { default as table } from './components/table.js';
 export { default as notifications } from './components/notifications.js';
 export { default as form } from './components/form.js';
+export { default as patients } from './pages/patients.js';
