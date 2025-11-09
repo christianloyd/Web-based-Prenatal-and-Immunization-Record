@@ -231,121 +231,16 @@
     </div>
 </div>
 
-<script>
-// Open Complete Pregnancy Modal
-function openCompletePregnancyModal(recordId, patientName) {
-    // Set patient name
-    document.getElementById('completePatientName').textContent = patientName;
-
-    // Set form action dynamically based on role
-    const form = document.getElementById('completePregnancyForm');
-    const role = '{{ auth()->user()->role }}';
-    form.action = `/${role}/prenatalrecord/${recordId}/complete`;
-
-    // Store recordId for later use
-    form.dataset.recordId = recordId;
-
-    // Show modal
-    const modal = document.getElementById('completePregnancyModal');
-    modal.classList.remove('hidden');
-    setTimeout(() => modal.classList.add('show'), 10);
-}
-
-// Close Complete Pregnancy Modal
-function closeCompletePregnancyModal() {
-    const modal = document.getElementById('completePregnancyModal');
-    modal.classList.remove('show');
-    setTimeout(() => modal.classList.add('hidden'), 300);
-}
-
-// Handle Complete Pregnancy Form Submission with AJAX and SweetAlert
-document.addEventListener('DOMContentLoaded', function() {
-    const completeForm = document.getElementById('completePregnancyForm');
-
-    if (completeForm) {
-        completeForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const submitBtn = document.getElementById('complete-submit-btn');
-            const originalBtnText = submitBtn.innerHTML;
-
-            // Disable button and show loading
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Completing...';
-
-            // Send AJAX request
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-
-                if (data.success) {
-                    // Close modal first
-                    closeCompletePregnancyModal();
-
-                    // Show success SweetAlert after modal closes
-                    setTimeout(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: data.message || 'Pregnancy record completed successfully!',
-                            confirmButtonColor: '#D4A373',
-                            confirmButtonText: 'Great!'
-                        }).then(() => {
-                            // Reload page to show updated record
-                            window.location.reload();
-                        });
-                    }, 400);
-                } else {
-                    // Show error SweetAlert
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Failed to complete pregnancy record.',
-                        confirmButtonColor: '#D4A373'
-                    });
-                }
-            })
-            .catch(error => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'An unexpected error occurred. Please try again.',
-                    confirmButtonColor: '#D4A373'
-                });
-            });
-        });
-    }
-
-    // Close modal when clicking outside
-    const modal = document.getElementById('completePregnancyModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeCompletePregnancyModal();
-            }
-        });
-    }
-});
-</script>
 
 @endsection
 
 @include('components.refresh-data-script', ['refreshButtonId' => 'prenatal-refresh-btn', 'skeletonId' => 'prenatal-skeleton', 'tableSelector' => '.overflow-x-auto table'])
 
 @push('scripts')
-<script src="{{ asset('js/' . auth()->user()->role . '/' . auth()->user()->role . '.js') }}"></script>
-<script src="{{ asset('js/' . auth()->user()->role . '/prenatalrecord-index.js') }}"></script>
+{{-- Unified Prenatal Records Module - Works for both BHW and Midwife --}}
+<script type="module">
+    import { initializePrenatalRecordsPage } from '@/shared/pages/prenatalrecords';
+    // Module auto-initializes on DOMContentLoaded
+    // Exposes backward-compatible functions: openViewPrenatalModal(), openEditPrenatalModal(), openCompletePregnancyModal()
+</script>
 @endpush

@@ -26,6 +26,7 @@ export * from './components/form.js';
 
 // Export all pages (unified modules)
 export * from './pages/patients.js';
+export * from './pages/prenatalrecords.js';
 
 // Default exports for convenience
 export { default as sweetalert } from './utils/sweetalert.js';
@@ -39,3 +40,4 @@ export { default as table } from './components/table.js';
 export { default as notifications } from './components/notifications.js';
 export { default as form } from './components/form.js';
 export { default as patients } from './pages/patients.js';
+export { default as prenatalrecords } from './pages/prenatalrecords.js';
