@@ -32,7 +32,7 @@ export function initializeFilters(state) {
 function initializeStatusFilters(state) {
     const statusButtons = document.querySelectorAll('[data-status-filter]');
 
-    statusButtons.forEach(button => {
+    statusButtons.forEach((button) => {
         button.addEventListener('click', () => {
             const status = button.dataset.statusFilter;
 
@@ -40,7 +40,7 @@ function initializeStatusFilters(state) {
             state.setStatus(status);
 
             // Update UI - active state
-            statusButtons.forEach(btn => btn.classList.remove('active'));
+            statusButtons.forEach((btn) => btn.classList.remove('active'));
             button.classList.add('active');
 
             // Refresh table
@@ -165,9 +165,15 @@ function initializeAdvancedFilters(state) {
     // Reset filters button
     if (resetFiltersBtn) {
         resetFiltersBtn.addEventListener('click', () => {
-            if (vaccineFilter) vaccineFilter.value = '';
-            if (dateFromFilter) dateFromFilter.value = '';
-            if (dateToFilter) dateToFilter.value = '';
+            if (vaccineFilter) {
+                vaccineFilter.value = '';
+            }
+            if (dateFromFilter) {
+                dateFromFilter.value = '';
+            }
+            if (dateToFilter) {
+                dateToFilter.value = '';
+            }
 
             state.resetFilters();
             refreshTable(state);
@@ -199,10 +205,7 @@ export function getFilterSummary(state) {
     }
 
     if (state.filters.dateFrom || state.filters.dateTo) {
-        const dateRange = [
-            state.filters.dateFrom || '...',
-            state.filters.dateTo || '...'
-        ].join(' to ');
+        const dateRange = [state.filters.dateFrom || '...', state.filters.dateTo || '...'].join(' to ');
         parts.push(`Dates: ${dateRange}`);
     }
 

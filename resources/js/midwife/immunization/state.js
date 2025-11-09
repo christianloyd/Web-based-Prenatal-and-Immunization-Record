@@ -17,7 +17,7 @@ export class ImmunizationState {
         /** @type {string|null} Current search term */
         this.searchTerm = null;
 
-        /** @type {Object} Current filter values */
+        /** @type {object} Current filter values */
         this.filters = {
             status: 'all',
             vaccine: null,
@@ -28,7 +28,7 @@ export class ImmunizationState {
         /** @type {number|null} Currently selected immunization ID */
         this.selectedImmunizationId = null;
 
-        /** @type {Object|null} Currently selected immunization data */
+        /** @type {object | null} Currently selected immunization data */
         this.selectedImmunization = null;
 
         /** @type {boolean} Loading state */
@@ -62,7 +62,7 @@ export class ImmunizationState {
 
     /**
      * Updates filter values
-     * @param {Object} newFilters - Filter values to update
+     * @param {object} newFilters - Filter values to update
      * @returns {void}
      */
     updateFilters(newFilters) {
@@ -72,7 +72,7 @@ export class ImmunizationState {
     /**
      * Selects an immunization
      * @param {number} id - Immunization ID
-     * @param {Object} data - Immunization data
+     * @param {object} data - Immunization data
      * @returns {void}
      */
     selectImmunization(id, data) {

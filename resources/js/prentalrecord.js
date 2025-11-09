@@ -4,37 +4,41 @@ function openPatientModal() {
         console.error('Patient modal not found');
         return;
     }
-    
+
     modal.classList.remove('hidden');
     requestAnimationFrame(() => modal.classList.add('show'));
     document.body.style.overflow = 'hidden';
-    
+
     setTimeout(() => {
         const nameInput = modal.querySelector('input[name="name"]');
-        if (nameInput) nameInput.focus();
+        if (nameInput) {
+            nameInput.focus();
+        }
     }, 300);
-
-    
 }
 
 function closePatientModal(e) {
-    if (e && e.target !== e.currentTarget) return;
-    
+    if (e && e.target !== e.currentTarget) {
+        return;
+    }
+
     const modal = document.getElementById('patient-modal');
-    if (!modal) return;
-    
+    if (!modal) {
+        return;
+    }
+
     modal.classList.remove('show');
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-        
+
         // Only reset form if there are no validation errors
         if (!document.querySelector('.bg-red-100')) {
             const form = modal.querySelector('form');
             if (form) {
                 form.reset();
                 // Remove validation classes
-                form.querySelectorAll('.error-border, .success-border').forEach(input => {
+                form.querySelectorAll('.error-border, .success-border').forEach((input) => {
                     input.classList.remove('error-border', 'success-border');
                 });
             }
@@ -48,7 +52,7 @@ function openViewPatientModal(record) {
         console.error('No patient record provided');
         return;
     }
-    
+
     try {
         // Populate modal fields
         const fieldMappings = [
@@ -61,16 +65,16 @@ function openViewPatientModal(record) {
             { id: 'modalNextAppointment', value: record.next_appointment },
             { id: 'modalStatus', value: record.status },
             { id: 'modalMedicalHistory', value: record.medical_history },
-            { id: 'modalNotes', value: record.notes }
+            { id: 'modalNotes', value: record.notes },
         ];
-        
-        fieldMappings.forEach(field => {
+
+        fieldMappings.forEach((field) => {
             const element = document.getElementById(field.id);
             if (element) {
                 element.textContent = field.value || 'N/A';
             }
         });
-        
+
         // Special handling for Gravida/Para
         const gravidaParaElement = document.getElementById('modalGravidaPara');
         if (gravidaParaElement) {
@@ -78,25 +82,24 @@ function openViewPatientModal(record) {
             const para = record.para || '-';
             gravidaParaElement.textContent = `G${gravida} / P${para}`;
         }
-        
+
         // Show modal with animation
         const modal = document.getElementById('viewPatientModal');
         const content = document.getElementById('viewPatientModalContent');
-        
+
         if (!modal || !content) {
             console.error('View modal elements not found');
             return;
         }
-        
+
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        
+
         // Trigger animation
         requestAnimationFrame(() => {
             content.classList.remove('-translate-y-10', 'opacity-0');
             content.classList.add('translate-y-0', 'opacity-100');
         });
-        
     } catch (error) {
         console.error('Error opening view modal:', error);
     }
@@ -105,12 +108,14 @@ function openViewPatientModal(record) {
 function closeViewPatientModal() {
     const modal = document.getElementById('viewPatientModal');
     const content = document.getElementById('viewPatientModalContent');
-    
-    if (!modal || !content) return;
-    
+
+    if (!modal || !content) {
+        return;
+    }
+
     content.classList.remove('translate-y-0', 'opacity-100');
     content.classList.add('-translate-y-10', 'opacity-0');
-    
+
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
@@ -138,10 +143,11 @@ function openEditPatientModal(record) {
     const originalAction = form.action;
     form.action = originalAction.replace(':id', record.id);
 
-    
     // Format the date to "yyyy-MM-dd"
     const formatDate = (dateString) => {
-        if (!dateString) return '';
+        if (!dateString) {
+            return '';
+        }
         const date = new Date(dateString);
         return date.toISOString().split('T')[0]; // Extract "yyyy-MM-dd"
     };
@@ -160,10 +166,10 @@ function openEditPatientModal(record) {
         { id: 'edit-gravida', value: record.gravida },
         { id: 'edit-para', value: record.para },
         { id: 'edit-medical-history', value: record.medical_history },
-        { id: 'edit-notes', value: record.notes }
+        { id: 'edit-notes', value: record.notes },
     ];
 
-    fieldMappings.forEach(field => {
+    fieldMappings.forEach((field) => {
         const element = document.getElementById(field.id);
         if (element) {
             element.value = field.value || '';
@@ -177,7 +183,9 @@ function openEditPatientModal(record) {
 
     setTimeout(() => {
         const nameInput = document.getElementById('edit-name');
-        if (nameInput) nameInput.focus();
+        if (nameInput) {
+            nameInput.focus();
+        }
     }, 100);
 }
 
@@ -185,21 +193,23 @@ function closeEditPatientModal(event) {
     if (event && event.target !== event.currentTarget) {
         return;
     }
-    
+
     const modal = document.getElementById('edit-patient-modal');
-    if (!modal) return;
-    
+    if (!modal) {
+        return;
+    }
+
     modal.classList.add('hidden');
     document.body.style.overflow = '';
-    
+
     // Reset form action back to placeholder
     const form = document.getElementById('edit-patient-form');
     if (form) {
         form.action = "{{ route('midwife.prenatalrecord.update', ':id') }}";
         form.reset();
-        
+
         // Remove validation styling
-        form.querySelectorAll('.error-border, .success-border').forEach(input => {
+        form.querySelectorAll('.error-border, .success-border').forEach((input) => {
             input.classList.remove('error-border', 'success-border');
         });
     }
@@ -207,26 +217,30 @@ function closeEditPatientModal(event) {
 
 // Helper Functions
 function setModalMode(mode) {
-    const formElements = document.querySelectorAll('#edit-patient-form input, #edit-patient-form select, #edit-patient-form textarea');
-    
+    const formElements = document.querySelectorAll(
+        '#edit-patient-form input, #edit-patient-form select, #edit-patient-form textarea'
+    );
+
     if (mode === 'view') {
-        formElements.forEach(element => {
+        formElements.forEach((element) => {
             element.readOnly = true;
             element.disabled = true;
             element.classList.add('bg-gray-100', 'cursor-not-allowed');
             element.classList.remove('focus:ring-2', 'focus:ring-primary');
         });
     } else if (mode === 'edit') {
-        formElements.forEach(element => {
+        formElements.forEach((element) => {
             element.readOnly = false;
             element.disabled = false;
             element.classList.remove('bg-gray-100', 'cursor-not-allowed');
             element.classList.add('focus:ring-2', 'focus:ring-primary');
         });
-        
+
         // Keep hidden input enabled
         const hiddenInput = document.getElementById('edit-patient-id');
-        if (hiddenInput) hiddenInput.disabled = false;
+        if (hiddenInput) {
+            hiddenInput.disabled = false;
+        }
     }
 }
 
@@ -238,11 +252,13 @@ function validateField() {
 
 // Function to calculate pregnancy status based on dates
 function calculatePregnancyStatus(lmpDate, dueDateString) {
-    if (!lmpDate) return 'normal';
+    if (!lmpDate) {
+        return 'normal';
+    }
 
     const today = new Date();
     const lmp = new Date(lmpDate);
-    const dueDate = dueDateString ? new Date(dueDateString) : new Date(lmp.getTime() + (280 * 24 * 60 * 60 * 1000));
+    const dueDate = dueDateString ? new Date(dueDateString) : new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000);
 
     // Calculate gestational age in weeks
     const gestationalAgeMs = today.getTime() - lmp.getTime();
@@ -271,7 +287,9 @@ function calculatePregnancyStatus(lmpDate, dueDateString) {
 
 // Function to update status automatically
 function updatePregnancyStatus(lmpInput, dueDateInput, statusSelect) {
-    if (!statusSelect) return; // Skip if no status field (for add patient modal)
+    if (!statusSelect) {
+        return;
+    } // Skip if no status field (for add patient modal)
 
     const lmpValue = lmpInput ? lmpInput.value : '';
     const dueDateValue = dueDateInput ? dueDateInput.value : '';
@@ -302,7 +320,7 @@ function setupLmpAndEddHandlers(form) {
 
                     // Auto-fill due date if not already set
                     if (dueDateInput && !dueDateInput.value) {
-                        const dueDate = new Date(lmpDate.getTime() + (280 * 24 * 60 * 60 * 1000));
+                        const dueDate = new Date(lmpDate.getTime() + 280 * 24 * 60 * 60 * 1000);
                         dueDateInput.value = dueDate.toISOString().split('T')[0];
 
                         // Add visual feedback for auto-calculated date
@@ -314,7 +332,6 @@ function setupLmpAndEddHandlers(form) {
 
                     // Update status automatically
                     updatePregnancyStatus(lmpInput, dueDateInput, statusSelect);
-
                 } catch (error) {
                     console.log('Error calculating due date:', error);
                 }
@@ -324,14 +341,14 @@ function setupLmpAndEddHandlers(form) {
 
     // Update status when due date is manually changed
     if (dueDateInput) {
-        dueDateInput.addEventListener('change', function () {
+        dueDateInput.addEventListener('change', () => {
             updatePregnancyStatus(lmpInput, dueDateInput, statusSelect);
         });
     }
 }
 
 // Initialize the form handlers
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     const addPatientForm = document.getElementById('patient-form');
     if (addPatientForm) {
         setupLmpAndEddHandlers(addPatientForm);
@@ -344,9 +361,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Event Listeners and Initialization
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     // Close modals on Escape key
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             closePatientModal();
             closeEditPatientModal();
@@ -393,18 +410,20 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupFormHandling(form, buttonId, loadingText) {
     // Add validation to required fields
     const requiredInputs = form.querySelectorAll('[required]');
-    requiredInputs.forEach(input => {
+    requiredInputs.forEach((input) => {
         input.addEventListener('blur', validateField);
         input.addEventListener('input', validateField);
     });
-    
+
     // Handle form submission
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', (e) => {
         const submitBtn = document.getElementById(buttonId);
-        if (!submitBtn) return;
-        
+        if (!submitBtn) {
+            return;
+        }
+
         const originalText = submitBtn.textContent;
-        
+
         submitBtn.disabled = true;
         submitBtn.innerHTML = `
             <svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -413,7 +432,7 @@ function setupFormHandling(form, buttonId, loadingText) {
             </svg>
             ${loadingText}
         `;
-        
+
         // Re-enable button after 10 seconds as fallback
         setTimeout(() => {
             if (submitBtn.disabled) {
@@ -422,22 +441,21 @@ function setupFormHandling(form, buttonId, loadingText) {
             }
         }, 10000);
     });
-    
+
     // Get form inputs
     const lmpInput = form.querySelector('input[name="last_menstrual_period"]');
     const dueDateInput = form.querySelector('input[name="expected_due_date"]');
     const statusSelect = form.querySelector('select[name="status"]');
-    
+
     // Set date constraints
     if (lmpInput && dueDateInput) {
         const today = new Date().toISOString().split('T')[0];
         lmpInput.setAttribute('max', today);
         dueDateInput.setAttribute('min', today);
-        
+
         // Set max due date to 1 year from today (reasonable limit)
         const maxDueDate = new Date();
         maxDueDate.setFullYear(maxDueDate.getFullYear() + 1);
         dueDateInput.setAttribute('max', maxDueDate.toISOString().split('T')[0]);
     }
-    
 }

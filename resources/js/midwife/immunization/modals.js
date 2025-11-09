@@ -80,7 +80,7 @@ export function closeModal(event) {
  * Opens the View Immunization Details modal
  *
  * @param {number} immunizationId - ID of immunization to view
- * @param {Object} immunizationData - Immunization data object
+ * @param {object} immunizationData - Immunization data object
  * @returns {void}
  */
 export function openViewModal(immunizationId, immunizationData) {
@@ -114,7 +114,9 @@ export function closeViewModal(event) {
     }
 
     const modal = document.getElementById('viewModal');
-    if (!modal) return;
+    if (!modal) {
+        return;
+    }
 
     modal.classList.remove('show');
 
@@ -129,7 +131,7 @@ export function closeViewModal(event) {
  * Populates the view modal with immunization data
  *
  * @private
- * @param {Object} data - Immunization data
+ * @param {object} data - Immunization data
  * @param {string} data.child_name - Child's name
  * @param {string} data.vaccine_name - Vaccine name
  * @param {string} data.dose - Dose number
@@ -151,16 +153,28 @@ function populateViewModal(data) {
     };
 
     // Populate fields
-    if (elements.childName) elements.childName.textContent = data.child_name || 'N/A';
-    if (elements.vaccineName) elements.vaccineName.textContent = data.vaccine_name || 'N/A';
-    if (elements.dose) elements.dose.textContent = data.dose || 'N/A';
-    if (elements.scheduleDate) elements.scheduleDate.textContent = data.schedule_date || 'N/A';
-    if (elements.scheduleTime) elements.scheduleTime.textContent = data.schedule_time || 'N/A';
+    if (elements.childName) {
+        elements.childName.textContent = data.child_name || 'N/A';
+    }
+    if (elements.vaccineName) {
+        elements.vaccineName.textContent = data.vaccine_name || 'N/A';
+    }
+    if (elements.dose) {
+        elements.dose.textContent = data.dose || 'N/A';
+    }
+    if (elements.scheduleDate) {
+        elements.scheduleDate.textContent = data.schedule_date || 'N/A';
+    }
+    if (elements.scheduleTime) {
+        elements.scheduleTime.textContent = data.schedule_time || 'N/A';
+    }
     if (elements.status) {
         elements.status.textContent = data.status || 'N/A';
         elements.status.className = getStatusClass(data.status);
     }
-    if (elements.notes) elements.notes.textContent = data.notes || 'No notes';
+    if (elements.notes) {
+        elements.notes.textContent = data.notes || 'No notes';
+    }
 }
 
 /**
@@ -218,7 +232,9 @@ export function openRescheduleModal(immunizationId) {
     // Focus date input
     setTimeout(() => {
         const dateInput = form.querySelector('input[name="new_date"]');
-        if (dateInput) dateInput.focus();
+        if (dateInput) {
+            dateInput.focus();
+        }
     }, 300);
 
     console.log(`[Immunization] Reschedule modal opened for ID: ${immunizationId}`);
@@ -236,7 +252,9 @@ export function closeRescheduleModal(event) {
     }
 
     const modal = document.getElementById('rescheduleModal');
-    if (!modal) return;
+    if (!modal) {
+        return;
+    }
 
     modal.classList.remove('show');
 

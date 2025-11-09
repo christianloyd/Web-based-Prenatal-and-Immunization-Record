@@ -2,7 +2,7 @@ import './bootstrap';
 import '../css/app.css';
 
 // Ensure font sizes are applied after page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     // Force font size application for any dynamically loaded content
     const style = document.createElement('style');
     style.textContent = `

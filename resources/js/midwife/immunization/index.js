@@ -16,7 +16,7 @@ import {
     openViewModal,
     closeViewModal,
     openRescheduleModal,
-    closeRescheduleModal
+    closeRescheduleModal,
 } from './modals';
 
 /**
@@ -62,7 +62,7 @@ function initializeModalEventListeners() {
     // Find all modal close buttons
     const closeButtons = document.querySelectorAll('[data-modal-close]');
 
-    closeButtons.forEach(button => {
+    closeButtons.forEach((button) => {
         button.addEventListener('click', () => {
             const modalId = button.dataset.modalClose;
 
@@ -128,5 +128,5 @@ export {
     openViewModal,
     closeViewModal,
     openRescheduleModal,
-    closeRescheduleModal
+    closeRescheduleModal,
 };
