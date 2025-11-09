@@ -161,6 +161,6 @@
 @endsection
 
 @push('scripts')
-{{-- Unified Patients Module - Works for both BHW and Midwife --}}
-@vite(['resources/js/pages/patients.js'])
+{{-- Load old JavaScript implementation from public folder --}}
+<script src="{{ asset('js/' . auth()->user()->role . '/patients-index.js') }}"></script>
 @endpush
