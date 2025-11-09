@@ -201,7 +201,7 @@ class VaccineService
      * @param int $days
      * @return \Illuminate\Support\Collection
      */
-    public function getExpiringVaccines(int $days = 30)
+    public function getExpiringVaccines(int $days = 30): \Illuminate\Support\Collection
     {
         return $this->vaccineRepository->getExpiring($days);
     }
@@ -212,7 +212,7 @@ class VaccineService
      * @param int $threshold
      * @return \Illuminate\Support\Collection
      */
-    public function getLowStockVaccines(int $threshold = 10)
+    public function getLowStockVaccines(int $threshold = 10): \Illuminate\Support\Collection
     {
         return $this->vaccineRepository->getLowStock($threshold);
     }
@@ -222,7 +222,7 @@ class VaccineService
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getOutOfStockVaccines()
+    public function getOutOfStockVaccines(): \Illuminate\Support\Collection
     {
         return $this->vaccineRepository->getOutOfStock();
     }

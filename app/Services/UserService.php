@@ -73,10 +73,10 @@ class UserService
      * Delete user
      *
      * @param int $id
-     * @return bool
+     * @return string User name
      * @throws \Exception
      */
-    public function deleteUser(int $id): bool
+    public function deleteUser(int $id): string
     {
         // Prevent deleting own account
         if (Auth::id() === $id) {
@@ -90,17 +90,18 @@ class UserService
         }
 
         return DB::transaction(function () use ($user) {
+            $userName = $user->name;
             $result = $this->userRepository->delete($user->id);
 
             if ($result) {
                 Log::info('User deleted', [
                     'user_id' => $user->id,
-                    'user_name' => $user->name,
+                    'user_name' => $userName,
                     'deleted_by' => Auth::id(),
                 ]);
             }
 
-            return $result;
+            return $userName;
         });
     }
 
@@ -164,7 +165,7 @@ class UserService
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getHealthcareWorkers()
+    public function getHealthcareWorkers(): \Illuminate\Support\Collection
     {
         return $this->userRepository->getHealthcareWorkers();
     }
@@ -175,7 +176,7 @@ class UserService
      * @param string $role
      * @return \Illuminate\Support\Collection
      */
-    public function getUsersByRole(string $role)
+    public function getUsersByRole(string $role): \Illuminate\Support\Collection
     {
         return $this->userRepository->getByRole($role);
     }
@@ -185,7 +186,7 @@ class UserService
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getActiveUsers()
+    public function getActiveUsers(): \Illuminate\Support\Collection
     {
         return $this->userRepository->getActive();
     }
@@ -196,7 +197,7 @@ class UserService
      * @param string $term
      * @return \Illuminate\Support\Collection
      */
-    public function searchUsers(string $term)
+    public function searchUsers(string $term): \Illuminate\Support\Collection
     {
         return $this->userRepository->search($term);
     }

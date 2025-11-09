@@ -105,6 +105,7 @@ class ImmunizationController extends Controller
 
         // OPTIMIZED: Build vaccine completion data with a single query
         // Get all completed doses grouped by child and vaccine
+        // NOTE: selectRaw is safe here - no user input, static aggregation for performance
         $completedDosesData = Immunization::selectRaw('child_record_id, vaccine_id, COUNT(*) as completed_count')
             ->where('status', 'Done')
             ->groupBy('child_record_id', 'vaccine_id')

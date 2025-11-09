@@ -445,6 +445,7 @@ class ReportController extends Controller
         $demographics = [];
 
         // OPTIMIZED: Get all patient demographics in a single query
+        // NOTE: selectRaw is safe here - no user input, static aggregation for performance
         $patientStats = Patient::selectRaw('
             COUNT(*) as total_all,
             COUNT(CASE WHEN age BETWEEN 18 AND 24 THEN 1 END) as age_18_24_total,
@@ -453,6 +454,7 @@ class ReportController extends Controller
             COUNT(CASE WHEN age >= 45 THEN 1 END) as age_45_plus_total
         ')->first();
 
+        // NOTE: selectRaw is safe here - no user input, static aggregation for performance
         $patientNewStats = $filterDate
             ? Patient::whereMonth('created_at', $filterDate->month)
                      ->whereYear('created_at', $filterDate->year)
@@ -483,16 +485,16 @@ class ReportController extends Controller
             $maxBirthdate = now()->subYears($group['min'])->format('Y-m-d');
             $minBirthdate = now()->subYears($group['max'])->format('Y-m-d');
 
-            $totalChildren = ChildRecord::whereRaw('DATE(birthdate) BETWEEN ? AND ?', [$minBirthdate, $maxBirthdate])->count();
+            $totalChildren = ChildRecord::whereBetween('birthdate', [$minBirthdate, $maxBirthdate])->count();
 
             $newChildren = $filterDate
-                ? ChildRecord::whereRaw('DATE(birthdate) BETWEEN ? AND ?', [$minBirthdate, $maxBirthdate])
+                ? ChildRecord::whereBetween('birthdate', [$minBirthdate, $maxBirthdate])
                              ->whereMonth('created_at', $filterDate->month)
                              ->whereYear('created_at', $filterDate->year)
                              ->count()
                 : $totalChildren;
 
-            $immunizedCount = ChildRecord::whereRaw('DATE(birthdate) BETWEEN ? AND ?', [$minBirthdate, $maxBirthdate])
+            $immunizedCount = ChildRecord::whereBetween('birthdate', [$minBirthdate, $maxBirthdate])
                                         ->whereHas('immunizations', function($query) use ($filterDate) {
                                             $query->where('status', 'Done');
                                             if ($filterDate) {
@@ -853,7 +855,7 @@ class ReportController extends Controller
                     'overweight' => '',
                 ],
                 'monthly_0_23' => [
-                    'normal' => ChildRecord::whereRaw('TIMESTAMPDIFF(MONTH, birthdate, CURDATE()) BETWEEN 0 AND 23')
+                    'normal' => ChildRecord::whereBetween('birthdate', [now()->subMonths(23), now()])
                                           ->count(),
                     'underweight' => 0,
                     'severely_underweight' => 0,
