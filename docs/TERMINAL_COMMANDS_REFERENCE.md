@@ -502,12 +502,16 @@ Save these in your project root and double-click to run them!
 
 ## Additional Resources
 
-- Laravel Documentation: https://laravel.com/docs
-- Laravel Forge Documentation: https://forge.laravel.com/docs
-- Artisan Console: https://laravel.com/docs/artisan
+## Laravel Documentation: https://laravel.com/docs
+## Laravel Forge Documentation: https://forge.laravel.com/docs
+## Artisan Console: https://laravel.com/docs/artisan
 
 ---
 
 **Last Updated:** November 1, 2025
 **Project:** Healthcare System
 **Environment:** XAMPP (Development) / Laravel Forge (Production)
+
+## php artisan tinker --execute="echo 'Pending jobs: ' . DB: :table('jobs')->count(); echo PHP_EOL'"
+## php artisan queue:work
+## php artisan queue:work --stop-when-empty

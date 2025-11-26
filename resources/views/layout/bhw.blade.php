@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Barangay Health Worker Dashboard') - Laravel</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Dynamic Favicon -->
@@ -99,6 +98,29 @@
         
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #9ca3af;
+        }
+
+        /* Sidebar scrollbars blend with sidebar background */
+        .sidebar-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #B8956A #D4A373;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-track {
+            background: #D4A373;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-thumb {
+            background: #B8956A;
+            border-radius: 4px;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a1784f;
         }
         
         /* Ensure layout stability */
@@ -419,7 +441,7 @@
             
             <!-- TODO: Replace with DaisyUI menu component -->
             <!-- Original: nav with flex-1 p-4 -->
-            <nav class="flex-1 p-3 sm:p-4 overflow-y-auto">
+            <nav class="flex-1 p-3 sm:p-4 overflow-y-auto sidebar-scrollbar">
                 <ul class="space-y-1 sm:space-y-2">
                     <li>
                         <a href="{{ route('dashboard') }}"

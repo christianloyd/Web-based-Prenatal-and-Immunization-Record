@@ -64,8 +64,8 @@ class ImmunizationService
                     $formattedDate = Carbon::parse($data['schedule_date'])->format('F j, Y');
                     $formattedTime = isset($data['schedule_time']) ? Carbon::parse($data['schedule_time'])->format('g:i A') : '';
 
-                    // Dispatch SMS job to background queue
-                    SendVaccinationReminderJob::dispatch(
+                    // Execute SMS job immediately so reminders send even without a queue worker
+                    SendVaccinationReminderJob::dispatchSync(
                         $contactNumber,
                         $child->full_name,
                         $vaccine->name,
@@ -161,8 +161,8 @@ class ImmunizationService
                         $formattedDate = Carbon::parse($data['schedule_date'])->format('F j, Y');
                         $formattedTime = isset($data['schedule_time']) ? Carbon::parse($data['schedule_time'])->format('g:i A') : '';
 
-                        // Dispatch SMS job to background queue
-                        SendVaccinationReminderJob::dispatch(
+                        // Execute SMS job immediately so reminders send even without a queue worker
+                        SendVaccinationReminderJob::dispatchSync(
                             $contactNumber,
                             $child->full_name,
                             $vaccine->name,
@@ -336,15 +336,25 @@ class ImmunizationService
                 }
 
                 // Handle rescheduling if requested
-                if (!empty($data['reschedule']) && $data['reschedule'] === true) {
+                $rescheduleRequested = filter_var($data['reschedule'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+                if ($rescheduleRequested) {
                     if (empty($data['reschedule_date'])) {
                         throw new \Exception('Reschedule date is required when rescheduling.');
                     }
 
-                    // Create new immunization record for the rescheduled appointment
                     $newScheduleDate = $data['reschedule_date'];
-                    if (!empty($data['reschedule_time'])) {
-                        $newScheduleDate .= ' ' . $data['reschedule_time'];
+                    $newScheduleTime = $data['reschedule_time'] ?? $immunization->schedule_time;
+
+                    if (empty($newScheduleTime)) {
+                        throw new \Exception('Reschedule time is required when rescheduling.');
+                    }
+
+                    $normalizedScheduleTime = Carbon::parse($newScheduleTime)->format('H:i:s');
+
+                    $note = 'Rescheduled from missed appointment on ' . Carbon::parse($immunization->schedule_date)->format('M d, Y');
+                    if (!empty($immunization->schedule_time)) {
+                        $note .= ' at ' . Carbon::parse($immunization->schedule_time)->format('g:i A');
                     }
 
                     $rescheduledImmunization = Immunization::create([
@@ -353,8 +363,9 @@ class ImmunizationService
                         'vaccine_name' => $immunization->vaccine_name,
                         'dose' => $immunization->dose,
                         'schedule_date' => $newScheduleDate,
+                        'schedule_time' => $normalizedScheduleTime,
                         'status' => 'Upcoming',
-                        'notes' => 'Rescheduled from missed appointment on ' . Carbon::parse($immunization->schedule_date)->format('M d, Y')
+                        'notes' => $note
                     ]);
 
                     // Mark original immunization as rescheduled and link to new immunization
@@ -366,7 +377,9 @@ class ImmunizationService
                         'new_id' => $rescheduledImmunization->id,
                         'child_id' => $immunization->child_record_id,
                         'original_date' => $immunization->schedule_date,
-                        'new_date' => $newScheduleDate
+                        'original_time' => $immunization->schedule_time,
+                        'new_date' => $newScheduleDate,
+                        'new_time' => $normalizedScheduleTime
                     ]);
 
                     // Send SMS for rescheduled immunization
@@ -376,21 +389,29 @@ class ImmunizationService
                     if ($contactNumber) {
                         try {
                             $formattedDate = Carbon::parse($newScheduleDate)->format('F j, Y');
-                            $formattedTime = !empty($data['reschedule_time']) ? Carbon::parse($data['reschedule_time'])->format('g:i A') : '';
+                            $formattedTime = Carbon::parse($normalizedScheduleTime)->format('g:i A');
+                            $motherName = $mother->name ?? null;
+                            $vaccineName = $vaccine->name ?? $immunization->vaccine_name;
+                            $senderName = config('services.iprog.sender_name');
 
-                            // Dispatch SMS job to background queue
-                            SendVaccinationReminderJob::dispatch(
+                            $message = $motherName
+                                ? "Hi {$motherName}! Your child {$child->full_name}'s {$vaccineName} immunization has been rescheduled to {$formattedDate} at {$formattedTime}. Please visit the health center. - {$senderName}"
+                                : "Hi {$child->full_name}! Your {$vaccineName} immunization has been rescheduled to {$formattedDate} at {$formattedTime}. Please visit the health center. - {$senderName}";
+
+                            SendSmsJob::dispatchSync(
                                 $contactNumber,
-                                $child->full_name,
-                                $vaccine->name ?? $immunization->vaccine_name,
-                                $formattedDate . ($formattedTime ? ' at ' . $formattedTime : ''),
-                                $mother->name ?? null
+                                $message,
+                                'immunization_rescheduled',
+                                $motherName ?? $child->full_name,
+                                'Immunization',
+                                $rescheduledImmunization->id
                             );
 
                             Log::info('SMS job dispatched for rescheduled immunization', [
                                 'child_id' => $child->id,
                                 'new_immunization_id' => $rescheduledImmunization->id,
-                                'phone' => $contactNumber
+                                'phone' => $contactNumber,
+                                'message_length' => strlen($message)
                             ]);
                         } catch (\Exception $e) {
                             Log::error('Failed to dispatch SMS job for rescheduled immunization: ' . $e->getMessage());
@@ -416,8 +437,8 @@ class ImmunizationService
                                          . "Please contact us to reschedule. Your health is important! - {$senderName}";
                             }
 
-                            // Dispatch SMS job to background queue
-                            SendSmsJob::dispatch(
+                            // Execute SMS job immediately so reminders send even without a queue worker
+                            SendSmsJob::dispatchSync(
                                 $contactNumber,
                                 $message,
                                 'missed_appointment',

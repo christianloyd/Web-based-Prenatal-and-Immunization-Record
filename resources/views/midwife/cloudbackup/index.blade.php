@@ -12,8 +12,8 @@
     <!-- Success/Error Messages -->
     @include('components.flowbite-alert')
 
-    <!-- Global Confirmation Modal -->
-    @include('components.confirmation-modal')
+    {{-- Note: Confirmation modal is already included in layout.midwife --}}
+
     <!-- Page Header -->
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -590,15 +590,37 @@
         restore: '{{ route("midwife.cloudbackup.restore") }}',
         download: '{{ route("midwife.cloudbackup.download", ":id") }}',
         sync: '{{ route("midwife.cloudbackup.sync") }}',
-        restoreProgress: '{{ route("midwife.cloudbackup.restore-progress", ":id") }}'
+        restoreProgress: '{{ url("/midwife/cloudbackup/restore-progress") }}/:id'
     };
 
     // Module information from server
     window.moduleInfo = @json($moduleInfo ?? []);
     window.stats = @json($stats ?? []);
+
+    // Simple fix for sidebar initialization on cloud backup page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure sidebar is visible on desktop
+        if (window.innerWidth >= 1024) {
+            const sidebar = document.querySelector('.sidebar-nav');
+            if (sidebar) {
+                // Force sidebar to be visible
+                sidebar.style.display = 'flex';
+                sidebar.style.transform = 'none';
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                
+                // Update Alpine.js state if available
+                if (window.Alpine && sidebar.__x) {
+                    sidebar.__x.$data.sidebarOpen = true;
+                }
+            }
+        }
+    });
 </script>
 
 <!-- Include Cloud Backup Module JavaScript -->
 <script src="{{ asset('js/midwife/cloudbackup-index.js') }}"></script>
+
+@endpush
 
 @endsection

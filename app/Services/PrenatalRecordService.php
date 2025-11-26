@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\PrenatalCheckup;
 use App\Models\PrenatalRecord;
 use App\Models\Patient;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\HealthcareNotification;
 use Illuminate\Support\Facades\Cache;
@@ -128,12 +130,47 @@ class PrenatalRecordService
                 throw new \Exception('This pregnancy record is already completed.');
             }
 
-            // Update status to completed
-            $prenatalRecord->status = 'completed';
-            $prenatalRecord->save();
+            $cancelledCheckups = 0;
 
-            // Send notification
-            $this->notifyPregnancyCompleted($prenatalRecord);
+            DB::transaction(function () use ($prenatalRecord, &$cancelledCheckups) {
+                // Refresh within transaction to avoid stale state
+                $prenatalRecord->refresh();
+
+                if ($prenatalRecord->status === 'completed') {
+                    throw new \Exception('This pregnancy record is already completed.');
+                }
+
+                // Update status and active flag
+                $prenatalRecord->update([
+                    'status' => 'completed',
+                    'is_active' => false,
+                ]);
+
+                $timestampNote = now()->format('M j, Y g:i A');
+
+                $upcomingStatuses = ['upcoming', 'scheduled'];
+                $upcomingCheckups = PrenatalCheckup::where('patient_id', $prenatalRecord->patient_id)
+                    ->whereIn('status', $upcomingStatuses)
+                    ->get();
+
+                $cancelledCheckups = $upcomingCheckups->count();
+
+                foreach ($upcomingCheckups as $checkup) {
+                    $existingNotes = trim((string) $checkup->notes);
+                    $noteSuffix = "[AUTO] Checkup cancelled because pregnancy record was completed on {$timestampNote}.";
+                    $newNotes = $existingNotes ? $existingNotes . "\n\n" . $noteSuffix : $noteSuffix;
+
+                    $checkup->update([
+                        'status' => 'cancelled',
+                        'notes' => $newNotes,
+                    ]);
+                }
+            });
+
+            $prenatalRecord->refresh()->loadMissing('patient');
+
+            // Send notification with context
+            $this->notifyPregnancyCompleted($prenatalRecord, $cancelledCheckups);
 
             return $prenatalRecord;
 
@@ -207,11 +244,16 @@ class PrenatalRecordService
     /**
      * Send notification about completed pregnancy
      */
-    private function notifyPregnancyCompleted(PrenatalRecord $prenatalRecord)
+    private function notifyPregnancyCompleted(PrenatalRecord $prenatalRecord, int $cancelledCheckups = 0)
     {
         try {
             $title = 'Pregnancy Completed';
             $message = 'Prenatal record for ' . $prenatalRecord->patient->name . ' has been marked as completed.';
+
+            if ($cancelledCheckups > 0) {
+                $plural = $cancelledCheckups === 1 ? 'checkup' : 'checkups';
+                $message .= " {$cancelledCheckups} upcoming prenatal {$plural} were automatically cancelled.";
+            }
             $type = 'success';
             $actionUrl = route('midwife.prenatalrecord.index');
             $data = [

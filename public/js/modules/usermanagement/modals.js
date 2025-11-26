@@ -79,8 +79,18 @@ export function openAddModal() {
         forms.resetForm();
     });
 
+    console.log('[User Management] Opening add modal');
+    console.log('[User Management] Routes object:', window.userManagementRoutes);
+    console.log('[User Management] Store route:', window.userManagementRoutes?.store);
+
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus text-[#68727A] mr-2"></i>Add User';
-    document.getElementById('userForm').action = window.userManagementRoutes.store;
+    const storeRoute = window.userManagementRoutes?.store;
+
+    if (!storeRoute) {
+        console.error('[User Management] Store route is undefined! Routes:', window.userManagementRoutes);
+    }
+
+    document.getElementById('userForm').action = storeRoute || '';
     document.getElementById('userId').value = '';
 
     removeMethodOverride();
@@ -113,15 +123,27 @@ export function openAddModal() {
  * @param {Object} user
  */
 export function openEditUserModal(user) {
+    console.log('[User Management] Opening edit modal for user:', user);
+    console.log('[User Management] Update route:', window.userManagementRoutes.update);
+
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit text-[#68727A] mr-2"></i>Edit User';
+    const updateRoute = window.userManagementRoutes.update.replace(':id', user.id);
+    console.log('[User Management] Setting form action to:', updateRoute);
+    document.getElementById('userForm').action = updateRoute;
+
+    // Import forms module and reset/populate FIRST, then add method override
     import('./forms.js').then(forms => {
         forms.resetForm();
         forms.populateEditForm(user);
+
+        // Add method override AFTER reset (which removes it)
+        addMethodOverride('PUT');
+
+        // Verify method override was added
+        const form = document.getElementById('userForm');
+        const methodInput = form.querySelector('input[name="_method"]');
+        console.log('[User Management] Method override added:', methodInput ? methodInput.value : 'NOT FOUND');
     });
-
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit text-[#68727A] mr-2"></i>Edit User';
-    document.getElementById('userForm').action = window.userManagementRoutes.update.replace(':id', user.id);
-
-    addMethodOverride('PUT');
 
     // Show password section for edit but make it optional
     const passwordSection = document.getElementById('passwordSection');
@@ -215,6 +237,7 @@ export function activateUser(userId) {
  * @param {string} method
  */
 function addMethodOverride(method) {
+    console.log('[User Management] addMethodOverride called with:', method);
     removeMethodOverride();
 
     const methodInput = document.createElement('input');
@@ -224,8 +247,12 @@ function addMethodOverride(method) {
     methodInput.id = 'methodOverride';
 
     const form = document.getElementById('userForm');
+    console.log('[User Management] Form found:', !!form);
     if (form) {
         form.appendChild(methodInput);
+        console.log('[User Management] Method input appended. Form now has _method:', form.querySelector('input[name="_method"]'));
+    } else {
+        console.error('[User Management] Form #userForm not found!');
     }
 }
 

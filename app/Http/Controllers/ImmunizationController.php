@@ -301,7 +301,7 @@ class ImmunizationController extends Controller
     /**
      * Mark immunization as missed
      */
-    public function markAsMissed($id)
+    public function markAsMissed(Request $request, $id)
     {
         if (!Auth::check()) {
             abort(401, 'Authentication required');
@@ -314,8 +314,25 @@ class ImmunizationController extends Controller
         }
 
         try {
+            $validated = $request->validate([
+                'reason' => 'required|string|max:255',
+                'notes' => 'nullable|string|max:1000',
+                'reschedule' => 'nullable|boolean',
+                'reschedule_date' => 'nullable|date|after_or_equal:today',
+                'reschedule_time' => 'nullable|date_format:H:i',
+            ]);
+
             $immunization = Immunization::with(['vaccine', 'childRecord'])->findOrFail($id);
-            $this->immunizationService->markStatus($immunization, 'Missed');
+
+            $payload = array_merge($validated, [
+                'immunization_id' => $immunization->id,
+                'status' => 'Missed',
+                'reason' => $validated['reason'],
+                'notes' => $validated['notes'] ?? null,
+                'reschedule' => !empty($validated['reschedule']),
+            ]);
+
+            $this->immunizationService->quickUpdateStatus($immunization, $payload);
 
             $redirectRoute = $user->role === 'bhw'
                 ? 'bhw.immunization.index'

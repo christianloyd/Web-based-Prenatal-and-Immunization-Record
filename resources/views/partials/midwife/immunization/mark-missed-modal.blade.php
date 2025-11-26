@@ -83,6 +83,8 @@
                 <label class="flex items-start cursor-pointer mb-3">
                     <input type="checkbox"
                            id="missed-reschedule-checkbox"
+                           name="reschedule"
+                           value="1"
                            class="mt-1 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded">
                     <span class="ml-3 text-sm font-semibold text-gray-700">
                         Would you like to reschedule this immunization?

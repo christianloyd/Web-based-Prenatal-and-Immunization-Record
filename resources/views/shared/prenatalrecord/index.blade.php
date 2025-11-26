@@ -127,7 +127,7 @@
                                 <i class="fas fa-eye mr-1"></i>
                             <span class="hidden sm:inline">View Details</span>
                                 </a>
-                                <button onclick="openEditPrenatalModal({{ $record }})"
+                                <button onclick='openEditPrenatalModal(@json($record))'
                                 class="btn-action btn-edit inline-flex items-center justify-center">
                                 <i class="fas fa-edit mr-1"></i>
                             <span class="hidden sm:inline">Edit</span>
@@ -237,10 +237,6 @@
 @include('components.refresh-data-script', ['refreshButtonId' => 'prenatal-refresh-btn', 'skeletonId' => 'prenatal-skeleton', 'tableSelector' => '.overflow-x-auto table'])
 
 @push('scripts')
-{{-- Unified Prenatal Records Module - Works for both BHW and Midwife --}}
-<script type="module">
-    import { initializePrenatalRecordsPage } from '@/shared/pages/prenatalrecords';
-    // Module auto-initializes on DOMContentLoaded
-    // Exposes backward-compatible functions: openViewPrenatalModal(), openEditPrenatalModal(), openCompletePregnancyModal()
-</script>
+    {{-- Unified Prenatal Records Module - Works for both BHW and Midwife --}}
+    @vite('resources/js/shared/pages/prenatalrecords.js')
 @endpush

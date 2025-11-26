@@ -6,6 +6,9 @@ use App\Models\ChildRecord;
 use App\Models\ChildImmunization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\SendSmsJob;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class ChildImmunizationController extends Controller
 {
@@ -66,6 +69,58 @@ class ChildImmunizationController extends Controller
                 'notes' => $validated['notes'],
                 'next_due_date' => $validated['next_due_date'],
             ]);
+
+            // Send SMS notification to parent/guardian about completed vaccination
+            $child = ChildRecord::with('mother')->find($childRecord->id);
+            if ($child && $child->mother) {
+                $mother = $child->mother;
+                $contactNumber = $mother->contact;
+
+                if ($contactNumber) {
+                    try {
+                        $formattedDate = Carbon::parse($validated['vaccination_date'])->format('M j, Y');
+                        $childName = $child->full_name;
+                        $vaccineName = $validated['vaccine_name'];
+                        $motherName = $mother->name;
+                        $senderName = config('services.iprog.sender_name');
+
+                        // Build confirmation message
+                        $message = "Hi {$motherName}, your child {$childName}'s {$vaccineName} vaccination completed on {$formattedDate}.";
+
+                        // Add next due date if available
+                        if (!empty($validated['next_due_date'])) {
+                            $message .= " Next dose due: {$validated['next_due_date']}.";
+                        }
+
+                        $message .= " Thank you!";
+
+                        // Only add sender name if it fits within 160 chars
+                        if (strlen($message . " - " . $senderName) <= 160) {
+                            $message .= " - {$senderName}";
+                        }
+
+                        // Dispatch SMS job to background queue
+                        SendSmsJob::dispatch(
+                            $contactNumber,
+                            $message,
+                            'immunization_completed',
+                            $motherName,
+                            'ChildImmunization',
+                            $immunization->id
+                        );
+
+                        Log::info('SMS job dispatched for child immunization', [
+                            'child_id' => $child->id,
+                            'immunization_id' => $immunization->id,
+                            'phone' => $contactNumber,
+                            'message_length' => strlen($message)
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to dispatch SMS job for child immunization: ' . $e->getMessage());
+                        // Don't fail the immunization creation if SMS dispatch fails
+                    }
+                }
+            }
 
             if ($request->expectsJson()) {
                 return response()->json([

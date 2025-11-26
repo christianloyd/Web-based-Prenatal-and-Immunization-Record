@@ -7,7 +7,7 @@
 @if(session('success'))
 <div class="healthcare-alert-overlay" id="alert-overlay-success">
     <div class="healthcare-alert healthcare-alert-success flex items-center justify-center p-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-200" role="alert" data-alert-type="success">
-        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="healthcare-alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
         </svg>
         <span class="sr-only">Success</span>
@@ -27,7 +27,7 @@
 @if(session('error'))
 <div class="healthcare-alert-overlay" id="alert-overlay-error">
     <div class="healthcare-alert healthcare-alert-error flex items-center justify-center p-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert" data-alert-type="error">
-        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="healthcare-alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
         </svg>
         <span class="sr-only">Error</span>
@@ -47,7 +47,7 @@
 @if(session('warning'))
 <div class="healthcare-alert-overlay" id="alert-overlay-warning">
     <div class="healthcare-alert healthcare-alert-warning flex items-center justify-center p-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 border border-yellow-200" role="alert" data-alert-type="warning">
-        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="healthcare-alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
         </svg>
         <span class="sr-only">Warning</span>
@@ -67,7 +67,7 @@
 @if(session('info'))
 <div class="healthcare-alert-overlay" id="alert-overlay-info">
     <div class="healthcare-alert healthcare-alert-info flex items-center justify-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 border border-blue-200" role="alert" data-alert-type="info">
-        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="healthcare-alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
         </svg>
         <span class="sr-only">Info</span>
@@ -104,6 +104,14 @@
     max-width: min(90vw, 600px);
     min-width: 200px;
     pointer-events: auto;
+}
+
+.healthcare-alert-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+    color: currentColor;
 }
 
 .healthcare-alert-success {
@@ -344,7 +352,7 @@ window.healthcareAlert = {
 
         return `
             <div class="healthcare-alert ${config.bgClass} flex items-center justify-center p-4 text-sm ${config.textClass} rounded-lg border border-current/20" role="alert">
-                <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="healthcare-alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                     <path d="${config.iconPath}"/>
                 </svg>
                 <span class="sr-only">${type}</span>

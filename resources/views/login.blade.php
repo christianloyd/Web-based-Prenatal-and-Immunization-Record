@@ -4,195 +4,340 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Healthcare Portal - Login</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+    <style>
+        /* Complete reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Table layout for guaranteed side-by-side */
+        .login-table {
+            display: table;
+            width: 100%;
+            height: 100vh;
+            border-collapse: collapse;
+        }
+        
+        .login-cell {
+            display: table-cell;
+            vertical-align: middle;
+            height: 100vh;
+        }
+        
+        .login-cell-left {
+            width: 50%;
+            background: linear-gradient(135deg, #D4A373 0%, #ecb99e 100%);
+        }
+        
+        .login-cell-right {
+            width: 50%;
+            background-color: #FEFAE0;
+        }
+        
+        /* Content styling */
+        .left-content {
+            text-align: center;
+            color: white;
+            padding: 2rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .right-content {
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        
+        .form-box {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 380px;
+        }
+        
+        /* Form inputs */
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #D4A373;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .remember-forgot label {
+            display: flex;
+            align-items: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .remember-forgot input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #D4A373;
+        }
+        
+        .forgot-link {
+            color: #D4A373;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+        
+        .login-btn {
+            width: 100%;
+            background: #D4A373;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .login-btn:hover {
+            background: #B8956A;
+        }
+        
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid #D4A373;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .login-table {
+                display: block;
+            }
+            
+            .login-cell {
+                display: block;
+                width: 100%;
+                height: 50vh;
+            }
+            
+            .login-cell-left {
+                height: 40vh;
+            }
+            
+            .login-cell-right {
+                height: 60vh;
+            }
+        }
+    </style>
 </head>
-<body class="min-h-screen flex flex-col lg:flex-row">
-    <!-- Left Side - Healthcare Design -->
-    <div class="flex-1 bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-6 lg:p-8" style="background: linear-gradient(135deg, #D4A373 0%, #ecb99e 100%);">
-        <div class="text-center text-white max-w-md w-full">
-            <!-- Healthcare Icon -->
-            <div class="mb-6 lg:mb-8">
-                <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                    </svg>
-                </div>
-            </div>
-            
-            <h1 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">HealthCare Portal</h1>
-            <p class="text-base sm:text-lg opacity-90 mb-4 sm:mb-6">Dedicated platform for healthcare professionals</p>
-            
-            <!-- Healthcare Elements -->
-            <div class="flex justify-center space-x-4 sm:space-x-6 mb-6 sm:mb-8">
-                <div class="text-center">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
+<body>
+    <table class="login-table">
+        <tr>
+            <!-- Left Side -->
+            <td class="login-cell login-cell-left">
+                <div class="left-content">
+                    <div class="feature-icon">
+                        <i class="fas fa-heartbeat" style="font-size: 20px;"></i>
                     </div>
-                    <p class="text-xs sm:text-sm opacity-80">Patient Records</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <p class="text-xs sm:text-sm opacity-80">Scheduling</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                    </div>
-                    <p class="text-xs sm:text-sm opacity-80">Analytics</p>
-                </div>
-            </div>
-            
-            <div class="text-xs sm:text-sm opacity-75">
-                <p>Secure • Reliable • Professional</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Side - Login Form -->
-    <div class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8" style="background-color: #FEFAE0;">
-        <div class="w-full max-w-md">
-            <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-                <!-- Logo Header -->
-                <div class="text-center mb-6 sm:mb-8">
-                    <div class="mb-4">
-                        <img src="{{ asset('images/logo_final.jpg') }}" alt="Healthcare Logo" class="mx-auto h-28 w-28 sm:h-32 sm:w-32 rounded-full object-cover border-4 border-[#D4A373] shadow-lg">
-                    </div>
-                    <h2 class="text-xl sm:text-2xl font-bold mb-2" style="color: #000000;">Welcome Back</h2>
-                    <p class="text-sm sm:text-base" style="color: #6b7280;">Sign in to access your healthcare portal</p>
-                </div>
-
-                <!-- Success/Error Messages -->
-                @include('components.flowbite-alert') 
-
-                <form action="{{ route('login.authenticate') }}" method="POST" class="space-y-5 sm:space-y-6">
-                    @csrf
-                    <!-- Username Field -->
-                    <div>
-                        <label for="username" class="block text-sm font-medium mb-2" style="color: #000000;">
-                            Username
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-user h-4 w-4 sm:h-5 sm:w-5" style="color: #6b7280;"></i>
+                    <h1 style="font-size: 28px; margin-bottom: 1rem;">HealthCare Portal</h1>
+                    <p style="font-size: 16px; opacity: 0.9; margin-bottom: 2rem;">Dedicated platform for healthcare professionals</p>
+                    
+                    <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem;">
+                        <div style="text-align: center;">
+                            <div class="feature-icon">
+                                <i class="fas fa-file-medical" style="font-size: 16px;"></i>
                             </div>
-                            <input 
-                                type="text" 
-                                id="username" 
-                                name="username"
-                                required
-                                value="{{ old('username') }}"
-                                class="block w-full pl-10 pr-3 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg transition-colors @error('username') border-red-300 @enderror" style="focus:ring-2; focus:ring-color: #D4A373; focus:border-color: #D4A373;"
-                                placeholder="Enter your username"
-                            >
+                            <p style="font-size: 12px; opacity: 0.8;">Patient Records</p>
                         </div>
-                        @error('username')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Password Field -->
-                    <div>
-                        <label for="password" class="block text-sm font-medium mb-2" style="color: #000000;">
-                            Password
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-lock h-4 w-4 sm:h-5 sm:w-5" style="color: #6b7280;"></i>
+                        <div style="text-align: center;">
+                            <div class="feature-icon">
+                                <i class="fas fa-clock" style="font-size: 16px;"></i>
                             </div>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password"
-                                required
-                                class="block w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg transition-colors @error('password') border-red-300 @enderror" style="focus:ring-2; focus:ring-color: #D4A373; focus:border-color: #D4A373;"
-                                placeholder="Enter your password"
-                            >
-                            <!-- Show/Hide Password Toggle -->
-                            <button 
-                                type="button" 
-                                id="togglePassword" 
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-paynes-gray hover:text-charcoal transition-colors"
-                                aria-label="Toggle password visibility"
-                            >
-                                <i class="fa-solid fa-eye-slash h-4 w-4 sm:h-5 sm:w-5"></i>
+                            <p style="font-size: 12px; opacity: 0.8;">Scheduling</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line" style="font-size: 16px;"></i>
+                            </div>
+                            <p style="font-size: 12px; opacity: 0.8;">Analytics</p>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 12px; opacity: 0.75;">Secure • Reliable • Professional</p>
+                </div>
+            </td>
+            
+            <!-- Right Side -->
+            <td class="login-cell login-cell-right">
+                <div class="right-content">
+                    <div class="form-box">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <img src="{{ asset('images/logo_final.jpg') }}" alt="Logo" class="logo-img">
+                            <h2 style="color: #000; font-size: 24px; margin-bottom: 0.5rem;">Welcome Back</h2>
+                            <p style="color: #6b7280; font-size: 14px;">Sign in to access your healthcare portal</p>
+                        </div>
+
+                        @include('components.flowbite-alert')
+
+                        <form action="{{ route('login.authenticate') }}" method="POST">
+                            @csrf
+                            
+                            <div class="input-group">
+                                <label for="username">Username</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input 
+                                        type="text" 
+                                        id="username" 
+                                        name="username"
+                                        required
+                                        value="{{ old('username') }}"
+                                        class="form-input"
+                                        placeholder="Enter your username"
+                                    >
+                                </div>
+                                @error('username')
+                                    <p style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="input-group">
+                                <label for="password">Password</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        name="password"
+                                        required
+                                        class="form-input"
+                                        placeholder="Enter your password"
+                                    >
+                                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                                        <i class="fa-solid fa-eye-slash" id="toggleIcon"></i>
+                                    </button>
+                                </div>
+                                @error('password')
+                                    <p style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div class="remember-forgot">
+                                <label>
+                                    <input type="checkbox" name="remember">
+                                    Remember me
+                                </label>
+                                <a href="#" class="forgot-link">Forgot password?</a>
+                            </div>
+
+                            <button type="submit" class="login-btn">
+                                <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i>
+                                Sign In
                             </button>
-                        </div>
-                        @error('password')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>  
-                    <!-- Remember Me -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <input 
-                                id="remember-me" 
-                                name="remember" 
-                                type="checkbox" 
-                                class="h-4 w-4 border-gray-300 rounded" style="accent-color: #D4A373;"
-                            >
-                            <label for="remember-me" class="ml-2 block text-sm" style="color: #6b7280;">
-                                Remember me
-                            </label>
-                        </div>
-                        <div class="text-sm">
-                            <a href="#" class="font-medium transition-colors" style="color: #D4A373;" onmouseover="this.style.color='#B8956A'" onmouseout="this.style.color='#D4A373'">
-                                Forgot password?
-                            </a>
+                        </form>
+
+                        <div style="text-align: center; margin-top: 1.5rem;">
+                            <p style="color: #6b7280; font-size: 12px;">
+                                Secure healthcare portal for authorized personnel only
+                            </p>
                         </div>
                     </div>
-
-                    <!-- Submit Button -->
-                    <button 
-                        type="submit"
-                        class="w-full flex justify-center items-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-colors" style="background-color: #D4A373;" onmouseover="this.style.backgroundColor='#B8956A'" onmouseout="this.style.backgroundColor='#D4A373'"
-                    >
-                    <i class="fa-solid fa-right-to-bracket mr-3 sm:mr-5"></i>
-                        Sign In
-                    </button>
-                </form>
-
-                <!-- Footer -->
-                <div class="mt-4 sm:mt-6 text-center">
-                    <p class="text-xs text-paynes-gray">
-                        Secure healthcare portal for authorized personnel only
-                    </p>
                 </div>
-            </div>
-        </div>
-    </div>
-    
+            </td>
+        </tr>
+    </table>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const togglePassword = document.getElementById('togglePassword');
+        function togglePassword() {
             const passwordInput = document.getElementById('password');
-            const eyeIcon = togglePassword.querySelector('i');
+            const toggleIcon = document.getElementById('toggleIcon');
             
-            togglePassword.addEventListener('click', function() {
-                // Toggle password visibility
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                
-                // Toggle eye icon
-                if (type === 'text') {
-                    eyeIcon.classList.remove('fa-eye-slash');
-                    eyeIcon.classList.add('fa-eye');
-                } else {
-                    eyeIcon.classList.remove('fa-eye');
-                    eyeIcon.classList.add('fa-eye-slash');
-                }
-            });
-        });
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        }
     </script>
 </body>
 </html>

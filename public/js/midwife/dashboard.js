@@ -31,7 +31,12 @@
 function initializeCharts() {
     // Debug: Check if Chart.js loaded
     console.log('Chart.js loaded:', typeof Chart !== 'undefined');
-    console.log('Chart Data:', {!! json_encode($charts) !!});
+    const chartData = window.DASHBOARD_DATA || {};
+    const checkupsData = chartData.checkups || {};
+    const immunizationData = chartData.immunization || {};
+    const vaccineData = chartData.vaccines || {};
+    const registrationData = chartData.registration || {};
+    console.log('Chart Data:', chartData);
 
     if (typeof Chart === 'undefined') {
         console.error('Chart.js failed to load!');
@@ -113,10 +118,10 @@ function initializeCharts() {
             new Chart(checkupsCtx.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: {!! json_encode($charts['checkups']['labels'] ?? []) !!},
+                    labels: Array.isArray(checkupsData.labels) ? checkupsData.labels : [],
                     datasets: [{
                         label: 'Monthly Checkups',
-                        data: {!! json_encode($charts['checkups']['data'] ?? []) !!},
+                        data: Array.isArray(checkupsData.data) ? checkupsData.data : [],
                         borderColor: chartColors.primary,
                         backgroundColor: chartColors.primary + '20',
                         fill: true,
@@ -159,9 +164,9 @@ function initializeCharts() {
                     labels: ['Fully Immunized', 'Partially Immunized', 'Not Immunized'],
                     datasets: [{
                         data: [
-                            {{ $charts['immunization']['fully'] ?? 0 }},
-                            {{ $charts['immunization']['partially'] ?? 0 }},
-                            {{ $charts['immunization']['not'] ?? 100 }}
+                            Number(immunizationData.fully ?? 0),
+                            Number(immunizationData.partially ?? 0),
+                            Number(immunizationData.not ?? 100)
                         ],
                         backgroundColor: [
                             chartColors.success,
@@ -209,10 +214,10 @@ function initializeCharts() {
             new Chart(vaccinesCtx.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: {!! json_encode($charts['vaccines']['labels'] ?? []) !!},
+                    labels: Array.isArray(vaccineData.labels) ? vaccineData.labels : [],
                     datasets: [{
                         label: 'Usage Count',
-                        data: {!! json_encode($charts['vaccines']['data'] ?? []) !!},
+                        data: Array.isArray(vaccineData.data) ? vaccineData.data : [],
                         backgroundColor: chartColors.info + '80',
                         borderColor: chartColors.info,
                         borderWidth: 1,
@@ -252,10 +257,10 @@ function initializeCharts() {
             new Chart(registrationCtx.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: {!! json_encode($charts['registration']['labels'] ?? []) !!},
+                    labels: Array.isArray(registrationData.labels) ? registrationData.labels : [],
                     datasets: [{
                         label: 'New Registrations',
-                        data: {!! json_encode($charts['registration']['data'] ?? []) !!},
+                        data: Array.isArray(registrationData.data) ? registrationData.data : [],
                         borderColor: chartColors.success,
                         backgroundColor: chartColors.success + '30',
                         fill: true,

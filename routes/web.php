@@ -209,6 +209,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 
             //Child Record Routes for BHW
             Route::resource('childrecord', ChildRecordController::class);
+            Route::get('childrecord-search', [ChildRecordController::class, 'search'])->name('childrecord.search');
 
             //Immunization Routes for BHW - Specific routes must come BEFORE resource routes
             Route::get('immunizations/children-data', [ImmunizationController::class, 'getChildrenForImmunization'])->name('immunizations.children-data');
@@ -216,7 +217,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
             Route::get('immunizations/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunizations.child-doses');
             Route::post('immunizations/{id}/mark-missed', [ImmunizationController::class, 'markAsMissed'])->name('immunizations.mark-missed');
             Route::post('immunizations/{id}/reschedule', [ImmunizationController::class, 'reschedule'])->name('immunizations.reschedule');
-            Route::resource('immunizations', ImmunizationController::class);
+            Route::resource('immunizations', ImmunizationController::class)->names('immunization');
 
             //Appointment Routes for BHW
             Route::resource('appointments', AppointmentController::class);

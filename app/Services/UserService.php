@@ -46,9 +46,9 @@ class UserService
      *
      * @param int $id
      * @param array $data
-     * @return bool
+     * @return User
      */
-    public function updateUser(int $id, array $data): bool
+    public function updateUser(int $id, array $data): User
     {
         return DB::transaction(function () use ($id, $data) {
             // Remove password if empty (not being updated)
@@ -65,7 +65,8 @@ class UserService
                 ]);
             }
 
-            return $result;
+            // Return the updated user object
+            return $this->userRepository->find($id);
         });
     }
 
@@ -109,10 +110,10 @@ class UserService
      * Toggle user active status
      *
      * @param int $id
-     * @return bool
+     * @return User
      * @throws \Exception
      */
-    public function toggleActiveStatus(int $id): bool
+    public function toggleActiveStatus(int $id): User
     {
         // Prevent deactivating own account
         if (Auth::id() === $id) {
@@ -129,9 +130,11 @@ class UserService
                     'new_status' => $user->is_active ? 'active' : 'inactive',
                     'changed_by' => Auth::id(),
                 ]);
+
+                return $user;
             }
 
-            return $result;
+            throw new \Exception('Failed to toggle user status');
         });
     }
 

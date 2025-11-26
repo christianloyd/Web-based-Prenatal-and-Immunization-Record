@@ -28,13 +28,14 @@ export const routes = {
             destroy: (id) => `/bhw/patients/${id}`
         },
         prenatalRecords: {
-            index: '/bhw/prenatalrecords',
-            create: '/bhw/prenatalrecords/create',
-            store: '/bhw/prenatalrecords',
-            show: (id) => `/bhw/prenatalrecords/${id}`,
-            edit: (id) => `/bhw/prenatalrecords/${id}/edit`,
-            update: (id) => `/bhw/prenatalrecords/${id}`,
-            destroy: (id) => `/bhw/prenatalrecords/${id}`
+            index: '/bhw/prenatalrecord',
+            create: '/bhw/prenatalrecord/create',
+            store: '/bhw/prenatalrecord',
+            show: (id) => `/bhw/prenatalrecord/${id}`,
+            edit: (id) => `/bhw/prenatalrecord/${id}/edit`,
+            update: (id) => `/bhw/prenatalrecord/${id}`,
+            destroy: (id) => `/bhw/prenatalrecord/${id}`,
+            complete: (id) => `/bhw/prenatalrecord/${id}/complete`
         },
         prenatalCheckups: {
             index: '/bhw/prenatalcheckups',
@@ -94,13 +95,14 @@ export const routes = {
             destroy: (id) => `/midwife/patients/${id}`
         },
         prenatalRecords: {
-            index: '/midwife/prenatalrecords',
-            create: '/midwife/prenatalrecords/create',
-            store: '/midwife/prenatalrecords',
-            show: (id) => `/midwife/prenatalrecords/${id}`,
-            edit: (id) => `/midwife/prenatalrecords/${id}/edit`,
-            update: (id) => `/midwife/prenatalrecords/${id}`,
-            destroy: (id) => `/midwife/prenatalrecords/${id}`
+            index: '/midwife/prenatalrecord',
+            create: '/midwife/prenatalrecord/create',
+            store: '/midwife/prenatalrecord',
+            show: (id) => `/midwife/prenatalrecord/${id}`,
+            edit: (id) => `/midwife/prenatalrecord/${id}/edit`,
+            update: (id) => `/midwife/prenatalrecord/${id}`,
+            destroy: (id) => `/midwife/prenatalrecord/${id}`,
+            complete: (id) => `/midwife/prenatalrecord/${id}/complete`
         },
         prenatalCheckups: {
             index: '/midwife/prenatalcheckups',

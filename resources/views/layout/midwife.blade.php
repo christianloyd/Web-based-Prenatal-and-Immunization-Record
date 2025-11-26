@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Midwife Dashboard')</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>@yield('title', 'Midwife Dashboard')</title> 
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Dynamic Favicon -->
@@ -279,6 +278,29 @@
         .sidebar-nav, .sidebar-nav * {
             transition: none !important;
         }
+
+        /* Sidebar scrollbars blend with sidebar background */
+        .sidebar-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #B8956A #D4A373;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-track {
+            background: #D4A373;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-thumb {
+            background: #B8956A;
+            border-radius: 4px;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a1784f;
+        }
         
 
         /* CRITICAL FIX: Navigation Group Styles - Remove problematic animations */
@@ -474,7 +496,7 @@
                 </div>
             </div>
             
-            <nav class="flex-1 p-3 sm:p-4 overflow-y-auto">
+            <nav class="flex-1 p-3 sm:p-4 overflow-y-auto sidebar-scrollbar">
                 <ul class="space-y-1 sm:space-y-2">
                     <!-- Dashboard -->
                     <li>

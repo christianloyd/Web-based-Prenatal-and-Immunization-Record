@@ -36,7 +36,7 @@ function loadBackupData() {
     return fetch(window.cloudBackupRoutes.data)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
             }
             return response.json();
         })
@@ -332,7 +332,7 @@ function updateEstimatedSize() {
 
     const estimatedSizeElement = document.getElementById('estimatedSize');
     if (totalSize > 0) {
-        estimatedSizeElement.textContent = `~${totalSize.toFixed(1)} MB (uncompressed)`;
+        estimatedSizeElement.textContent = '~' + totalSize.toFixed(1) + ' MB (uncompressed)';
     } else {
         estimatedSizeElement.textContent = 'Select modules to see estimate';
     }
@@ -362,7 +362,7 @@ function createBackup(event) {
 
     // Use confirmation modal for backup creation
     showConfirmationModal({
-        title: `Are you sure you want to create a backup named "${backupName}" for the following modules: ${moduleNames}? This process may take several minutes.`,
+        title: 'Are you sure you want to create a backup named "' + backupName + '" for the following modules: ' + moduleNames + '? This process may take several minutes.',
         type: 'info',
         confirmText: 'Yes, create backup',
         cancelText: 'Cancel',
@@ -438,9 +438,9 @@ function createBackup(event) {
 function generateBackupName(modules) {
     const timestamp = new Date().toISOString().slice(0, 16).replace('T', '_');
     if (modules.length === Object.keys(moduleSizes).length) {
-        return `Full_Backup_${timestamp}`;
+        return 'Full_Backup_' + timestamp;
     } else {
-        return `Selective_Backup_${timestamp}`;
+        return 'Selective_Backup_' + timestamp;
     }
 }
 
@@ -479,7 +479,7 @@ function simulateBackupProgress() {
             }
 
             const remainingTime = Math.max(1, Math.round((100 - progress) / 8));
-            progressETA.textContent = remainingTime > 0 ? `~${remainingTime}s remaining` : 'Almost done...';
+            progressETA.textContent = remainingTime > 0 ? '~' + remainingTime + 's remaining' : 'Almost done...';
         }
     }, 800);
 }
@@ -585,7 +585,7 @@ function restoreData(event) {
         ' with options: ' + restoreData.restore_options.join(', ') : '';
 
     showConfirmationModal({
-        title: `CRITICAL OPERATION: Are you absolutely sure you want to restore data from "${backup.name}" (${moduleNames})${restoreOptions}? This will overwrite existing data and cannot be undone without another backup.`,
+        title: 'CRITICAL OPERATION: Are you absolutely sure you want to restore data from "' + backup.name + '" (' + moduleNames + ')' + restoreOptions + '? This will overwrite existing data and cannot be undone without another backup.',
         type: 'danger',
         confirmText: 'Yes, restore data',
         cancelText: 'Cancel restore',
@@ -631,25 +631,96 @@ function restoreData(event) {
     });
 }
 
+function restoreFromBackup(backupId) {
+    // Find the backup and populate the restore form
+    const backup = backups.find(b => b.id === backupId);
+    if (!backup) {
+        showError('Selected backup not found.');
+        return;
+    }
+
+    // Open restore modal and pre-select the backup
+    openRestoreModal();
+    
+    // Wait for modal to open and backup list to populate
+    setTimeout(() => {
+        const backupRadio = document.querySelector('input[name="restore_backup"][value="' + backupId + '"]');
+        if (backupRadio) {
+            backupRadio.checked = true;
+        }
+    }, 100);
+}
+
+// Confirmation Modal Function
+function showConfirmationModal(options) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('confirmationModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'confirmationModal';
+        modal.className = 'hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+        modal.innerHTML = '<div class="bg-white rounded-xl shadow-xl max-w-md w-full">' +
+            '<div class="p-6">' +
+                '<div class="flex items-center mb-4">' +
+                    '<div class="flex-shrink-0">' +
+                        '<i class="fas fa-exclamation-triangle text-2xl text-yellow-600"></i>' +
+                    '</div>' +
+                    '<div class="ml-3">' +
+                        '<h3 class="text-lg font-medium text-gray-900" id="confirmationTitle">Confirm Action</h3>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="mb-6">' +
+                    '<p class="text-sm text-gray-600" id="confirmationMessage">Are you sure you want to proceed?</p>' +
+                '</div>' +
+                '<div class="flex justify-end space-x-3">' +
+                    '<button type="button" id="confirmationCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>' +
+                    '<button type="button" id="confirmationConfirm" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Confirm</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+        document.body.appendChild(modal);
+
+        // Add event listeners
+        document.getElementById('confirmationCancel').addEventListener('click', function() {
+            modal.classList.add('hidden');
+        });
+
+        document.getElementById('confirmationConfirm').addEventListener('click', function() {
+            modal.classList.add('hidden');
+            if (options.onConfirm) {
+                options.onConfirm();
+            }
+        });
+    }
+
+    // Update modal content
+    document.getElementById('confirmationTitle').textContent = options.title || 'Confirm Action';
+    document.getElementById('confirmationMessage').textContent = options.message || 'Are you sure you want to proceed?';
+    
+    var confirmBtn = document.getElementById('confirmationConfirm');
+    var cancelBtn = document.getElementById('confirmationCancel');
+    
+    confirmBtn.textContent = options.confirmText || 'Confirm';
+    cancelBtn.textContent = options.cancelText || 'Cancel';
+    
+    // Update button colors based on type
+    if (options.type === 'danger') {
+        confirmBtn.className = 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors';
+    } else if (options.type === 'info') {
+        confirmBtn.className = 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors';
+    } else {
+        confirmBtn.className = 'px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors';
+    }
+
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
 function downloadBackup(id) {
     const backup = backups.find(b => b.id === id);
     if (backup) {
-        showSuccess(`Downloading "${backup.name}"...`);
+        showSuccess('Downloading "' + backup.name + '"...');
         window.open(window.cloudBackupRoutes.download.replace(':id', id), '_blank');
-    }
-}
-
-function restoreFromBackup(id) {
-    const backup = backups.find(b => b.id === id);
-    if (backup) {
-        // Pre-select the backup in restore modal
-        openRestoreModal();
-        setTimeout(() => {
-            const radioButton = document.querySelector(`input[name="restore_backup"][value="${id}"]`);
-            if (radioButton) {
-                radioButton.checked = true;
-            }
-        }, 100);
     }
 }
 
@@ -665,7 +736,7 @@ function updateStats() {
         const lastBackupTime = new Date(lastBackup.created_at);
         const now = new Date();
         const diffHours = Math.floor((now - lastBackupTime) / (1000 * 60 * 60));
-        document.getElementById('lastBackup').textContent = `${diffHours}h ago`;
+        document.getElementById('lastBackup').textContent = diffHours + 'h ago';
     }
 }
 
@@ -754,7 +825,7 @@ function loadRealDataCounts() {
             if (info && document.getElementById(elementId)) {
                 const count = info.record_count || 0;
                 const size = info.size_formatted || '0 B';
-                document.getElementById(elementId).textContent = `${count} records • ${size}`;
+                document.getElementById(elementId).textContent = count + ' records • ' + size;
             }
         };
 
@@ -775,9 +846,9 @@ function formatSize(sizeInMB) {
     if (sizeInMB < 0.001) {
         return '< 1 KB';
     } else if (sizeInMB < 1) {
-        return `${Math.round(sizeInMB * 1024)} KB`;
+        return Math.round(sizeInMB * 1024) + ' KB';
     } else {
-        return `${sizeInMB.toFixed(1)} MB`;
+        return sizeInMB.toFixed(1) + ' MB';
     }
 }
 
@@ -796,7 +867,7 @@ function syncGoogleDrive() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showSuccess(data.message || `Successfully synced ${data.synced_count || 0} backups from Google Drive`);
+            showSuccess(data.message || 'Successfully synced ' + (data.synced_count || 0) + ' backups from Google Drive');
             // Reload backup data to show newly synced backups
             loadBackupData();
         } else {
@@ -829,7 +900,7 @@ function showRestoreProgressModal(backupName) {
     document.getElementById('restoreProgressStatus').textContent = 'Initializing restore...';
     document.getElementById('restoreProgressBar').style.width = '0%';
     document.getElementById('restoreProgressText').textContent = '0%';
-    document.getElementById('restoreBackupName').textContent = `Restoring from: ${backupName}`;
+    document.getElementById('restoreBackupName').textContent = 'Restoring from: ' + backupName;
 }
 
 function hideRestoreProgressModal() {
@@ -846,10 +917,18 @@ function trackRestoreProgress(restoreId) {
     const progressText = document.getElementById('restoreProgressText');
     const progressStatus = document.getElementById('restoreProgressStatus');
 
+    // Show initial status
+    showInfo('Restore operation started. Tracking progress...');
+
     // Poll for progress updates
     restoreProgressInterval = setInterval(() => {
         fetch(window.cloudBackupRoutes.restoreProgress.replace(':id', restoreId))
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+                return response.json();
+            })
             .then(data => {
                 // Update progress
                 const progress = data.progress || 0;
@@ -868,11 +947,13 @@ function trackRestoreProgress(restoreId) {
                     progressBar.classList.add('bg-green-500');
                     progressStatus.textContent = 'Restore completed successfully!';
 
-                    // Hide progress after delay and show success message
+                    // Show success message and reload data
+                    showSuccess(data.message || 'Data restored successfully!');
+                    
+                    // Hide progress after delay and reload data
                     setTimeout(() => {
                         hideRestoreProgressModal();
-                        showSuccess(data.message || 'Data restored successfully!');
-                        loadBackupData(); // Reload data
+                        loadBackupData(); // Reload data to show updated restore history
                     }, 2000);
                 } else if (data.status === 'failed') {
                     clearInterval(restoreProgressInterval);
@@ -884,10 +965,16 @@ function trackRestoreProgress(restoreId) {
                     progressBar.classList.add('bg-red-600');
                     progressStatus.textContent = 'Restore failed';
 
+                    // Show error message
+                    showError(data.error || 'Restore failed. Please try again.');
+                    
+                    // Hide progress after delay
                     setTimeout(() => {
                         hideRestoreProgressModal();
-                        showError(data.error || 'Restore failed. Please try again.');
-                    }, 1500);
+                    }, 3000);
+                } else if (data.status === 'in_progress') {
+                    // Continue polling - restore is running
+                    console.log('Restore progress:', progress + '% - ' + data.current_step);
                 }
             })
             .catch(error => {
@@ -895,8 +982,18 @@ function trackRestoreProgress(restoreId) {
                 clearInterval(restoreProgressInterval);
                 restoreProgressInterval = null;
                 window.restoreInProgress = false;
-                hideRestoreProgressModal();
-                showError('Failed to track restore progress');
+                
+                // Update UI to show error
+                progressStatus.textContent = 'Error tracking progress';
+                progressBar.classList.remove('bg-green-600');
+                progressBar.classList.add('bg-red-600');
+                
+                showError('Failed to track restore progress: ' + error.message);
+                
+                // Hide progress after delay
+                setTimeout(() => {
+                    hideRestoreProgressModal();
+                }, 3000);
             });
     }, 1000); // Poll every second
 }

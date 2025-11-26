@@ -1149,8 +1149,18 @@ class DatabaseBackupService
 
         // Check that statement has proper structure (either VALUES or column-based format)
         $upperStatement = strtoupper($statement);
-        if (!preg_match('/INSERT INTO `[^`]+`\s*\([^)]+\)\s*VALUES\s*/', $statement) &&
-            !preg_match('/INSERT INTO `[^`]+` VALUES\s*\(/', $statement)) {
+        $hasInsertValuesPattern = preg_match(
+            '/^INSERT\s+INTO\s+`?[\w.]+`?\s*(\([^)]+\))?\s+VALUES\s*\(/i',
+            $statement
+        );
+
+        // Also allow INSERT ... SELECT syntax from mysqldump
+        $hasInsertSelectPattern = preg_match(
+            '/^INSERT\s+INTO\s+`?[\w.]+`?\s*(\([^)]+\))?\s+SELECT\s+/i',
+            $statement
+        );
+
+        if (!$hasInsertValuesPattern && !$hasInsertSelectPattern) {
             \Log::warning("INSERT statement doesn't match expected patterns: " . substr($statement, 0, 100));
             return false;
         }

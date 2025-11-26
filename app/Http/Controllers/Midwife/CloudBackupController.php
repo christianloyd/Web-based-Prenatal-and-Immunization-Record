@@ -363,96 +363,6 @@ class CloudBackupController extends Controller
     }
 
     /**
-     * Process the restore operation asynchronously
-     * This should be called automatically after restore() returns
-     */
-    public function processRestore($restoreId)
-    {
-        $restoreOperation = RestoreOperation::find($restoreId);
-        if (!$restoreOperation) {
-            return;
-        }
-
-        try {
-            $backup = CloudBackup::findOrFail($restoreOperation->backup_id);
-
-            // Update status to in_progress
-            $restoreOperation->update([
-                'status' => 'in_progress',
-                'progress' => 10,
-                'current_step' => 'Starting restore process...'
-            ]);
-
-            // Create backup before restore if requested
-            if (in_array('create_backup', $restoreOperation->restore_options ?? [])) {
-                $restoreOperation->update([
-                    'progress' => 20,
-                    'current_step' => 'Creating pre-restore backup...'
-                ]);
-
-                \Log::info('Creating pre-restore backup...');
-                $preRestoreBackup = CloudBackup::create([
-                    'name' => 'Pre-restore Backup ' . now()->format('Y-m-d H:i:s'),
-                    'type' => 'full',
-                    'format' => 'sql_dump',
-                    'modules' => ['patient_records', 'prenatal_monitoring', 'child_records', 'immunization_records', 'vaccine_management'],
-                    'status' => 'pending',
-                    'storage_location' => 'google_drive',
-                    'encrypted' => true,
-                    'compressed' => true,
-                    'verified' => true,
-                    'created_by' => $restoreOperation->restored_by
-                ]);
-
-                $this->backupService->createBackup($preRestoreBackup);
-                $backup->refresh();
-            }
-
-            // Verify backup integrity if requested
-            if (in_array('verify_integrity', $restoreOperation->restore_options ?? [])) {
-                $restoreOperation->update([
-                    'progress' => 40,
-                    'current_step' => 'Verifying backup integrity...'
-                ]);
-
-                $integrityCheck = $this->backupService->verifyBackupIntegrity($backup);
-
-                if (!$integrityCheck['valid']) {
-                    throw new Exception('Backup integrity verification failed: ' . $integrityCheck['error']);
-                }
-            }
-
-            // Perform the restore
-            $restoreOperation->update([
-                'progress' => 60,
-                'current_step' => 'Restoring database...'
-            ]);
-
-            $this->backupService->restoreBackup($backup);
-
-            // Mark as completed
-            $restoreOperation->update([
-                'status' => 'completed',
-                'progress' => 100,
-                'current_step' => 'Restore completed successfully!',
-                'completed_at' => now(),
-                'restored_at' => now()
-            ]);
-
-        } catch (Exception $e) {
-            $restoreOperation->update([
-                'status' => 'failed',
-                'progress' => 0,
-                'current_step' => 'Restore failed',
-                'error_message' => $e->getMessage(),
-                'completed_at' => now()
-            ]);
-
-            \Log::error('Restore failed: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Get restore progress for real-time updates
      */
     public function restoreProgress($id)
@@ -460,12 +370,11 @@ class CloudBackupController extends Controller
         try {
             $restoreOperation = RestoreOperation::findOrFail($id);
 
-            // If restore is pending, start processing it
+            // If restore is pending, start processing it in the background
             if ($restoreOperation->status === 'pending') {
-                // Process restore asynchronously
-                dispatch(function () use ($id) {
-                    $this->processRestore($id);
-                })->afterResponse();
+                // Process restore directly without dispatching
+                // We'll do this in a way that doesn't block the response
+                $this->startRestoreProcessing($restoreOperation);
             }
 
             $response = [
@@ -492,13 +401,34 @@ class CloudBackupController extends Controller
             return response()->json($response);
 
         } catch (Exception $e) {
+            \Log::error('Restore progress error: ' . $e->getMessage(), [
+                'restore_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'status' => 'failed',
                 'progress' => 0,
                 'current_step' => 'Error',
-                'error' => 'Failed to get restore progress: ' . $e->getMessage()
+                'error' => 'Failed to get restore progress: ' . $e->getMessage(),
+                'message' => 'Restore progress check failed.'
             ], 500);
         }
+    }
+
+    /**
+     * Start processing the restore operation
+     * This dispatches a job to process the restore asynchronously
+     */
+    private function startRestoreProcessing(RestoreOperation $restoreOperation)
+    {
+        // Dispatch the restore job
+        \App\Jobs\ProcessRestoreJob::dispatch($restoreOperation->id);
+
+        \Log::info('Restore job dispatched', [
+            'restore_id' => $restoreOperation->id,
+            'backup_id' => $restoreOperation->backup_id
+        ]);
     }
 
     /**

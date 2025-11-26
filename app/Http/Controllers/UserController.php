@@ -107,7 +107,7 @@ class UserController extends Controller
                 }
 
                 return redirect()->route('midwife.user.index')
-                    ->with('success', 'User "' . $newUser->name . '" has been successfully created.');
+                    ->with('success', 'User ' . $newUser->name . ' has been successfully created.');
 
             } catch (\Exception $e) {
                 Log::error('Error creating user', [
@@ -158,7 +158,7 @@ class UserController extends Controller
                 }
 
                 return redirect()->route('midwife.user.index')
-                    ->with('success', 'User "' . $updatedUser->name . '" has been successfully updated.');
+                    ->with('success', 'User ' . $updatedUser->name . ' has been successfully updated.');
 
             } catch (\Exception $e) {
                 Log::error('Error updating user', [
@@ -196,7 +196,7 @@ class UserController extends Controller
                 }
 
                 return redirect()->route('midwife.user.index')
-                    ->with('success', 'User "' . $userName . '" has been successfully deleted.');
+                    ->with('success', 'User ' . $userName . ' has been successfully deleted.');
 
             } catch (\Exception $e) {
                 Log::error('Error deleting user', [
@@ -231,7 +231,7 @@ class UserController extends Controller
                 }
 
                 return redirect()->route('midwife.user.index')
-                    ->with('success', 'User "' . $userName . '" has been successfully deactivated.');
+                    ->with('success', 'User ' . $userName . ' has been successfully deactivated.');
 
             } catch (\Exception $e) {
                 Log::error('Error deactivating user', [
@@ -266,7 +266,7 @@ class UserController extends Controller
                 }
 
                 return redirect()->route('midwife.user.index')
-                    ->with('success', 'User "' . $userName . '" has been successfully activated.');
+                    ->with('success', 'User ' . $userName . ' has been successfully activated.');
 
             } catch (\Exception $e) {
                 Log::error('Error activating user', [

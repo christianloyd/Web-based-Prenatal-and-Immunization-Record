@@ -170,6 +170,17 @@ export function setupFormValidation() {
     const form = document.getElementById('userForm');
     if (form) {
         form.addEventListener('submit', function(e) {
+            console.log('[User Management] Form submitting...');
+            console.log('[User Management] Form action:', form.action);
+            console.log('[User Management] Form method:', form.method);
+
+            // Log all form inputs
+            const formData = new FormData(form);
+            console.log('[User Management] Form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`  ${key}: ${value}`);
+            }
+
             const validation = validateForm();
             if (!validation.isValid) {
                 e.preventDefault();

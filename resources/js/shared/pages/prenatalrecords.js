@@ -55,8 +55,8 @@ export function initializePrenatalRecordsPage() {
 function initializeModals() {
     state.modals = new ModalManager();
 
-    // View Record modal
-    state.modals.register('view', '#view-prenatal-modal');
+    // View Record modal - Not used (view uses direct link to show page)
+    // state.modals.register('view', '#view-prenatal-modal');
 
     // Edit Record modal
     state.modals.register('edit', '#edit-prenatal-modal');
@@ -210,6 +210,24 @@ function openEditRecord(record) {
 
     state.currentRecord = record;
 
+    // Populate patient information (read-only fields)
+    const setPatientInfo = (id, value) => {
+        const element = qs(`#${id}`);
+        if (element) {
+            element.textContent = value || 'N/A';
+        }
+    };
+
+    setPatientInfo('edit-patient-name-display', record.patient?.name);
+    setPatientInfo('edit-patient-id-display', record.patient?.formatted_patient_id || record.patient?.patient_id);
+    setPatientInfo('edit-patient-age-display', record.patient?.age ? `${record.patient.age} years` : null);
+
+    // Set hidden patient_id field
+    const hiddenPatientId = qs('#edit-patient-id-hidden');
+    if (hiddenPatientId) {
+        hiddenPatientId.value = record.patient_id || record.patient?.id || '';
+    }
+
     const editForm = qs('#edit-prenatal-form');
     if (editForm && state.forms.edit) {
         // Populate form
@@ -223,6 +241,17 @@ function openEditRecord(record) {
             medical_history: record.medical_history || '',
             notes: record.notes || ''
         });
+
+        // Also populate status and expected_due_date if they exist in the form
+        const statusField = qs('#edit-status');
+        if (statusField && record.status) {
+            statusField.value = record.status;
+        }
+
+        const dueDateField = qs('#edit-due-date');
+        if (dueDateField && record.expected_due_date) {
+            dueDateField.value = formatDateForInput(record.expected_due_date);
+        }
 
         // Set form action URL
         if (state.routes.prenatalRecords && record.id) {
@@ -255,7 +284,7 @@ function openCompletePregnancy(recordId, patientName) {
     // Set form action
     const completeForm = qs('#completePregnancyForm');
     if (completeForm && state.routes.prenatalRecords) {
-        completeForm.action = `${state.routes.prenatalRecords.show(recordId).replace(/\/\d+$/, '')}/${recordId}/complete`;
+        completeForm.action = state.routes.prenatalRecords.complete(recordId);
     }
 
     state.modals.open('complete');

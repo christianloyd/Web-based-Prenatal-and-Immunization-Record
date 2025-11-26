@@ -29,7 +29,8 @@ export const permissions = {
             create: true,
             edit: true,
             delete: false,
-            export: false
+            export: false,
+            complete: true
         },
         prenatalCheckups: {
             view: true,
@@ -103,7 +104,8 @@ export const permissions = {
             create: true,
             edit: true,
             delete: true,
-            export: true
+            export: true,
+            complete: true
         },
         prenatalCheckups: {
             view: true,
