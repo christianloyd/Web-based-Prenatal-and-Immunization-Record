@@ -537,7 +537,7 @@ class PrenatalCheckupController extends Controller
 
         $validator = Validator::make($request->all(), [
             'next_visit_date' => 'required|date|after:today',
-            'next_visit_time' => 'required|date_format:H:i',
+            'next_visit_time' => 'required|date_format:H:i|after_or_equal:05:00|before:17:00',
             'next_visit_notes' => 'nullable|string|max:1000',
         ]);
 
@@ -702,7 +702,7 @@ class PrenatalCheckupController extends Controller
 
         $validator = Validator::make($request->all(), [
             'new_checkup_date' => 'required|date|after:today',
-            'new_checkup_time' => 'required|date_format:H:i',
+            'new_checkup_time' => 'required|date_format:H:i|after_or_equal:05:00|before:17:00',
             'reschedule_notes' => 'nullable|string|max:500'
         ]);
 

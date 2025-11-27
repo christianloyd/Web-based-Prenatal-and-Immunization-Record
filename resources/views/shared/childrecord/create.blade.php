@@ -398,11 +398,10 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
                                 <input type="tel" name="phone_number"
-                                       class="form-input w-full px-4 py-2.5 rounded-lg border border-gray-300"
-                                       placeholder="+639123456789 or 09123456789"
-                                       pattern="(\+63|0)[0-9]{10}"
-                                       maxlength="13"
-                                       value="{{ old('phone_number') }}">
+                                    class="form-input w-full px-4 py-2.5 rounded-lg border border-gray-300"
+                                    placeholder="+639123456789 or 09123456789"
+                                    maxlength="13"
+                                    value="{{ old('phone_number') }}">
                                 <div class="text-xs text-gray-500 mt-1">Optional - For direct contact</div>
                             </div>
 

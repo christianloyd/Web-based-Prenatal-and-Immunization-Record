@@ -16,7 +16,7 @@
                         </a>
                     </th>
                     <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap hide-mobile">Mother's Name</th>
-                    <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap hide-mobile">Phone Number</th>
+                    {{-- <th class="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap hide-mobile">Phone Number</th> --}}
                     <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
                 </tr>
             </thead>
@@ -37,14 +37,14 @@
                     </td>
                     <td class="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">
                         <div class="text-sm sm:text-base">{{ $record->birthdate ? $record->birthdate->format('M j, Y') : 'N/A' }}</div>
-                        <div class="text-xs text-gray-500 sm:hidden">{{ $record->phone_number ?? 'N/A' }}</div>
+                        {{-- <div class="text-xs text-gray-500 sm:hidden">{{ $record->phone_number ?? 'N/A' }}</div> --}}
                     </td>
                     <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
                         {{ $record->mother_name ?? 'N/A' }}
                     </td>
-                    <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
+                    {{-- <td class="px-2 sm:px-4 py-3 text-gray-700 hide-mobile">
                         {{ $record->phone_number ?? 'N/A' }}
-                    </td>
+                    </td> --}}
                     <td class="px-2 sm:px-4 py-3 whitespace-nowrap">
                         <div class="action-buttons flex flex-col sm:flex-row sm:justify-center space-y-2 sm:space-y-0 sm:space-x-2">
                             <a href="{{ route(auth()->user()->role . '.childrecord.show', $record->id) }}" class="btn-action btn-view inline-flex items-center justify-center">

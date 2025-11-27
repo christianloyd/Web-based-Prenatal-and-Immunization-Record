@@ -27,6 +27,12 @@ class UpdatePrenatalCheckupRequest extends FormRequest
             'prenatal_record_id' => 'required|exists:prenatal_records,id',
             'checkup_date' => 'required|date',
             'gestational_age_weeks' => 'nullable|integer|min:1|max:45',
+            'checkup_time' => [
+                'required',
+                'date_format:H:i',
+                'after_or_equal:05:00',
+                'before:17:00',
+            ],
             'weight_kg' => 'required|numeric|min:30|max:200',
             'blood_pressure_systolic' => [
                 'required',
@@ -44,6 +50,12 @@ class UpdatePrenatalCheckupRequest extends FormRequest
             'symptoms' => 'required|string|max:500',
             'notes' => 'required|string|max:1000',
             'next_visit_date' => 'nullable|date|after:checkup_date',
+            'next_visit_time' => [
+                'nullable',
+                'date_format:H:i',
+                'after_or_equal:05:00',
+                'before:17:00',
+            ],
             'conducted_by' => 'nullable|exists:users,id',
             'status' => 'required|in:scheduled,completed,cancelled,rescheduled,upcoming,done,missed',
         ];
@@ -58,6 +70,9 @@ class UpdatePrenatalCheckupRequest extends FormRequest
             'prenatal_record_id.required' => 'Please select a prenatal record.',
             'prenatal_record_id.exists' => 'The selected prenatal record does not exist.',
             'checkup_date.required' => 'Checkup date is required.',
+            'checkup_time.required' => 'Checkup time is required.',
+            'checkup_time.after_or_equal' => 'Clinic hours start at 5:00 AM. Please choose a time after 5:00 AM.',
+            'checkup_time.before' => 'Clinic hours end at 5:00 PM. Please choose a time before 5:00 PM.',
             'weight_kg.required' => 'Weight is required.',
             'weight_kg.min' => 'Weight must be at least 30 kg.',
             'weight_kg.max' => 'Weight cannot exceed 200 kg.',
@@ -68,6 +83,8 @@ class UpdatePrenatalCheckupRequest extends FormRequest
             'fetal_heart_rate.min' => 'Fetal heart rate must be at least 100 bpm.',
             'fetal_heart_rate.max' => 'Fetal heart rate cannot exceed 180 bpm.',
             'next_visit_date.after' => 'Next visit date must be after the checkup date.',
+            'next_visit_time.after_or_equal' => 'Clinic hours start at 5:00 AM. Please choose a time after 5:00 AM.',
+            'next_visit_time.before' => 'Clinic hours end at 5:00 PM. Please choose a time before 5:00 PM.',
             'status.required' => 'Status is required.',
             'status.in' => 'Invalid status selected.',
         ];

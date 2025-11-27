@@ -31,11 +31,35 @@ class VaccineService
     public function createVaccine(array $data): Vaccine
     {
         return DB::transaction(function () use ($data) {
-            $vaccine = $this->vaccineRepository->create($data);
+            // Extract stock fields
+            $initialStock = $data['initial_stock'] ?? 0;
+            $minStock = $data['min_stock'] ?? 10;
+            
+            // Prepare vaccine data with stock values
+            $vaccineData = array_merge($data, [
+                'current_stock' => $initialStock,
+                'min_stock' => $minStock,
+            ]);
+            
+            $vaccine = $this->vaccineRepository->create($vaccineData);
+
+            // If initial stock > 0, record an initial stock transaction
+            if ($initialStock > 0) {
+                $this->stockTransactionRepository->create([
+                    'vaccine_id' => $vaccine->id,
+                    'transaction_type' => 'in',
+                    'quantity' => $initialStock,
+                    'previous_stock' => 0,
+                    'new_stock' => $initialStock,
+                    'reason' => 'Initial stock received',
+                ]);
+            }
 
             Log::info('Vaccine created', [
                 'vaccine_id' => $vaccine->id,
                 'vaccine_name' => $vaccine->name,
+                'initial_stock' => $initialStock,
+                'min_stock' => $minStock,
             ]);
 
             return $vaccine;
@@ -52,11 +76,38 @@ class VaccineService
     public function updateVaccine(int $id, array $data): bool
     {
         return DB::transaction(function () use ($id, $data) {
+            $vaccine = $this->vaccineRepository->find($id);
+            if (!$vaccine) {
+                return false;
+            }
+
+            $oldStock = $vaccine->current_stock;
+            $newStock = $data['current_stock'] ?? $oldStock;
+            $stockChanged = $oldStock !== $newStock;
+
             $result = $this->vaccineRepository->update($id, $data);
 
-            if ($result) {
+            if ($result && $stockChanged) {
+                $difference = $newStock - $oldStock;
+                if ($difference !== 0) {
+                    $transactionType = $difference > 0 ? 'in' : 'out';
+                    $quantity = abs($difference);
+                    
+                    $this->stockTransactionRepository->create([
+                        'vaccine_id' => $id,
+                        'transaction_type' => $transactionType,
+                        'quantity' => $quantity,
+                        'previous_stock' => $oldStock,
+                        'new_stock' => $newStock,
+                        'reason' => 'Stock adjusted during vaccine update',
+                    ]);
+                }
+
                 Log::info('Vaccine updated', [
                     'vaccine_id' => $id,
+                    'old_stock' => $oldStock,
+                    'new_stock' => $newStock,
+                    'stock_change' => $difference ?? 0,
                 ]);
             }
 
@@ -116,17 +167,22 @@ class VaccineService
         ?string $notes = null
     ): bool {
         return DB::transaction(function () use ($vaccineId, $quantity, $batchNumber, $expiryDate, $notes) {
+            // Get current stock before update
+            $vaccine = $this->vaccineRepository->find($vaccineId);
+            $previousStock = $vaccine->current_stock;
+            $newStock = $previousStock + $quantity;
+            
             // Update vaccine stock
             $this->vaccineRepository->updateStock($vaccineId, $quantity, 'in');
 
             // Record transaction
             $this->stockTransactionRepository->create([
                 'vaccine_id' => $vaccineId,
-                'type' => 'in',
+                'transaction_type' => 'in',
                 'quantity' => $quantity,
-                'batch_number' => $batchNumber,
-                'expiry_date' => $expiryDate,
-                'notes' => $notes,
+                'previous_stock' => $previousStock,
+                'new_stock' => $newStock,
+                'reason' => $notes ?? 'Stock added',
             ]);
 
             Log::info('Vaccine stock added', [
@@ -161,15 +217,22 @@ class VaccineService
         }
 
         return DB::transaction(function () use ($vaccineId, $quantity, $notes) {
+            // Get current stock before update
+            $vaccine = $this->vaccineRepository->find($vaccineId);
+            $previousStock = $vaccine->current_stock;
+            $newStock = $previousStock - $quantity;
+            
             // Update vaccine stock
             $this->vaccineRepository->updateStock($vaccineId, $quantity, 'out');
 
             // Record transaction
             $this->stockTransactionRepository->create([
                 'vaccine_id' => $vaccineId,
-                'type' => 'out',
+                'transaction_type' => 'out',
                 'quantity' => $quantity,
-                'notes' => $notes ?? 'Vaccine administered',
+                'previous_stock' => $previousStock,
+                'new_stock' => $newStock,
+                'reason' => $notes ?? 'Vaccine administered',
             ]);
 
             Log::info('Vaccine stock reduced', [

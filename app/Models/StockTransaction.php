@@ -15,13 +15,17 @@ class StockTransaction extends Model
         'quantity',
         'previous_stock',
         'new_stock',
-        'reason'
+        'reason',
+        'batch_number',
+        'supplier',
+        'received_date',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'previous_stock' => 'integer',
-        'new_stock' => 'integer'
+        'new_stock' => 'integer',
+        'received_date' => 'date'
     ];
 
     // Relationships

@@ -94,6 +94,30 @@
                             </select>
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock *</label>
+                                <input type="number" name="current_stock" id="edit-current-stock" required min="0"
+                                       value="{{ old('current_stock', $vaccine->current_stock) }}"
+                                       class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary"
+                                       placeholder="Units on hand">
+                                @error('current_stock')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Stock Threshold *</label>
+                                <input type="number" name="min_stock" id="edit-min-stock" required min="0"
+                                       value="{{ old('min_stock', $vaccine->min_stock) }}"
+                                       class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary"
+                                       placeholder="Alert threshold">
+                                @error('min_stock')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Storage Temperature *</label>
                             <select name="storage_temp" id="edit-storage-temp" required

@@ -114,7 +114,7 @@
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Schedule Time *</label>
-                            <input type="time" id="editScheduleTime" name="schedule_time" required 
+                            <input type="time" id="editScheduleTime" name="schedule_time" required min="05:00" max="16:59"
                                    class="form-input input-clean w-full px-4 py-2.5 rounded-lg">
                         </div>
                     </div>

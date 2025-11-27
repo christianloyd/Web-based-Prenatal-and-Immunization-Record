@@ -319,7 +319,7 @@ class ImmunizationController extends Controller
                 'notes' => 'nullable|string|max:1000',
                 'reschedule' => 'nullable|boolean',
                 'reschedule_date' => 'nullable|date|after_or_equal:today',
-                'reschedule_time' => 'nullable|date_format:H:i',
+                'reschedule_time' => 'nullable|date_format:H:i|after_or_equal:05:00|before:17:00',
             ]);
 
             $immunization = Immunization::with(['vaccine', 'childRecord'])->findOrFail($id);
@@ -368,7 +368,7 @@ class ImmunizationController extends Controller
 
         $validated = $request->validate([
             'schedule_date' => 'required|date|after_or_equal:today',
-            'schedule_time' => 'nullable|date_format:H:i'
+            'schedule_time' => 'nullable|date_format:H:i|after_or_equal:05:00|before:17:00'
         ]);
 
         try {
@@ -650,7 +650,7 @@ class ImmunizationController extends Controller
             'reason' => 'nullable|string|max:255',
             'reschedule' => 'nullable|boolean',
             'reschedule_date' => 'nullable|date',
-            'reschedule_time' => 'nullable|date_format:H:i'
+            'reschedule_time' => 'nullable|date_format:H:i|after_or_equal:05:00|before:17:00'
         ]);
 
         try {

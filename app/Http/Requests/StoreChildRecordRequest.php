@@ -51,9 +51,9 @@ class StoreChildRecordRequest extends FormRequest
                 'string',
                 'min:2',
                 'max:255',
-                'regex:/^[a-zA-Z\s\.\-\']+$/'
+                'regex:/^[a-zA-Z\s\.\-\/\']+$/' // Allow slash for values like N/A
             ],
-            'phone_number' => ['required', 'string', 'max:13', 'regex:/^(\+63|0)[0-9]{10}$/'],
+            'phone_number' => ['nullable', 'string', 'max:13', 'regex:/^(\+63|0)[0-9]{10}$/'],
             'address' => 'nullable|string|max:1000',
             'mother_exists' => 'required|in:yes,no'
         ];
@@ -102,7 +102,6 @@ class StoreChildRecordRequest extends FormRequest
             'mother_address.required' => 'Mother\'s address is required when adding a new mother.',
             'mother_id.required' => 'Please select a mother from the list.',
             'mother_id.exists' => 'Selected mother does not exist.',
-            'phone_number.required' => 'Phone number is required.',
             'phone_number.regex' => 'Please enter a valid Philippine mobile number (e.g., +639123456789 or 09123456789).',
             'birthdate.required' => 'Birth date is required.',
             'birthdate.before_or_equal' => 'Birth date cannot be in the future.',

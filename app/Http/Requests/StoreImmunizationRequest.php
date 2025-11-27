@@ -24,7 +24,12 @@ class StoreImmunizationRequest extends FormRequest
             'vaccine_id' => 'required|exists:vaccines,id',
             'dose' => 'required|string|max:255',
             'schedule_date' => 'required|date|after_or_equal:today',
-            'schedule_time' => 'required|date_format:H:i',
+            'schedule_time' => [
+                'required',
+                'date_format:H:i',
+                'after_or_equal:05:00',
+                'before:17:00',
+            ],
             'notes' => 'required|string|max:1000'
         ];
     }
@@ -46,6 +51,8 @@ class StoreImmunizationRequest extends FormRequest
             'schedule_date.after_or_equal' => 'Schedule date must be today or a future date.',
             'schedule_time.required' => 'Schedule time is required.',
             'schedule_time.date_format' => 'Please enter a valid time format (HH:MM).',
+            'schedule_time.after_or_equal' => 'Clinic hours start at 5:00 AM. Please choose a time after 5:00 AM.',
+            'schedule_time.before' => 'Clinic hours end at 5:00 PM. Please choose a time before 5:00 PM.',
             'notes.required' => 'Notes are required.',
             'notes.max' => 'Notes cannot exceed 1000 characters.'
         ];

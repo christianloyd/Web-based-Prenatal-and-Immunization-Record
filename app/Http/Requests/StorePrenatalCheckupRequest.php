@@ -26,7 +26,12 @@ class StorePrenatalCheckupRequest extends FormRequest
         return [
             'patient_id' => 'required|exists:patients,id',
             'checkup_date' => 'required|date',
-            'checkup_time' => 'required|date_format:H:i',
+            'checkup_time' => [
+                'required',
+                'date_format:H:i',
+                'after_or_equal:05:00',
+                'before:17:00',
+            ],
             'gestational_age_weeks' => 'nullable|integer|min:1|max:45',
             'weight_kg' => 'nullable|numeric|min:30|max:200',
             'blood_pressure_systolic' => [
@@ -46,7 +51,12 @@ class StorePrenatalCheckupRequest extends FormRequest
             'symptoms' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
             'next_visit_date' => 'required|date|after:checkup_date',
-            'next_visit_time' => 'required|date_format:H:i',
+            'next_visit_time' => [
+                'required',
+                'date_format:H:i',
+                'after_or_equal:05:00',
+                'before:17:00',
+            ],
             'next_visit_notes' => 'nullable|string|max:500',
             'conducted_by' => 'nullable|exists:users,id',
         ];
@@ -62,6 +72,8 @@ class StorePrenatalCheckupRequest extends FormRequest
             'patient_id.exists' => 'The selected patient does not exist.',
             'checkup_date.required' => 'Checkup date is required.',
             'checkup_time.required' => 'Checkup time is required.',
+            'checkup_time.after_or_equal' => 'Clinic hours start at 5:00 AM. Please choose a time after 5:00 AM.',
+            'checkup_time.before' => 'Clinic hours end at 5:00 PM. Please choose a time before 5:00 PM.',
             'weight_kg.min' => 'Weight must be at least 30 kg.',
             'weight_kg.max' => 'Weight cannot exceed 200 kg.',
             'fetal_heart_rate.min' => 'Fetal heart rate must be at least 100 bpm.',
@@ -69,6 +81,8 @@ class StorePrenatalCheckupRequest extends FormRequest
             'next_visit_date.required' => 'Next visit date is required.',
             'next_visit_date.after' => 'Next visit date must be after the checkup date.',
             'next_visit_time.required' => 'Next visit time is required.',
+            'next_visit_time.after_or_equal' => 'Clinic hours start at 5:00 AM. Please choose a time after 5:00 AM.',
+            'next_visit_time.before' => 'Clinic hours end at 5:00 PM. Please choose a time before 5:00 PM.',
         ];
     }
 

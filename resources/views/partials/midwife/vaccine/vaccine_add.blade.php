@@ -104,6 +104,30 @@
                             @enderror
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Initial Stock *</label>
+                                <input type="number" name="initial_stock" id="add-initial-stock" required min="0"
+                                    value="{{ old('initial_stock', 0) }}"
+                                    class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('initial_stock') error-border @enderror"
+                                    placeholder="Units received (e.g., 25)">
+                                @error('initial_stock')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Stock Threshold *</label>
+                                <input type="number" name="min_stock" id="add-min-stock" required min="0"
+                                    value="{{ old('min_stock', 10) }}"
+                                    class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('min_stock') error-border @enderror"
+                                    placeholder="Alert threshold (e.g., 10)">
+                                @error('min_stock')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Storage Temperature *</label>
                             <select name="storage_temp" id="add-storage-temp" required

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Immunization;
 use App\Models\ChildRecord;
 use App\Models\Vaccine;
+use App\Services\VaccineService;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,9 @@ use App\Jobs\SendSmsJob;
 
 class ImmunizationService
 {
+    public function __construct(private readonly VaccineService $vaccineService)
+    {
+    }
     /**
      * Create a new immunization record
      */
@@ -117,7 +121,11 @@ class ImmunizationService
                 }
 
                 // Consume vaccine stock
-                $vaccine->updateStock(1, 'out', "Immunization administered to {$immunization->childRecord->full_name}");
+                $this->vaccineService->reduceStock(
+                    $vaccine->id,
+                    1,
+                    "Immunization administered to {$immunization->childRecord->full_name}"
+                );
             }
 
             // If changing vaccine, check availability
@@ -219,9 +227,9 @@ class ImmunizationService
                 }
 
                 // Consume vaccine stock
-                $immunization->vaccine->updateStock(
+                $this->vaccineService->reduceStock(
+                    $immunization->vaccine->id,
                     1,
-                    'out',
                     "Immunization administered to {$immunization->childRecord->full_name}"
                 );
             }
@@ -267,9 +275,9 @@ class ImmunizationService
                 }
 
                 // Consume vaccine stock
-                $vaccine->updateStock(
+                $this->vaccineService->reduceStock(
+                    $vaccine->id,
                     1,
-                    'out',
                     "Immunization administered to {$child->full_name}"
                 );
 

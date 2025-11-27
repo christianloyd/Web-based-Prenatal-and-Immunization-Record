@@ -63,6 +63,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dosage (ml)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doses</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -92,6 +93,19 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium {{ $vaccine->stock_status_color }}">
+                                    {{ $vaccine->current_stock }}
+                                </span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $vaccine->stock_status_badge_color }}">
+                                    {{ $vaccine->stock_status }}
+                                </span>
+                            </div>
+                            @if($vaccine->is_low_stock)
+                                <div class="text-xs text-amber-600 mt-1">Min: {{ $vaccine->min_stock }}</div>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="{{ $vaccine->is_expiring_soon ? 'text-red-600 font-medium' : 'text-gray-900' }}">
                                 {{ $vaccine->expiry_date->format('M d, Y') }}
                                 @if($vaccine->is_expiring_soon)
@@ -114,7 +128,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                             <div class="flex flex-col items-center">
                                 <i class="fas fa-flask w-12 h-12 text-gray-400 mb-4"></i>
                                 <p class="text-lg font-medium text-gray-900 mb-2">No vaccines found</p>
