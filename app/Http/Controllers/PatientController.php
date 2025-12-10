@@ -49,9 +49,11 @@ class PatientController extends BaseController
         }
 
         // Clean controller - all query logic in repository
+        $perPage = 10;
+
         $patients = $request->filled('search')
-            ? $this->patientRepository->searchPaginated($request->search, 20)
-            : $this->patientRepository->paginate(20);
+            ? $this->patientRepository->searchPaginated($request->search, $perPage)
+            : $this->patientRepository->paginate($perPage);
 
         $patients->withQueryString();
 

@@ -1,6 +1,6 @@
 // Global variables to store current record for modal operations
-let currentRecord = null;
-let isExistingMother = false;
+var currentRecord = typeof window.currentRecord !== 'undefined' ? window.currentRecord : null;
+var isExistingMother = typeof window.isExistingMother !== 'undefined' ? window.isExistingMother : false;
 
 // Close Edit Child Modal - FIXED FUNCTION (moved to global scope)
 function closeEditChildModal(event) {

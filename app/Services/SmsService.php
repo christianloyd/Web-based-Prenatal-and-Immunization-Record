@@ -66,6 +66,8 @@ class SmsService
                     'api_token' => $this->apiToken,
                     'phone_number' => $formattedNumber,
                     'message' => $message,
+                    'sender_name' => $this->senderName,
+
                 ]);
 
             // Check if request was successful

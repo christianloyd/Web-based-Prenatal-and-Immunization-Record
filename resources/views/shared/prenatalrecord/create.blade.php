@@ -230,8 +230,8 @@
             </h3>
 
             <p class="text-sm text-gray-600 mb-4">
-                <i class="fas fa-exclamation-triangle text-orange-500 mr-1"></i>
-                Both medical fields (Medical History and Notes) are required.
+                <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                Medical history is required. Additional notes are optional.
             </p>
 
             <div class="space-y-4">
@@ -248,10 +248,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes *</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
                     <textarea name="notes"
                               rows="3"
-                              required
                               placeholder="Any additional notes or observations..."
                               class="form-input resize-none @error('notes') error @enderror">{{ old('notes') }}</textarea>
                     @error('notes')

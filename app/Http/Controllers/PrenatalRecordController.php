@@ -41,10 +41,12 @@ class PrenatalRecordController extends BaseController
         }
 
         // Use repository for search and filter
+        $perPage = 10;
+
         $prenatalRecords = $this->prenatalRecordRepository->searchAndFilter(
             $request->filled('search') ? $request->search : null,
             $request->filled('status') ? $request->status : null,
-            20
+            $perPage
         )->withQueryString();
 
         // Get patients for the modal dropdown using repository

@@ -124,10 +124,6 @@
                     </h4>
                     <div class="space-y-4">
                         <div>
-                            <label class="text-sm font-medium text-gray-600">Baby Movement</label>
-                            <p class="text-gray-900 font-medium" id="view-baby-movement">-</p>
-                        </div>
-                        <div>
                             <label class="text-sm font-medium text-gray-600">Symptoms</label>
                             <p class="text-gray-900 leading-relaxed bg-gray-50 p-3 rounded-md" id="view-symptoms">No symptoms reported</p>
                         </div>
@@ -280,8 +276,6 @@
         document.getElementById('view-fundal-height').textContent = (checkup.fundal_height_cm || checkup.belly_size) ? `${checkup.fundal_height_cm || checkup.belly_size} cm` : '-';
 
         // Health Assessment
-        const babyMovementText = checkup.baby_movement ? checkup.baby_movement.charAt(0).toUpperCase() + checkup.baby_movement.slice(1) : '-';
-        document.getElementById('view-baby-movement').textContent = babyMovementText;
         document.getElementById('view-symptoms').textContent = checkup.symptoms || 'No symptoms reported';
         document.getElementById('view-notes').textContent = checkup.notes || 'No notes recorded';
 

@@ -75,7 +75,6 @@ class PrenatalCheckupService
             'blood_pressure_diastolic' => $data['blood_pressure_diastolic'] ?? null,
             'fetal_heart_rate' => $data['fetal_heart_rate'] ?? null,
             'fundal_height_cm' => $data['fundal_height_cm'] ?? null,
-            'baby_movement' => $data['baby_movement'] ?? null,
             'symptoms' => $data['symptoms'] ?? null,
             'notes' => $data['notes'] ?? null,
             'status' => $status,
@@ -110,7 +109,6 @@ class PrenatalCheckupService
             'blood_pressure_diastolic' => $data['blood_pressure_diastolic'] ?? null,
             'fetal_heart_rate' => $data['fetal_heart_rate'] ?? null,
             'fundal_height_cm' => $data['fundal_height_cm'] ?? null,
-            'baby_movement' => $data['baby_movement'] ?? null,
             'symptoms' => $data['symptoms'] ?? null,
             'notes' => $data['notes'] ?? null,
             'status' => $status,
@@ -167,7 +165,8 @@ class PrenatalCheckupService
             $formattedDate = Carbon::parse($checkup->checkup_date)->format('F j, Y');
             $formattedTime = $checkup->checkup_time ? Carbon::parse($checkup->checkup_time)->format('g:i A') : '';
 
-            $message = "Hello {$patient->name}! This is a reminder for your prenatal checkup scheduled on {$formattedDate}";
+            $patientName = $patient->name ?? ($patient->full_name ?? 'there');
+            $message = "Hi {$patientName}! This is a reminder for your prenatal checkup scheduled on {$formattedDate}";
             if ($formattedTime) {
                 $message .= " at {$formattedTime}";
             }

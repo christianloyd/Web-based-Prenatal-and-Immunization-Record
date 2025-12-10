@@ -39,7 +39,7 @@
                 <!-- Patient Selection -->
                 <div>
                     <div class="section-header border-b pb-2 mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Patient Information</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">Child Information</h3>
                     </div>
                     <div class="space-y-4">
                         <!-- Child Search Implementation -->

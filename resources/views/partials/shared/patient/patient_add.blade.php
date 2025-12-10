@@ -15,7 +15,7 @@
                 <svg class="w-6 h-6 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                 </svg>
-                Register New Patient
+                Register New Parent
             </h3>
             <button type="button"
                     onclick="closePatientModal()"
@@ -128,7 +128,7 @@
                         id="add-submit-btn"
                         class="btn-primary flex-1 bg-primary text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" style="background-color: var(--primary); color: white;" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
                         <i class="fas fa-save mr-2"></i>
-                    Register Patient
+                    Register Parent
                 </button>
                 <button type="button"
                         onclick="closePatientModal()"

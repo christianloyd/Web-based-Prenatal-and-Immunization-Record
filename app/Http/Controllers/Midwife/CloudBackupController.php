@@ -339,7 +339,7 @@ class CloudBackupController extends Controller
                 'backup_id' => $backup->id,
                 'backup_name' => $backup->name,
                 'modules_restored' => $backup->modules,
-                'status' => 'pending',
+                'status' => RestoreOperation::STATUS_PENDING,
                 'progress' => 0,
                 'current_step' => 'Initializing restore...',
                 'restore_options' => $request->restore_options ?? [],
@@ -370,11 +370,30 @@ class CloudBackupController extends Controller
         try {
             $restoreOperation = RestoreOperation::findOrFail($id);
 
-            // If restore is pending, start processing it in the background
-            if ($restoreOperation->status === 'pending') {
-                // Process restore directly without dispatching
-                // We'll do this in a way that doesn't block the response
-                $this->startRestoreProcessing($restoreOperation);
+            // Refresh model to ensure we have latest data, especially error states
+            $restoreOperation->refresh();
+
+            // If restore is pending, mark it as queued and dispatch the job once
+            if ($restoreOperation->status === RestoreOperation::STATUS_PENDING) {
+                $restoreOperation->update([
+                    'status' => RestoreOperation::STATUS_IN_PROGRESS,
+                    'current_step' => 'Queueing restore job...',
+                    'progress' => max($restoreOperation->progress ?? 0, 5)
+                ]);
+
+                // Process restore directly without blocking the response cycle
+                $this->startRestoreProcessing($restoreOperation->fresh());
+                $restoreOperation = $restoreOperation->fresh();
+            }
+
+            // If the underlying job has failed, ensure status reflects that and return detailed JSON
+            if ($restoreOperation->status === RestoreOperation::STATUS_IN_PROGRESS && $restoreOperation->error_message) {
+                $restoreOperation->update([
+                    'status' => RestoreOperation::STATUS_FAILED,
+                    'current_step' => $restoreOperation->current_step ?? 'Restore failed',
+                    'progress' => $restoreOperation->progress ?? 0
+                ]);
+                $restoreOperation = $restoreOperation->fresh();
             }
 
             $response = [
@@ -385,7 +404,7 @@ class CloudBackupController extends Controller
             ];
 
             // Add success message when completed
-            if ($restoreOperation->status === 'completed') {
+            if ($restoreOperation->status === RestoreOperation::STATUS_COMPLETED) {
                 $backup = $restoreOperation->backup;
                 $restoreMessage = 'Data restored successfully from "' . $restoreOperation->backup_name . '"!';
                 if ($backup && $backup->type === 'selective') {

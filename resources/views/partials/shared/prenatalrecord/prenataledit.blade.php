@@ -154,8 +154,8 @@
                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Additional Notes *</label>
-                    <textarea name="notes" id="edit-notes" rows="2" required
+                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                    <textarea name="notes" id="edit-notes" rows="2"
                               placeholder="Any additional notes or observations..."
                               class="form-input w-full border border-gray-300 rounded-md sm:rounded-lg p-2 sm:p-2.5 text-sm sm:text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
                 </div>

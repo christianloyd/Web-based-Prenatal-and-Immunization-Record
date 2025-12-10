@@ -14,7 +14,7 @@
     <div class="flex justify-between items-center">
         <div></div>
         <div class="flex space-x-3">
-            <button onclick="openVaccineModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-charcoal-700 transition-all duration-200 flex items-center btn-primary">
+            <button onclick="openVaccineModal()" class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-hover-color transition-all duration-200 flex items-center btn-primary">
                 <i class="fas fa-plus w-4 h-4 mr-2"></i>
                 Add Vaccine
             </button>
@@ -42,7 +42,7 @@
                     </select>
                 </div>
                 <div class="flex space-x-2">
-                    <button type="submit" class="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-paynes-charcoal-700 transition-all duration-200 btn-primary">
+                    <button type="submit" class="flex-1 bg-secondary text-white px-4 py-2 rounded-lg hover:bg-hover-color transition-all duration-200 btn-primary">
                         Search
                     </button>
                     <a href="{{ route('midwife.vaccines.index') }}" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-center">

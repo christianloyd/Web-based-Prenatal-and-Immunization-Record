@@ -927,6 +927,11 @@ function trackRestoreProgress(restoreId) {
                 if (!response.ok) {
                     throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                 }
+                // Check if response is JSON before parsing
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response. Please check server logs.');
+                }
                 return response.json();
             })
             .then(data => {

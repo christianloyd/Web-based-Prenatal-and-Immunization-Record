@@ -57,7 +57,7 @@ class ImmunizationController extends Controller
         }
 
         // Status filter - default to 'Upcoming' if no status is specified
-        $status = $request->get('status', 'Upcoming');
+        $status = $request->get('status', 'all');
         if ($status && $status !== 'all') {
             $query->where('status', $status);
         }
@@ -251,6 +251,15 @@ class ImmunizationController extends Controller
             $immunization = Immunization::with('vaccine')->findOrFail($id);
             $immunization = $this->immunizationService->updateImmunization($immunization, $request->validated());
 
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Immunization record updated successfully!',
+                    'immunization' => $immunization
+                ]);
+            }
+
             $redirectRoute = $user->role === 'bhw'
                 ? 'bhw.immunization.index'
                 : 'midwife.immunization.index';
@@ -259,6 +268,21 @@ class ImmunizationController extends Controller
                              ->with('success', 'Immunization record updated successfully!');
 
         } catch (\Exception $e) {
+            // Return JSON error for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                $response = [
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ];
+
+                // Include validation errors if available
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    $response['errors'] = $e->errors();
+                }
+
+                return response()->json($response, 422);
+            }
+
             $redirectRoute = $user->role === 'bhw'
                 ? 'bhw.immunization.index'
                 : 'midwife.immunization.index';
@@ -318,8 +342,8 @@ class ImmunizationController extends Controller
                 'reason' => 'required|string|max:255',
                 'notes' => 'nullable|string|max:1000',
                 'reschedule' => 'nullable|boolean',
-                'reschedule_date' => 'nullable|date|after_or_equal:today',
-                'reschedule_time' => 'nullable|date_format:H:i|after_or_equal:05:00|before:17:00',
+                'reschedule_date' => 'required_if:reschedule,1|nullable|date|after_or_equal:today',
+                'reschedule_time' => 'required_if:reschedule,1|nullable|date_format:H:i|after_or_equal:05:00|before:17:00',
             ]);
 
             $immunization = Immunization::with(['vaccine', 'childRecord'])->findOrFail($id);
@@ -329,7 +353,7 @@ class ImmunizationController extends Controller
                 'status' => 'Missed',
                 'reason' => $validated['reason'],
                 'notes' => $validated['notes'] ?? null,
-                'reschedule' => !empty($validated['reschedule']),
+                'reschedule' => $request->boolean('reschedule'),
             ]);
 
             $this->immunizationService->quickUpdateStatus($immunization, $payload);
@@ -453,16 +477,13 @@ class ImmunizationController extends Controller
         }
 
         try {
-            $immunization = Immunization::findOrFail($id);
+            $immunization = Immunization::with(['vaccine', 'childRecord'])->findOrFail($id);
 
-            // Only allow completing upcoming immunizations
             if ($immunization->status !== 'Upcoming') {
                 throw new \Exception('Only upcoming immunizations can be marked as complete.');
             }
 
-            // Update status to Done
-            $immunization->status = 'Done';
-            $immunization->save();
+            $this->immunizationService->markStatus($immunization, 'Done');
 
             $redirectRoute = $user->role === 'bhw'
                 ? 'bhw.immunization.index'

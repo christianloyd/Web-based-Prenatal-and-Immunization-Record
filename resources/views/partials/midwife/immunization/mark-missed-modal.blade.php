@@ -175,9 +175,20 @@ function openMarkMissedModal(immunization) {
     // Reset form
     document.getElementById('markMissedForm').reset();
     document.getElementById('missed-immunization-id').value = immunization.id; // Restore after reset
-    document.getElementById('missed-confirm-checkbox').checked = false;
-    document.getElementById('missed-reschedule-checkbox').checked = false;
-    document.getElementById('reschedule-fields').classList.add('hidden');
+
+    const confirmCheckbox = document.getElementById('missed-confirm-checkbox');
+    if (confirmCheckbox) {
+        confirmCheckbox.checked = false;
+    }
+
+    const rescheduleCheckbox = document.getElementById('missed-reschedule-checkbox');
+    const rescheduleFields = document.getElementById('reschedule-fields');
+    if (rescheduleCheckbox) {
+        rescheduleCheckbox.checked = false;
+    }
+    if (rescheduleFields) {
+        rescheduleFields.classList.add('hidden');
+    }
 
     // Show modal
     const modal = document.getElementById('markMissedModal');
@@ -208,27 +219,31 @@ function closeMarkMissedModal(event) {
 }
 
 // Toggle reschedule fields
-document.getElementById('missed-reschedule-checkbox').addEventListener('change', function() {
-    const rescheduleFields = document.getElementById('reschedule-fields');
-    const dateInput = document.getElementById('missed-reschedule-date');
-    const timeInput = document.getElementById('missed-reschedule-time');
+const rescheduleCheckboxEl = document.getElementById('missed-reschedule-checkbox');
+const rescheduleFieldsEl = document.getElementById('reschedule-fields');
+const rescheduleDateInput = document.getElementById('missed-reschedule-date');
+const rescheduleTimeInput = document.getElementById('missed-reschedule-time');
 
-    if (this.checked) {
-        rescheduleFields.classList.remove('hidden');
-        dateInput.required = true;
-        timeInput.required = true;
-    } else {
-        rescheduleFields.classList.add('hidden');
-        dateInput.required = false;
-        timeInput.required = false;
-        dateInput.value = '';
-        timeInput.value = '';
-    }
-});
+if (rescheduleCheckboxEl && rescheduleFieldsEl && rescheduleDateInput && rescheduleTimeInput) {
+    rescheduleCheckboxEl.addEventListener('change', function() {
+        if (this.checked) {
+            rescheduleFieldsEl.classList.remove('hidden');
+            rescheduleDateInput.required = true;
+            rescheduleTimeInput.required = true;
+        } else {
+            rescheduleFieldsEl.classList.add('hidden');
+            rescheduleDateInput.required = false;
+            rescheduleTimeInput.required = false;
+            rescheduleDateInput.value = '';
+            rescheduleTimeInput.value = '';
+        }
+    });
+}
 
 // Handle form submission
 document.getElementById('markMissedForm').addEventListener('submit', function(e) {
-    if (!document.getElementById('missed-confirm-checkbox').checked) {
+    const confirmCheckboxEl = document.getElementById('missed-confirm-checkbox');
+    if (confirmCheckboxEl && !confirmCheckboxEl.checked) {
         e.preventDefault();
         alert('Please confirm by checking the checkbox');
         return false;

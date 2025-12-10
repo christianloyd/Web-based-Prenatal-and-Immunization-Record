@@ -6,323 +6,296 @@
     <title>Healthcare Portal - Login</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Complete reset */
+        :root {
+            --primary: #D4A373;
+            --primary-dark: #B8956A;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-border: rgba(255, 255, 255, 0.65);
+            --text-muted: rgba(255, 255, 255, 0.85);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         html, body {
             height: 100%;
             width: 100%;
-            overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
         }
-        
-        /* Table layout for guaranteed side-by-side */
-        .login-table {
-            display: table;
-            width: 100%;
-            height: 100vh;
-            border-collapse: collapse;
-        }
-        
-        .login-cell {
-            display: table-cell;
-            vertical-align: middle;
-            height: 100vh;
-        }
-        
-        .login-cell-left {
-            width: 50%;
-            background: linear-gradient(135deg, #D4A373 0%, #ecb99e 100%);
-        }
-        
-        .login-cell-right {
-            width: 50%;
-            background-color: #FEFAE0;
-        }
-        
-        /* Content styling */
-        .left-content {
-            text-align: center;
-            color: white;
-            padding: 2rem;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .right-content {
-            padding: 2rem;
+
+        body {
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100%;
+            position: relative;
+            overflow: hidden;
+            padding: 48px 24px;
+            background-color: #1f2937;
         }
-        
-        .form-box {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 2rem;
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: url('{{ asset('images/bg.jpg') }}') center / cover no-repeat;
+            z-index: -2;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(212, 163, 115, 0.78), rgba(236, 185, 158, 0.68));
+            z-index: -1;
+        }
+
+        .login-wrapper {
             width: 100%;
-            max-width: 380px;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
         }
-        
-        /* Form inputs */
+
+        .login-wrapper::before,
+        .login-wrapper::after {
+            content: "";
+            position: absolute;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.12);
+            filter: blur(0.5px);
+            z-index: -1;
+        }
+
+        .login-wrapper::before {
+            width: 340px;
+            height: 340px;
+            top: -120px;
+            right: -120px;
+            opacity: 0.55;
+        }
+
+        .login-wrapper::after {
+            width: 260px;
+            height: 260px;
+            bottom: -110px;
+            left: -110px;
+            opacity: 0.35;
+        }
+
+        .brand {
+            margin-bottom: 28px;
+        }
+
+        .brand-logo {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            border: 5px solid var(--primary);
+            object-fit: cover;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .brand h1 {
+            font-size: 30px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .brand p {
+            margin-top: 6px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .login-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 22px;
+            padding: 32px 28px;
+            box-shadow: 0 24px 60px rgba(62, 36, 8, 0.28);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(8px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+            color: #1f1f1f;
+        }
+
+        .card-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .card-header .support {
+            font-size: 13px;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .guidance-text {
+            font-size: 13px;
+            color: #5f5f5f;
+            margin-bottom: 22px;
+        }
+
         .input-group {
-            margin-bottom: 1rem;
+            margin-bottom: 18px;
+            text-align: left;
         }
-        
+
         .input-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: #000;
+            margin-bottom: 6px;
+            font-size: 13px;
             font-weight: 500;
+            color: #3a3a3a;
         }
-        
+
         .input-wrapper {
             position: relative;
         }
-        
+
         .input-icon {
             position: absolute;
-            left: 12px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
-            color: #6b7280;
+            color: #9ca3af;
+            font-size: 14px;
         }
-        
+
         .form-input {
             width: 100%;
-            padding: 12px 12px 12px 40px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.2s;
+            padding: 12px 44px;
+            font-size: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(209, 213, 219, 0.95);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        
+
         .form-input:focus {
             outline: none;
-            border-color: #D4A373;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.2);
         }
-        
+
         .password-toggle {
             position: absolute;
-            right: 12px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #6b7280;
+            color: #9ca3af;
             cursor: pointer;
+            font-size: 15px;
         }
-        
+
         .remember-forgot {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
+            font-size: 13px;
         }
-        
+
         .remember-forgot label {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            color: #6b7280;
-            font-size: 14px;
+            gap: 8px;
+            color: #4b5563;
+            cursor: pointer;
         }
-        
+
         .remember-forgot input[type="checkbox"] {
-            margin-right: 8px;
-            accent-color: #D4A373;
+            accent-color: var(--primary);
         }
-        
+
         .forgot-link {
-            color: #D4A373;
+            color: var(--primary);
             text-decoration: none;
-            font-size: 14px;
+            font-weight: 500;
         }
-        
+
         .forgot-link:hover {
             text-decoration: underline;
         }
-        
+
         .login-btn {
             width: 100%;
-            background: #D4A373;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .login-btn:hover {
-            background: #B8956A;
-        }
-        
-        .logo-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 4px solid #D4A373;
-            margin-bottom: 1rem;
-        }
-        
-        .feature-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
+            display: inline-flex;
             justify-content: center;
-            margin: 0 auto 0.5rem;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
         }
-        
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .login-table {
-                display: block;
+
+        .login-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 16px 30px rgba(62, 36, 8, 0.25);
+        }
+
+        .portal-note {
+            margin-top: 22px;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        footer {
+            margin-top: 36px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        footer span {
+            display: block;
+            margin-top: 6px;
+            font-size: 11px;
+            letter-spacing: 0.8px;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 32px 16px;
             }
-            
-            .login-cell {
-                display: block;
-                width: 100%;
-                height: 50vh;
+
+            .login-card {
+                padding: 28px 22px;
             }
-            
-            .login-cell-left {
-                height: 40vh;
-            }
-            
-            .login-cell-right {
-                height: 60vh;
+
+            .login-wrapper::before,
+            .login-wrapper::after {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-    <table class="login-table">
-        <tr>
-            <!-- Left Side -->
-            <td class="login-cell login-cell-left">
-                <div class="left-content">
-                    <div class="feature-icon">
-                        <i class="fas fa-heartbeat" style="font-size: 20px;"></i>
-                    </div>
-                    <h1 style="font-size: 28px; margin-bottom: 1rem;">HealthCare Portal</h1>
-                    <p style="font-size: 16px; opacity: 0.9; margin-bottom: 2rem;">Dedicated platform for healthcare professionals</p>
-                    
-                    <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem;">
-                        <div style="text-align: center;">
-                            <div class="feature-icon">
-                                <i class="fas fa-file-medical" style="font-size: 16px;"></i>
-                            </div>
-                            <p style="font-size: 12px; opacity: 0.8;">Patient Records</p>
-                        </div>
-                        <div style="text-align: center;">
-                            <div class="feature-icon">
-                                <i class="fas fa-clock" style="font-size: 16px;"></i>
-                            </div>
-                            <p style="font-size: 12px; opacity: 0.8;">Scheduling</p>
-                        </div>
-                        <div style="text-align: center;">
-                            <div class="feature-icon">
-                                <i class="fas fa-chart-line" style="font-size: 16px;"></i>
-                            </div>
-                            <p style="font-size: 12px; opacity: 0.8;">Analytics</p>
-                        </div>
-                    </div>
-                    
-                    <p style="font-size: 12px; opacity: 0.75;">Secure • Reliable • Professional</p>
-                </div>
-            </td>
-            
-            <!-- Right Side -->
-            <td class="login-cell login-cell-right">
-                <div class="right-content">
-                    <div class="form-box">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <img src="{{ asset('images/logo_final.jpg') }}" alt="Logo" class="logo-img">
-                            <h2 style="color: #000; font-size: 24px; margin-bottom: 0.5rem;">Welcome Back</h2>
-                            <p style="color: #6b7280; font-size: 14px;">Sign in to access your healthcare portal</p>
-                        </div>
-
-                        @include('components.flowbite-alert')
-
-                        <form action="{{ route('login.authenticate') }}" method="POST">
-                            @csrf
-                            
-                            <div class="input-group">
-                                <label for="username">Username</label>
-                                <div class="input-wrapper">
-                                    <i class="fas fa-user input-icon"></i>
-                                    <input 
-                                        type="text" 
-                                        id="username" 
-                                        name="username"
-                                        required
-                                        value="{{ old('username') }}"
-                                        class="form-input"
-                                        placeholder="Enter your username"
-                                    >
-                                </div>
-                                @error('username')
-                                    <p style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="input-group">
-                                <label for="password">Password</label>
-                                <div class="input-wrapper">
-                                    <i class="fas fa-lock input-icon"></i>
-                                    <input 
-                                        type="password" 
-                                        id="password" 
-                                        name="password"
-                                        required
-                                        class="form-input"
-                                        placeholder="Enter your password"
-                                    >
-                                    <button type="button" class="password-toggle" onclick="togglePassword()">
-                                        <i class="fa-solid fa-eye-slash" id="toggleIcon"></i>
-                                    </button>
-                                </div>
-                                @error('password')
-                                    <p style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            
-                            <div class="remember-forgot">
-                                <label>
-                                    <input type="checkbox" name="remember">
-                                    Remember me
-                                </label>
-                                <a href="#" class="forgot-link">Forgot password?</a>
-                            </div>
-
-                            <button type="submit" class="login-btn">
-                                <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i>
-                                Sign In
-                            </button>
-                        </form>
-
-                        <div style="text-align: center; margin-top: 1.5rem;">
-                            <p style="color: #6b7280; font-size: 12px;">
-                                Secure healthcare portal for authorized personnel only
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </td>
-        </tr>
-    </table>
-
     <script>
         function togglePassword() {
             const passwordInput = document.getElementById('password');
@@ -339,5 +312,87 @@
             }
         }
     </script>
+    <div class="login-wrapper">
+        <div class="brand">
+            <img src="{{ asset('images/logo_final.jpg') }}" alt="HealthCare Logo" class="brand-logo">
+            <h1>HealthCare Portal</h1>
+            <p>Prenatal &amp; Immunization Management System</p>
+        </div>
+
+        <div class="login-card">
+            <div class="card-header">
+                <h2>Authorized Access</h2>
+                <span class="support"><i class="fa-solid fa-shield-heart"></i> Secure Area</span>
+            </div>
+
+            <p class="guidance-text">Sign in with your assigned credentials to manage prenatal and immunization records.</p>
+
+            @include('components.flowbite-alert')
+
+            <form action="{{ route('login.authenticate') }}" method="POST">
+                @csrf
+
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user input-icon"></i>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            required
+                            value="{{ old('username') }}"
+                            class="form-input"
+                            placeholder="Enter your username"
+                        >
+                        @error('username')
+                            <p style="color: #ef4444; font-size: 12px; margin-top: 6px;">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            required
+                            class="form-input"
+                            placeholder="Enter your password"
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fa-solid fa-eye-slash" id="toggleIcon"></i>
+                        </button>
+                        @error('password')
+                            <p style="color: #ef4444; font-size: 12px; margin-top: 6px;">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="remember-forgot">
+                    <label>
+                        <input type="checkbox" name="remember">
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <p class="portal-note">Only authorized barangay health workers and midwives have access to this portal.</p>
+        </div>
+
+        <footer>
+            Preventive Healthcare Management System &copy; {{ date('Y') }}
+            <span>SECURE • RELIABLE • PROFESSIONAL</span>
+        </footer>
+    </div>
 </body>
 </html>

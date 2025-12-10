@@ -43,7 +43,7 @@
                     <div class="relative">
                         <input type="text" name="search" id="searchInput" value="{{ request('search') }}"
                                placeholder="Search by child name or vaccine"
-                               class="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                               class="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary form-input">
                         <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
                         </svg>
@@ -61,7 +61,7 @@
                 <div class="md:col-span-4 flex gap-2">
                     <!-- Status Filter -->
                     <div class="flex-1">
-                        <select name="status" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                        <select name="status" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-secondary form-input">
                             <option value="">All Status</option>
                             <option value="Upcoming" {{ request('status') == 'Upcoming' ? 'selected' : '' }}>Upcoming</option>
                             <option value="Done" {{ request('status') == 'Done' ? 'selected' : '' }}>Done</option>
@@ -70,7 +70,7 @@
                     </div>
                     <!-- Vaccine Filter -->
                     <div class="flex-1">
-                        <select name="vaccine" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#68727A] form-input">
+                        <select name="vaccine" class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-secondary form-input">
                             <option value="">All Vaccines</option>
                             @foreach($availableVaccines ?? [] as $vaccine)
                                 <option value="{{ $vaccine->id }}" {{ request('vaccine') == $vaccine->id ? 'selected' : '' }}>
@@ -81,7 +81,7 @@
                     </div>
                     <!-- Search Button -->
                     <div class="flex items-end">
-                        <button type="submit" class="bg-[#68727A] text-white px-4 py-2 rounded-lg hover:bg-[#5a6470] transition-all duration-200 btn-primary whitespace-nowrap">
+                        <button type="submit" class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-hover-color transition-all duration-200 btn-primary whitespace-nowrap">
                             Search
                         </button>
                     </div>

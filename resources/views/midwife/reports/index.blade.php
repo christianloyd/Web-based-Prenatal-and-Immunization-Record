@@ -535,10 +535,10 @@
             Schedule Report
         </button>-->
 
-        <!-- BHW Accomplishment Report Button -->
+        <!-- Accomplishment Report Button -->
         <a href="{{ route('midwife.report.bhw.accomplishment') }}" target="_blank" class="btn btn-success" style="padding: 12px 16px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
             <i class="fas fa-file-alt"></i>
-            BHW Accomplishment Report
+            Accomplishment Report
         </a>
     </div>
 </div>
@@ -684,7 +684,7 @@
         </div>
     </div>
 
-    <!-- Patient Demographics -->
+    <!-- Patient Demographics
     <div class="spacing-section">
         <div class="card" style="padding: 24px;">
             <h3 class="section-title">
@@ -716,7 +716,7 @@
             </div>
         </div>
     </div>
-</div>
+</div>-->
 
 <!-- Custom Paper Report Content -->
 <div id="customReportContent" class="report-content {{ ($currentFilters['report_format'] ?? '') === 'custom' ? 'active' : '' }}">

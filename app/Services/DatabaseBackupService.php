@@ -784,6 +784,16 @@ class DatabaseBackupService
             // Execute DDL statements first (no transaction needed)
             \Log::info("Executing DDL statements (" . count($ddlStatements) . ")");
             foreach ($ddlStatements as $statement) {
+                $upperStatement = strtoupper($statement);
+
+                // Skip statements that toggle connection-level settings we already manage
+                if (str_contains($upperStatement, 'SET FOREIGN_KEY_CHECKS') ||
+                    str_contains($upperStatement, 'SET AUTOCOMMIT') ||
+                    str_contains($upperStatement, 'SET SQL_MODE')) {
+                    \Log::info('Skipping connection setting statement during DDL execution.');
+                    continue;
+                }
+
                 try {
                     DB::unprepared($statement);
                 } catch (Exception $e) {
@@ -795,7 +805,11 @@ class DatabaseBackupService
             // Phase 2: Always start a transaction when autocommit is disabled
             \Log::info("Starting transaction for data operations");
             DB::beginTransaction();
-            
+
+            // Re-apply foreign key checks setting within transaction context
+            // This is crucial for tables with self-referential foreign keys
+            DB::unprepared('SET FOREIGN_KEY_CHECKS = 0');
+
             try {
                 // Phase 2a: Clear existing data if DML statements exist
                 if (!empty($dmlStatements)) {
@@ -1207,7 +1221,7 @@ class DatabaseBackupService
             'vaccines',        // Referenced by immunizations, child_immunizations, stock_transactions
             'prenatal_records', // References patients
             'child_records',   // References patients
-            'prenatal_checkups', // References prenatal_records
+            'prenatal_checkups', // References prenatal_records (also has self-referential FK, handled by FOREIGN_KEY_CHECKS=0)
             'immunizations',   // References vaccines, child_records
             'child_immunizations', // References vaccines, child_records
             'stock_transactions', // References vaccines

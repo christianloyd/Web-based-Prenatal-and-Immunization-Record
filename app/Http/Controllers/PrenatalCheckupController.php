@@ -67,7 +67,19 @@ class PrenatalCheckupController extends Controller
             $query->whereDate('checkup_date', '<=', $request->date_to);
         }
 
-        $checkups = $query->paginate(20)->withQueryString();
+        $perPage = 10;
+        $checkups = $query->paginate($perPage);
+
+        $lastPage = max(1, $checkups->lastPage());
+        $currentPage = min(request()->integer('page', 1), $lastPage);
+        if ($currentPage !== $checkups->currentPage()) {
+            return redirect()->route(
+                auth()->user()->role . '.prenatalcheckup.index',
+                array_merge($request->except('page'), ['page' => $currentPage])
+            );
+        }
+
+        $checkups->withQueryString();
 
         // Load next upcoming checkups for each patient to avoid N+1 queries
         $patientIds = $checkups->pluck('patient_id')->merge(

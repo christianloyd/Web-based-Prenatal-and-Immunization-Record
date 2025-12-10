@@ -51,21 +51,35 @@ class ReportController extends Controller
             }
         }
         
+        if ($filterDate) {
+            $totalPatients = Patient::whereMonth('created_at', $filterDate->month)
+                                    ->whereYear('created_at', $filterDate->year)
+                                    ->count();
+            $totalPrenatalRecords = PrenatalRecord::whereMonth('created_at', $filterDate->month)
+                                                  ->whereYear('created_at', $filterDate->year)
+                                                  ->count();
+            $totalChildRecords = ChildRecord::whereMonth('created_at', $filterDate->month)
+                                            ->whereYear('created_at', $filterDate->year)
+                                            ->count();
+            $totalChildImmunizations = Immunization::whereMonth('schedule_date', $filterDate->month)
+                                                  ->whereYear('schedule_date', $filterDate->year)
+                                                  ->where('status', 'Done')
+                                                  ->count();
+            $thisMonthCheckups = $totalPrenatalRecords;
+        } else {
+            $totalPatients = Patient::count();
+            $totalPrenatalRecords = PrenatalRecord::count();
+            $totalChildRecords = ChildRecord::count();
+            $totalChildImmunizations = Immunization::where('status', 'Done')->count();
+            $thisMonthCheckups = $totalPrenatalRecords;
+        }
+
         $stats = [
-            'totalPatients' => Patient::count(),
-            'totalPrenatalRecords' => PrenatalRecord::count(),
-            'totalChildRecords' => ChildRecord::count(),
-            'thisMonthCheckups' => $filterDate
-                ? PrenatalRecord::whereMonth('created_at', $filterDate->month)
-                                ->whereYear('created_at', $filterDate->year)
-                                ->count()
-                : PrenatalRecord::count(),
-            'totalChildImmunizations' => $filterDate
-                ? Immunization::whereMonth('schedule_date', $filterDate->month)
-                              ->whereYear('schedule_date', $filterDate->year)
-                              ->where('status', 'Done')
-                              ->count()
-                : Immunization::where('status', 'Done')->count(),
+            'totalPatients' => $totalPatients,
+            'totalPrenatalRecords' => $totalPrenatalRecords,
+            'totalChildRecords' => $totalChildRecords,
+            'thisMonthCheckups' => $thisMonthCheckups,
+            'totalChildImmunizations' => $totalChildImmunizations,
             'totalImmunizedGirls' => ChildRecord::where('gender', 'Female')
                                                ->whereHas('immunizations', function($query) use ($filterDate) {
                                                    $query->where('status', 'Done');
@@ -782,7 +796,7 @@ class ReportController extends Controller
         $month = $request->get('month', now()->format('F'));
         $year = $request->get('year', now()->format('Y'));
         $barangay = $request->get('barangay', 'Mecalong II');
-        $municipality = $request->get('municipality', 'Dumalan Hao');
+        $municipality = $request->get('municipality', 'Dumalinao');
 
         // Parse month/year for filtering
         $filterDate = null;

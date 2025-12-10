@@ -42,7 +42,7 @@ class ProcessRestoreJob implements ShouldQueue
 
             // Update status to in_progress
             $restoreOperation->update([
-                'status' => 'in_progress',
+                'status' => RestoreOperation::STATUS_IN_PROGRESS,
                 'progress' => 10,
                 'current_step' => 'Starting restore process...'
             ]);
@@ -96,7 +96,7 @@ class ProcessRestoreJob implements ShouldQueue
 
             // Mark as completed
             $restoreOperation->update([
-                'status' => 'completed',
+                'status' => RestoreOperation::STATUS_COMPLETED,
                 'progress' => 100,
                 'current_step' => 'Restore completed successfully!',
                 'completed_at' => now(),
@@ -105,7 +105,7 @@ class ProcessRestoreJob implements ShouldQueue
 
         } catch (Exception $e) {
             $restoreOperation->update([
-                'status' => 'failed',
+                'status' => RestoreOperation::STATUS_FAILED,
                 'progress' => 0,
                 'current_step' => 'Restore failed',
                 'error_message' => $e->getMessage(),
@@ -127,7 +127,7 @@ class ProcessRestoreJob implements ShouldQueue
         $restoreOperation = RestoreOperation::find($this->restoreOperationId);
         if ($restoreOperation) {
             $restoreOperation->update([
-                'status' => 'failed',
+                'status' => RestoreOperation::STATUS_FAILED,
                 'progress' => 0,
                 'current_step' => 'Restore job failed',
                 'error_message' => 'Job failed: ' . $exception->getMessage(),

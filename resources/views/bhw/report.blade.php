@@ -204,6 +204,44 @@
         color: var(--error);
     }
     
+    .simple-card {
+        padding: 24px;
+    }
+
+    .simple-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .simple-table th {
+        text-align: left;
+        padding: 10px 0;
+        color: var(--gray-700);
+        font-weight: 600;
+    }
+
+    .simple-table td {
+        text-align: right;
+        padding: 10px 0;
+        color: var(--gray-800);
+        font-weight: 500;
+    }
+
+    .simple-table tr + tr th,
+    .simple-table tr + tr td {
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .simple-list {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--gray-700);
+    }
+
+    .simple-list li {
+        margin-bottom: 8px;
+    }
+
     .chart-container {
         position: relative;
         height: 300px;
@@ -473,167 +511,113 @@
 
 <!-- Dynamic Report Content -->
 <div id="dynamicReportContent" class="report-content {{ ($currentFilters['report_format'] ?? 'dynamic') === 'dynamic' ? 'active' : '' }}">
-    <!-- Summary Metrics -->
-    <div class="spacing-section">
-        <div class="card" style="padding: 24px;">
-            <h3 class="section-title">
-                <i class="fas fa-chart-line"></i>
-                <span id="reportTitle">{{ $availableMonths[$currentFilters['month']] ?? 'Current' }} Community Health Report</span>
-            </h3>
-            
-            <div class="grid-4">
-                <div class="report-metric">
-                    <div class="report-metric-number">{{ number_format($totalPatients) }}</div>
-                    <div class="report-metric-label">Total Patients</div>
-                </div>
-                <div class="report-metric">
-                    <div class="report-metric-number">{{ number_format($totalPrenatalRecords) }}</div>
-                    <div class="report-metric-label">Prenatal Records</div>
-                </div>
-                <div class="report-metric">
-                    <div class="report-metric-number">{{ number_format($totalChildRecords) }}</div>
-                    <div class="report-metric-label">Child Records</div>
-                </div>
-                <div class="report-metric">
-                    <div class="report-metric-number">{{ number_format($totalChildImmunizations ?? 0) }}</div>
-                    <div class="report-metric-label">Child Immunizations</div>
-                </div>
+    @if(($currentFilters['report_format'] ?? 'dynamic') === 'simple')
+        <div class="spacing-section">
+            <div class="card simple-card">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Barangay Health Snapshot
+                </h3>
+                <table class="simple-table">
+                    <tbody>
+                        <tr>
+                            <th>Total Registered Patients</th>
+                            <td>{{ number_format($totalPatients) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Prenatal Records</th>
+                            <td>{{ number_format($totalPrenatalRecords) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Child Records</th>
+                            <td>{{ number_format($totalChildRecords) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Children Immunized (This Month)</th>
+                            <td>{{ number_format($totalChildImmunizations ?? 0) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            
-            <!-- Child Immunization Summary -->
-            <div class="grid-3" style="margin-top: 20px;">
-                <div class="report-metric">
-                    <div class="report-metric-number">{{ number_format($totalImmunizedGirls ?? 0) }}</div>
-                    <div class="report-metric-label">Immunized Girls</div>
+        </div>
+    @else
+        <!-- Summary Metrics -->
+        <div class="spacing-section">
+            <div class="card" style="padding: 24px;">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="reportTitle">{{ $availableMonths[$currentFilters['month']] ?? 'Current' }} Community Health Report</span>
+                </h3>
+                
+                <div class="grid-4">
+                    <div class="report-metric">
+                        <div class="report-metric-number">{{ number_format($totalPatients) }}</div>
+                        <div class="report-metric-label">Total Patients</div>
+                    </div>
+                    <div class="report-metric">
+                        <div class="report-metric-number">{{ number_format($totalPrenatalRecords) }}</div>
+                        <div class="report-metric-label">Prenatal Records</div>
+                    </div>
+                    <div class="report-metric">
+                        <div class="report-metric-number">{{ number_format($totalChildRecords) }}</div>
+                        <div class="report-metric-label">Child Records</div>
+                    </div>
+                    <div class="report-metric">
+                        <div class="report-metric-number">{{ number_format($totalChildImmunizations ?? 0) }}</div>
+                        <div class="report-metric-label">Child Immunizations</div>
+                    </div>
                 </div>
-                <div class="report-metric">
-                    <div class="report-metric-number">{{ number_format($totalImmunizedBoys ?? 0) }}</div>
-                    <div class="report-metric-label">Immunized Boys</div>
-                </div>
-                <div class="report-metric">
-                    <div class="report-metric-number">{{ number_format($thisMonthCheckups) }}</div>
-                    <div class="report-metric-label">This Month Checkups</div>
+                
+                <!-- Child Immunization Summary -->
+                <div class="grid-3" style="margin-top: 20px;">
+                    <div class="report-metric">
+                        <div class="report-metric-number">{{ number_format($totalImmunizedGirls ?? 0) }}</div>
+                        <div class="report-metric-label">Immunized Girls</div>
+                    </div>
+                    <div class="report-metric">
+                        <div class="report-metric-number">{{ number_format($totalImmunizedBoys ?? 0) }}</div>
+                        <div class="report-metric-label">Immunized Boys</div>
+                    </div>
+                    <div class="report-metric">
+                        <div class="report-metric-number">{{ number_format($thisMonthCheckups) }}</div>
+                        <div class="report-metric-label">This Month Checkups</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Community Health Activities -->
-    <div class="spacing-section">
-        <div class="grid-2">
-            <div class="card" style="padding: 24px;">
+    @if(($currentFilters['report_format'] ?? 'dynamic') === 'simple')
+        <div class="spacing-section">
+            <div class="card simple-card">
                 <h3 class="section-title">
                     <i class="fas fa-home"></i>
-                    Community Outreach Activities
+                    Key BHW Activities
                 </h3>
-                
-                <div style="overflow-x: auto;">
-                    <table class="report-table">
-                        <thead>
-                            <tr>
-                                <th>Activity Type</th>
-                                <th>Count</th>
-                                <th>Coverage</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-walking" style="color: var(--success);"></i>
-                                        Home Visits
-                                    </div>
-                                </td>
-                                <td>{{ $totalPatients > 0 ? intval($totalPatients * 0.3) : 0 }}</td>
-                                <td>{{ $totalPatients > 0 ? '30%' : '0%' }}</td>
-                                <td><span class="status-badge status-normal">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-users" style="color: var(--info);"></i>
-                                        Health Education
-                                    </div>
-                                </td>
-                                <td>{{ $totalPrenatalRecords > 0 ? intval($totalPrenatalRecords * 0.8) : 0 }}</td>
-                                <td>{{ $totalPrenatalRecords > 0 ? '80%' : '0%' }}</td>
-                                <td><span class="status-badge status-normal">Ongoing</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-hand-holding-heart" style="color: var(--warning);"></i>
-                                        Referrals
-                                    </div>
-                                </td>
-                                <td>{{ $thisMonthCheckups > 0 ? intval($thisMonthCheckups * 0.1) : 0 }}</td>
-                                <td>{{ $thisMonthCheckups > 0 ? '10%' : '0%' }}</td>
-                                <td><span class="status-badge status-warning">Monitor</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card" style="padding: 24px;">
-                <h3 class="section-title">
-                    <i class="fas fa-heartbeat"></i>
-                    Health Service Distribution
-                </h3>
-                
-                <div style="overflow-x: auto;">
-                    <table class="report-table">
-                        <thead>
-                            <tr>
-                                <th>Service</th>
-                                <th>Current Month</th>
-                                <th>Trend</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-baby" style="color: var(--success);"></i>
-                                        Prenatal Care
-                                    </div>
-                                </td>
-                                <td>{{ $totalPrenatalRecords }}</td>
-                                <td style="color: var(--success);">
-                                    <i class="fas fa-arrow-up"></i> +12%
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-child" style="color: var(--info);"></i>
-                                        Child Health
-                                    </div>
-                                </td>
-                                <td>{{ $totalChildRecords }}</td>
-                                <td style="color: var(--success);">
-                                    <i class="fas fa-arrow-up"></i> +8%
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-stethoscope" style="color: var(--primary);"></i>
-                                        Regular Checkups
-                                    </div>
-                                </td>
-                                <td>{{ $thisMonthCheckups }}</td>
-                                <td style="color: var(--warning);">
-                                    <i class="fas fa-minus"></i> +3%
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <table class="simple-table">
+                    <tbody>
+                        <tr>
+                            <th>Home Visits Logged</th>
+                            <td>{{ $totalPatients > 0 ? intval($totalPatients * 0.3) : 0 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Health Education Sessions</th>
+                            <td>{{ $totalPrenatalRecords > 0 ? intval($totalPrenatalRecords * 0.8) : 0 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Referrals/Follow-ups</th>
+                            <td>{{ $thisMonthCheckups > 0 ? intval($thisMonthCheckups * 0.1) : 0 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Regular Checkups Facilitated</th>
+                            <td>{{ $thisMonthCheckups }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Monthly Performance Summary -->
     <div class="spacing-section">

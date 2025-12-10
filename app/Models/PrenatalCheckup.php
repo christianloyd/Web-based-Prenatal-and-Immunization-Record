@@ -37,7 +37,6 @@ class PrenatalCheckup extends Model
         'weight',
         'baby_heartbeat',
         'belly_size',
-        'baby_movement',
         'swelling',
         'next_visit_date',
         'next_visit_time',

@@ -45,7 +45,7 @@
                         <option value="Male" {{ request('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                         <option value="Female" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
                     </select>
-                    <button type="submit" class="btn-minimal px-4 py-2.5 bg-[#68727A] text-white rounded-lg">
+                    <button type="submit" class="btn-minimal px-4 py-2.5 bg-secondary text-white rounded-lg hover:bg-hover-color transition-colors">
                         <i class="fas fa-search mr-2"></i>Search
                     </button>
                     <a href="{{ route(auth()->user()->role . '.childrecord.index') }}" class="btn-minimal px-4 py-2.5 text-gray-600 border border-gray-300 rounded-lg text-center">
@@ -69,7 +69,7 @@
         <!-- Loading indicator -->
         <div id="search-loading" class="hidden">
             <div class="flex items-center justify-center py-8">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#68727A]"></div>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
                 <span class="ml-3 text-gray-600">Searching...</span>
             </div>
         </div>

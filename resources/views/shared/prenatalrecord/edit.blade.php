@@ -6,8 +6,9 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
     :root {
-        --primary: #243b55;
-        --secondary: #141e30;
+        --primary: #D4A373;
+        --secondary: #ecb99e;
+        --text-dark: #3d2a1b;
     }
 
     * {
@@ -32,12 +33,13 @@
     }
 
     .btn-primary-clean {
-        background-color: var(--primary);
-        color: white;
+        background-color: var(--secondary);
+        color: var(--text-dark);
     }
 
     .btn-primary-clean:hover {
-        background-color: var(--secondary);
+        background-color: var(--primary);
+        color: white;
     }
 </style>
 @endpush

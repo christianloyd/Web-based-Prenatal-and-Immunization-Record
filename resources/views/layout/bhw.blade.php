@@ -427,7 +427,7 @@
                              alt="Healthcare Logo"
                              class="w-16 h-16 sm:w-20 sm:h-20 mb-2 object-cover rounded-full">
                         <div>
-                            <h1 class="text-lg sm:text-xl font-bold">Brgy Mecolong Health Center</h1>
+                            <h1 class="text-lg sm:text-xl font-bold">Baragay Mecolong Health Center</h1>
                             <p class="text-xs sm:text-sm text-gray-300 mt-1">Barangay Health Worker Portal</p>
                         </div>
                     </div>
@@ -460,7 +460,7 @@
                            data-section="patients"
                            onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-user-plus w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            Patient Registration
+                            Parent Registration
                         </a>
                     </li>
 
@@ -482,7 +482,7 @@
                            data-section="child-records"
                            onclick="showNavigationLoading(event, this)">
                             <i class="fas fa-child w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            Child Records
+                            Child Registration
                         </a>
                     </li>
 

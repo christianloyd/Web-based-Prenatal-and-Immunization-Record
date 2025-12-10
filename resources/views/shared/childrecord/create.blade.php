@@ -6,8 +6,9 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
     :root {
-        --primary: #243b55;
-        --secondary: #141e30;
+        --primary: #D4A373;
+        --secondary: #ecb99e;
+        --text-dark: #3d2a1b;
     }
 
     * {
@@ -32,12 +33,13 @@
     }
 
     .btn-primary-clean {
-        background-color: var(--primary);
-        color: white;
+        background-color: var(--secondary);
+        color: var(--text-dark);
     }
 
     .btn-primary-clean:hover {
-        background-color: var(--secondary);
+        background-color: var(--primary);
+        color: white;
     }
 
     .error-border {
@@ -433,13 +435,11 @@
 
 @push('scripts')
 <script>
-// Show mother form based on selection
 function showMotherForm(hasExisting) {
     document.getElementById('motherConfirmationStep').classList.add('hidden');
     document.getElementById('childRecordFormContainer').classList.remove('hidden');
     document.getElementById('motherExists').value = hasExisting ? 'yes' : 'no';
 
-    // Update step indicator (if exists)
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
     if (step1 && step2) {
@@ -450,13 +450,15 @@ function showMotherForm(hasExisting) {
     if (hasExisting) {
         document.getElementById('existingMotherSection').classList.remove('hidden');
         document.getElementById('newMotherSection').classList.add('hidden');
-        // Make mother_id required
-        document.getElementById('mother_id').required = true;
-        // Remove required from new mother fields
+
+        const motherIdField = document.getElementById('mother_id');
+        if (motherIdField) motherIdField.required = true;
+
         const motherNameField = document.querySelector('[name="mother_name"]');
         const motherAgeField = document.querySelector('[name="mother_age"]');
         const motherContactField = document.querySelector('[name="mother_contact"]');
         const motherAddressField = document.querySelector('[name="mother_address"]');
+
         if (motherNameField) motherNameField.required = false;
         if (motherAgeField) motherAgeField.required = false;
         if (motherContactField) motherContactField.required = false;
@@ -464,13 +466,15 @@ function showMotherForm(hasExisting) {
     } else {
         document.getElementById('newMotherSection').classList.remove('hidden');
         document.getElementById('existingMotherSection').classList.add('hidden');
-        // Remove required from mother_id
-        document.getElementById('mother_id').required = false;
-        // Make new mother fields required
+
+        const motherIdField = document.getElementById('mother_id');
+        if (motherIdField) motherIdField.required = false;
+
         const motherNameField = document.querySelector('[name="mother_name"]');
         const motherAgeField = document.querySelector('[name="mother_age"]');
         const motherContactField = document.querySelector('[name="mother_contact"]');
         const motherAddressField = document.querySelector('[name="mother_address"]');
+
         if (motherNameField) motherNameField.required = true;
         if (motherAgeField) motherAgeField.required = true;
         if (motherContactField) motherContactField.required = true;
@@ -478,29 +482,30 @@ function showMotherForm(hasExisting) {
     }
 }
 
-// Change mother type
 function changeMotherType() {
-    if (confirm('Are you sure you want to change the mother selection? This will clear the current data.')) {
-        document.getElementById('childRecordFormContainer').classList.add('hidden');
-        document.getElementById('motherConfirmationStep').classList.remove('hidden');
-        // Update step indicator (if exists)
-        const step1 = document.getElementById('step1');
-        const step2 = document.getElementById('step2');
-        if (step1 && step2) {
-            step1.classList.add('active');
-            step2.classList.remove('active');
-        }
-        // Clear form
-        document.getElementById('recordForm').reset();
-        const motherDetails = document.getElementById('motherDetails');
-        if (motherDetails) {
-            motherDetails.classList.add('hidden');
-        }
+    if (!confirm('Are you sure you want to change the mother selection? This will clear the current data.')) {
+        return;
     }
+
+    document.getElementById('childRecordFormContainer').classList.add('hidden');
+    document.getElementById('motherConfirmationStep').classList.remove('hidden');
+
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    if (step1 && step2) {
+        step1.classList.add('active');
+        step2.classList.remove('active');
+    }
+
+    const recordForm = document.getElementById('recordForm');
+    recordForm?.reset();
+
+    const motherDetails = document.getElementById('motherDetails');
+    motherDetails?.classList.add('hidden');
 }
 
-// Show mother details when selected
-document.getElementById('mother_id')?.addEventListener('change', function() {
+const motherSelect = document.getElementById('mother_id');
+motherSelect?.addEventListener('change', function() {
     const option = this.options[this.selectedIndex];
     if (option.value) {
         document.getElementById('motherName').textContent = option.dataset.name || '-';
@@ -513,80 +518,75 @@ document.getElementById('mother_id')?.addEventListener('change', function() {
     }
 });
 
-// Form submission with AJAX and SweetAlert
-document.getElementById('recordForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+const recordForm = document.getElementById('recordForm');
+const submitBtn = document.getElementById('submit-btn');
 
-    const form = this;
-    const submitBtn = document.getElementById('submit-btn');
-    const originalBtnText = submitBtn.innerHTML;
+if (recordForm && submitBtn) {
+    recordForm.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-    // Disable button and show loading
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        const form = this;
+        const originalBtnText = submitBtn.innerHTML;
 
-    // Prepare form data
-    const formData = new FormData(form);
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
 
-    // Send AJAX request
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
+        const formData = new FormData(form);
 
-        if (data.success) {
-            // Show success SweetAlert
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: data.message || 'Child record created successfully!',
-                confirmButtonColor: '#D4A373',
-                confirmButtonText: 'Great!'
-            }).then(() => {
-                // Redirect to index page - using template literal with current role
-                window.location.href = '{{ route(auth()->user()->role . ".childrecord.index") }}';
-            });
-        } else {
-            // Show error SweetAlert
-            let errorMessage = data.message || 'An error occurred while creating the child record.';
-
-            // If there are validation errors, show them
-            if (data.errors && Object.keys(data.errors).length > 0) {
-                const errorList = Object.values(data.errors).flat();
-                errorMessage += '\n\n' + errorList.join('\n');
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
             }
+        })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
 
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: errorMessage,
-                confirmButtonColor: '#D4A373'
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message || 'Child record created successfully!',
+                        confirmButtonColor: '#D4A373',
+                        confirmButtonText: 'Great!'
+                    }).then(() => {
+                        window.location.href = '{{ route(auth()->user()->role . ".childrecord.index") }}';
+                    });
+                } else {
+                    let errorMessage = data.message || 'An error occurred while creating the child record.';
+
+                    if (data.errors && Object.keys(data.errors).length > 0) {
+                        const errorList = Object.values(data.errors).flat();
+                        errorMessage += '\n\n' + errorList.join('\n');
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage,
+                        confirmButtonColor: '#D4A373'
+                    });
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'An unexpected error occurred. Please try again.',
+                    confirmButtonColor: '#D4A373'
+                });
             });
-        }
-    })
-    .catch(error => {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
-
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'An unexpected error occurred. Please try again.',
-            confirmButtonColor: '#D4A373'
-        });
     });
-});
+}
 
-// Set max date for birthdate to today
 document.addEventListener('DOMContentLoaded', function() {
     const birthdateInput = document.querySelector('input[name="birthdate"]');
     if (birthdateInput) {
@@ -597,3 +597,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endpush
 @endsection
+

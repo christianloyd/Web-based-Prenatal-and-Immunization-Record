@@ -12,15 +12,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Run notification checks daily at 8:00 AM
+        // Run notification checks at the start of the day (12:00 AM)
         $schedule->command('notifications:check')
-                 ->dailyAt('08:00')
+                 ->dailyAt('00:00')
                  ->withoutOverlapping()
                  ->runInBackground();
 
-        // Run notification checks again at 2:00 PM for appointments
+        // Run notification checks again just before midnight (11:59 PM)
         $schedule->command('notifications:check')
-                 ->dailyAt('14:00') 
+                 ->dailyAt('23:59') 
                  ->withoutOverlapping()
                  ->runInBackground();
 

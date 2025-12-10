@@ -512,7 +512,7 @@
                         <a href="{{ route('midwife.patients.index') }}"
                            class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('midwife.patients.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                             <i class="fas fa-user-plus w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3"></i>
-                            Patient Registration
+                            Parent Registration
                         </a>
                     </li>
 
@@ -564,7 +564,7 @@
                                     <a href="{{ route('midwife.childrecord.index') }}"
                                        class="nav-link flex items-center p-2 rounded-lg text-sm {{ request()->routeIs('midwife.childrecord.*') ? 'nav-active bg-primary' : 'hover-cream' }}">
                                         <i class="fas fa-clipboard-list w-4 h-4 mr-2"></i>
-                                        Child Records
+                                        Child Registration
                                     </a>
                                 </li>
                                 <li>
@@ -595,7 +595,7 @@
                         </a>
                     </li>
 
-                    <!-- Cloud Backup -->
+                    <!-- Cloud Backup-->
                     <li>
                         <a href="{{ route('midwife.cloudbackup.index') }}"
                            class="nav-link flex items-center p-2 sm:p-3 rounded-lg text-sm sm:text-base {{ request()->routeIs('admin.cloudbackup.*') ? 'nav-active bg-primary' : 'hover-cream' }}"

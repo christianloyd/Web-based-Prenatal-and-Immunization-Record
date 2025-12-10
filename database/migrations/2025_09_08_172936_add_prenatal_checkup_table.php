@@ -26,7 +26,6 @@ return new class extends Migration
             $table->decimal('belly_size', 5, 2)->nullable();
             
             // Health Check
-            $table->enum('baby_movement', ['active', 'normal', 'less'])->nullable();
             $table->json('swelling')->nullable(); // Store array of swelling locations
             
             // Notes and Follow-up

@@ -263,7 +263,6 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Baby HR</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Belly</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movement</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                         </tr>
                     </thead>
@@ -337,13 +336,6 @@
                                         {{ $checkup->fundal_height_cm }}cm
                                     @elseif($checkup->belly_size)
                                         {{ $checkup->belly_size }}cm
-                                    @else
-                                        <span class="text-gray-400">N/A</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
-                                    @if($checkup->baby_movement)
-                                        <span class="capitalize">{{ $checkup->baby_movement }}</span>
                                     @else
                                         <span class="text-gray-400">N/A</span>
                                     @endif

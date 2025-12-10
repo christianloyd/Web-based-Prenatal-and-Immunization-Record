@@ -23,21 +23,21 @@ use App\Http\Controllers\SystemAnalysisController;
 // Redirect root to login
 Route::get('/', fn () => redirect()->route('login'));
 
-// Guest routes with strict rate limiting
-Route::middleware(['guest', 'throttle:10,1'])->group(function () {
+// Guest routes (rate limiting disabled for demo)
+Route::middleware(['guest'])->group(function () {
     Route::get('/login', fn () => view('login'))->name('login');
-    Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate')->middleware('throttle:5,1');
+    Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate');
 });
 
-// Google OAuth routes (outside auth middleware for callback) with rate limiting
-Route::middleware('throttle:10,1')->group(function () {
+// Google OAuth routes (rate limiting disabled for demo)
+Route::middleware([])->group(function () {
     Route::get('/google/auth', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.auth');
     Route::get('/google/callback', [GoogleAuthController::class, 'handleCallback'])->name('google.callback');
 });
-Route::post('/google/disconnect', [GoogleAuthController::class, 'disconnect'])->name('google.disconnect')->middleware(['auth', 'throttle:10,1']);
+Route::post('/google/disconnect', [GoogleAuthController::class, 'disconnect'])->name('google.disconnect')->middleware(['auth']);
 
-// Authenticated routes with rate limiting
-Route::middleware(['auth', 'throttle:60,1'])->group(function () {
+// Authenticated routes (rate limiting disabled for demo)
+Route::middleware(['auth'])->group(function () {
 
     // Dashboard routes by role
     Route::get('/dashboard', function () {
@@ -70,7 +70,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
        MIDWIFE AREA — prefixed & named
        ---------------------------------------------------------- */
     Route::prefix('midwife')
-         ->middleware(['auth', 'role:midwife', 'throttle:api'])  // 🔒 SECURITY FIX: Only midwives can access + rate limiting
+         ->middleware(['auth', 'role:midwife'])  // 🔒 SECURITY FIX: Only midwives can access
          ->name('midwife.')
          ->group(function () {
 
@@ -176,9 +176,9 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 
         });
 
-    // BHW routes (role middleware + rate limiting)
+    // BHW routes (role middleware, no throttling for demo)
     Route::prefix('bhw')
-            ->middleware(['auth', 'role:bhw', 'throttle:api'])
+            ->middleware(['auth', 'role:bhw'])
             ->name('bhw.')
             ->group(function () {
 

@@ -1,9 +1,9 @@
 {{-- Shared Patients Index View - Works for both Midwife and BHW --}}
 @extends('layout.' . auth()->user()->role)
 
-@section('title', 'Patient Management')
-@section('page-title', 'Patient Management')
-@section('page-subtitle', 'Manage patient basic information')
+@section('title', 'Parent Management')
+@section('page-title', 'Parent Management')
+@section('page-subtitle', 'Manage parent basic information')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/' . auth()->user()->role . '/' . auth()->user()->role . '.css') }}">
@@ -19,11 +19,11 @@
     <div class="flex justify-between items-center mb-6">
          <div> </div>
         <div class="flex space-x-3">
-            <button onclick="openPatientModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-charcoal-700 transition-all duration-200 flex items-center btn-primary">
+            <button onclick="openPatientModal()" class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-hover-color transition-all duration-200 flex items-center btn-primary">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                 </svg>
-                Register New Patient
+                Register New Parent
             </button>
         </div>
     </div>
@@ -41,7 +41,7 @@
                     </div>
                 </div>
                 <div class="flex space-x-2">
-                    <button type="submit" class="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-paynes-charcoal-700 transition-all duration-200 btn-primary">
+                    <button type="submit" class="flex-1 bg-secondary text-white px-4 py-2 rounded-lg hover:bg-hover-color transition-all duration-200 btn-primary">
                         Search
                     </button>
                     <a href="@roleRoute('patients.index')" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-center">
@@ -131,10 +131,10 @@
                                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
-                                <p class="text-lg font-medium text-gray-900 mb-2">No patients found</p>
-                                <p class="text-gray-600 mb-4">Get started by registering your first patient</p>
+                                <p class="text-lg font-medium text-gray-900 mb-2">No parents found</p>
+                                <p class="text-gray-600 mb-4">Get started by registering your first parent</p>
                                 <button onclick="openPatientModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors btn-primary">
-                                    Register First Patient
+                                    Register First Parent
                                 </button>
                             </div>
                         </td>
@@ -145,11 +145,55 @@
         </div>
 
         <!-- Pagination -->
-        @if($patients->hasPages())
-            <div class="px-6 py-3 border-t border-gray-200">
-                {{ $patients->links() }}
+        @php
+            $paginator = $patients;
+            $currentPage = $paginator->currentPage();
+            $lastPage = max(1, $paginator->lastPage());
+        @endphp
+
+        <div class="px-6 py-3 border-top border-gray-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between text-sm text-gray-600">
+            <div>
+                Showing
+                <span class="font-medium">{{ $paginator->firstItem() ?? ($paginator->count() ? 1 : 0) }}</span>
+                to
+                <span class="font-medium">{{ $paginator->lastItem() ?? $paginator->count() }}</span>
+                of
+                <span class="font-medium">{{ $paginator->total() }}</span>
+                results
             </div>
-        @endif
+
+            <nav class="inline-flex items-center gap-1" role="navigation" aria-label="Pagination">
+                @php $prevDisabled = $paginator->onFirstPage(); @endphp
+                <a
+                    href="{{ $prevDisabled ? '#' : $paginator->previousPageUrl() }}"
+                    class="pagination-btn {{ $prevDisabled ? 'disabled' : '' }}"
+                    aria-disabled="{{ $prevDisabled ? 'true' : 'false' }}"
+                    aria-label="Previous page"
+                >
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+
+                @for ($page = 1; $page <= $lastPage; $page++)
+                    <a
+                        href="{{ $paginator->url($page) }}"
+                        class="pagination-btn {{ $page === $currentPage ? 'active' : '' }}"
+                        aria-current="{{ $page === $currentPage ? 'page' : 'false' }}"
+                    >
+                        {{ $page }}
+                    </a>
+                @endfor
+
+                @php $nextDisabled = !$paginator->hasMorePages(); @endphp
+                <a
+                    href="{{ $nextDisabled ? '#' : $paginator->nextPageUrl() }}"
+                    class="pagination-btn {{ $nextDisabled ? 'disabled' : '' }}"
+                    aria-disabled="{{ $nextDisabled ? 'true' : 'false' }}"
+                    aria-label="Next page"
+                >
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </nav>
+        </div>
     </div>
 </div>
 

@@ -147,16 +147,6 @@
                         </h3>
                         <div class="space-y-3">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Baby Movement</label>
-                                <select name="baby_movement" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                    <option value="">-- Select Baby Movement --</option>
-                                    <option value="active" {{ old('baby_movement') == 'active' ? 'selected' : '' }}>Active</option>
-                                    <option value="normal" {{ old('baby_movement') == 'normal' ? 'selected' : '' }}>Normal</option>
-                                    <option value="less" {{ old('baby_movement') == 'less' ? 'selected' : '' }}>Less Active</option>
-                                    <option value="none" {{ old('baby_movement') == 'none' ? 'selected' : '' }}>No Movement</option>
-                                </select>
-                            </div>
-                            <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Symptoms</label>
                                 <textarea name="symptoms" rows="2" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-lg"
                                           placeholder="Any symptoms reported by the patient...">{{ old('symptoms') }}</textarea>

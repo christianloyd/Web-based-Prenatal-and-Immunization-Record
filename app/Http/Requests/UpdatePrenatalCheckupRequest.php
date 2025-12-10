@@ -30,8 +30,6 @@ class UpdatePrenatalCheckupRequest extends FormRequest
             'checkup_time' => [
                 'required',
                 'date_format:H:i',
-                'after_or_equal:05:00',
-                'before:17:00',
             ],
             'weight_kg' => 'required|numeric|min:30|max:200',
             'blood_pressure_systolic' => [
@@ -71,8 +69,6 @@ class UpdatePrenatalCheckupRequest extends FormRequest
             'prenatal_record_id.exists' => 'The selected prenatal record does not exist.',
             'checkup_date.required' => 'Checkup date is required.',
             'checkup_time.required' => 'Checkup time is required.',
-            'checkup_time.after_or_equal' => 'Clinic hours start at 5:00 AM. Please choose a time after 5:00 AM.',
-            'checkup_time.before' => 'Clinic hours end at 5:00 PM. Please choose a time before 5:00 PM.',
             'weight_kg.required' => 'Weight is required.',
             'weight_kg.min' => 'Weight must be at least 30 kg.',
             'weight_kg.max' => 'Weight cannot exceed 200 kg.',

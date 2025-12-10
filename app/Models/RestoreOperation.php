@@ -10,6 +10,11 @@ class RestoreOperation extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_FAILED = 'failed';
+
     protected $fillable = [
         'backup_id',
         'backup_name',
@@ -76,10 +81,10 @@ class RestoreOperation extends Model
     public function getStatusBadgeAttribute()
     {
         return match ($this->status) {
-            'pending' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'icon' => 'fa-clock'],
-            'in_progress' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'icon' => 'fa-spinner fa-spin'],
-            'completed' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => 'fa-check-circle'],
-            'failed' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'icon' => 'fa-times-circle'],
+            self::STATUS_PENDING => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'icon' => 'fa-clock'],
+            self::STATUS_IN_PROGRESS => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'icon' => 'fa-spinner fa-spin'],
+            self::STATUS_COMPLETED => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => 'fa-check-circle'],
+            self::STATUS_FAILED => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'icon' => 'fa-times-circle'],
             default => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'icon' => 'fa-question-circle']
         };
     }

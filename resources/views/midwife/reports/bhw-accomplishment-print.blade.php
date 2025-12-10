@@ -260,7 +260,7 @@
     <div class="report-container">
         <!-- Report Header -->
         <div class="report-header">
-            <h1>BHW Monthly Accomplishment Report</h1>
+            <h1> Accomplishment Report</h1>
             <div class="report-info">
                 <div class="report-info-row">
                     <span>For the Month of: <strong>{{ $month ?? 'September' }}</strong></span>
@@ -268,7 +268,7 @@
                 </div>
                 <div class="report-info-row">
                     <span>Barangay: <strong>{{ $barangay ?? 'Mecalong II' }}</strong></span>
-                    <span>Municipality: <strong>{{ $municipality ?? 'Dumalan Hao' }}</strong></span>
+                    <span>Municipality: <strong>{{ $municipality ?? 'Dumalinao' }}</strong></span>
                 </div>
             </div>
         </div>

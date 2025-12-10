@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let searchTimeout;
     let patients = [];
+    const prenatalConfig = window.PRENATAL_CREATE_CONFIG || {};
 
     // ============================================================================
     // INITIALIZATION
@@ -68,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function fetchPatients() {
         // BLADE DIRECTIVE: {{ route("bhw.patients.search") }}
         // Replace with actual URL: '/bhw/patients/search' or appropriate route
-        const searchUrl = PRENATAL_CONFIG.searchUrl || '/bhw/patients/search';
+        const searchUrl = prenatalConfig.searchUrl || '/bhw/patients/search';
 
         fetch(searchUrl + '?without_prenatal=true', {
             method: 'GET',
@@ -89,6 +90,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Handle Laravel Resource Collection structure
                 patients = data.data || data; // Laravel resources wrap data in 'data' property
                 console.log('Loaded patients without active prenatal records:', patients.length);
+
+                if (prenatalConfig.oldPatientId) {
+                    restoreSelectedPatient(prenatalConfig.oldPatientId);
+                }
             })
             .catch(error => {
                 console.error('Error fetching patients:', error);
@@ -411,12 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * Restores the previously selected patient after a validation error
      * This function needs to be called with the old patient ID from the Blade template
      *
-     * @param {string|number} oldPatientId - The previously selected patient ID
-     *
-     * NOTE: This function is called by Blade directive:
-     * @if(old('patient_id'))
-     *     restoreSelectedPatient('{{ old('patient_id') }}');
-     * @endif
+     * @param {string|number} oldPatientId - Previously selected patient ID
      */
     function restoreSelectedPatient(oldPatientId) {
         if (oldPatientId && patients.length > 0) {
