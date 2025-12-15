@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,7 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE child_records MODIFY phone_number VARCHAR(20) NULL");
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE child_records MODIFY phone_number VARCHAR(20) NULL");
+            return;
+        }
+
+        if ($driver === 'sqlite') {
+            Schema::table('child_records', function ($table) {
+                $table->string('phone_number', 20)->nullable()->change();
+            });
+            return;
+        }
     }
 
     /**
@@ -18,6 +31,18 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE child_records MODIFY phone_number VARCHAR(20) NOT NULL");
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE child_records MODIFY phone_number VARCHAR(20) NOT NULL");
+            return;
+        }
+
+        if ($driver === 'sqlite') {
+            Schema::table('child_records', function ($table) {
+                $table->string('phone_number', 20)->nullable(false)->change();
+            });
+            return;
+        }
     }
 };
