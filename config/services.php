@@ -41,7 +41,7 @@ return [
 
     'iprog' => [
         'api_token' => env('IPROG_API_TOKEN'),
-        'api_url' => env('IPROG_API_URL', 'https://sms.iprogtech.com/api/v1/sms_messages'),
+        'api_url' => env('IPROG_API_URL', 'https://www.iprogsms.com/api/v1/sms_messages'),
         'sender_name' => env('IPROG_SENDER_NAME', 'HealthCare System'),
     ],
 
