@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Use DB statement to alter the enum column to include new values
-        \DB::statement("ALTER TABLE prenatal_checkups MODIFY COLUMN status ENUM('upcoming', 'done', 'scheduled', 'missed', 'completed', 'cancelled', 'rescheduled') NOT NULL DEFAULT 'upcoming'");
+        $driver = Schema::getConnection()->getDriverName();
 
-        // Update existing 'upcoming' records to 'scheduled' for consistency
+        if ($driver === 'mysql') {
+            // Extend enum definition when running on MySQL-compatible drivers
+            \DB::statement("ALTER TABLE prenatal_checkups MODIFY COLUMN status ENUM('upcoming', 'done', 'scheduled', 'missed', 'completed', 'cancelled', 'rescheduled') NOT NULL DEFAULT 'upcoming'");
+        }
+
+        // Update existing records to align with the new status naming
         \DB::statement("UPDATE prenatal_checkups SET status = 'scheduled' WHERE status = 'upcoming'");
-
-        // Update existing 'done' records to 'completed' for consistency
         \DB::statement("UPDATE prenatal_checkups SET status = 'completed' WHERE status = 'done'");
     }
 
@@ -26,11 +28,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert status values back to original
+        $driver = Schema::getConnection()->getDriverName();
+
+        // Revert status values back to original nomenclature
         \DB::statement("UPDATE prenatal_checkups SET status = 'upcoming' WHERE status IN ('scheduled', 'missed', 'rescheduled')");
         \DB::statement("UPDATE prenatal_checkups SET status = 'done' WHERE status IN ('completed', 'cancelled')");
 
-        // Revert enum back to original values
-        \DB::statement("ALTER TABLE prenatal_checkups MODIFY COLUMN status ENUM('upcoming', 'done') NOT NULL DEFAULT 'upcoming'");
+        if ($driver === 'mysql') {
+            // Restore enum definition for MySQL-compatible drivers
+            \DB::statement("ALTER TABLE prenatal_checkups MODIFY COLUMN status ENUM('upcoming', 'done') NOT NULL DEFAULT 'upcoming'");
+        }
     }
 };
