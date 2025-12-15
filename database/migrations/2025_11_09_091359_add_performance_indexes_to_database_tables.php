@@ -28,18 +28,38 @@ return new class extends Migration
     private function indexExists(string $table, string $indexName): bool
     {
         $connection = Schema::getConnection();
-        $database = $connection->getDatabaseName();
+        $driver = $connection->getDriverName();
 
-        $result = $connection->select(
-            "SELECT COUNT(*) as count
-             FROM information_schema.statistics
-             WHERE table_schema = ?
-             AND table_name = ?
-             AND index_name = ?",
-            [$database, $table, $indexName]
-        );
+        if ($driver === 'sqlite') {
+            $escapedTable = str_replace("'", "''", $table);
+            $indexes = $connection->select("PRAGMA index_list('{$escapedTable}')");
 
-        return $result[0]->count > 0;
+            foreach ($indexes as $index) {
+                if (($index->name ?? null) === $indexName) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        if ($driver === 'mysql') {
+            $database = $connection->getDatabaseName();
+
+            $result = $connection->select(
+                "SELECT COUNT(*) as count
+                 FROM information_schema.statistics
+                 WHERE table_schema = ?
+                 AND table_name = ?
+                 AND index_name = ?",
+                [$database, $table, $indexName]
+            );
+
+            return $result[0]->count > 0;
+        }
+
+        // Fallback for other drivers – attempt index creation and rely on exception handling elsewhere
+        return false;
     }
 
     /**
