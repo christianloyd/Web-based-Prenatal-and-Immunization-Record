@@ -109,7 +109,6 @@ Route::middleware(['auth'])->group(function () {
 
             //Child Record Routes
             Route::resource('childrecord', ChildRecordController::class);
-            Route::put('childrecord/{id}', [ChildRecordController::class, 'update'])->name('childrecord.update');
             Route::get('childrecord-search', [ChildRecordController::class, 'search'])->name('childrecord.search');
             
             //Child Immunization Routes
