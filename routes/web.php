@@ -18,6 +18,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PrenatalCheckupController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\SystemAnalysisController;
+use Illuminate\Support\Facades\Artisan;
 
 
 // Redirect root to login
@@ -245,4 +246,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+// TEMPORARY SEED ROUTE — remove after use
+Route::get('/seed-users', function() {
+    Artisan::call('db:seed', [
+        '--class' => 'UserSeeder', // replace with your seeder class name
+        '--force' => true           // allows running in production
+    ]);
+    return 'User accounts have been seeded!';
 });
