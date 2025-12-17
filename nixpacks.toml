@@ -1,22 +1,33 @@
-# Nixpacks configuration for Laravel + Vite 7 deployment
+# Nixpacks configuration for Laravel deployment
 
 [phases.setup]
 nixPkgs = ['nodejs_20', 'php82', 'php82Packages.composer']
 
 [phases.install]
 cmds = [
-  'composer install --no-dev --optimize-autoloader --no-interaction',
-  'npm ci --include=dev'
+  'composer install --no-dev --optimize-autoloader --no-interaction'
 ]
 
 [phases.build]
 cmds = [
-  'npm run build',
-  'ls -la public/build',
-  'cat public/build/manifest.json',
+  # Verify assets are present from Git
+  'echo "=== Checking committed assets ==="',
+  'ls -la public/build/ || echo "WARNING: No build directory"',
+  'ls -la public/build/manifest.json || ls -la public/build/.vite/manifest.json || echo "WARNING: No manifest found"',
+  # If manifest is in .vite subdirectory, copy it to root
+  'if [ -f public/build/.vite/manifest.json ]; then cp public/build/.vite/manifest.json public/build/manifest.json; echo "Copied manifest to root"; fi',
+  # Create storage directories
+  'mkdir -p storage/framework/{sessions,views,cache,testing}',
+  'mkdir -p storage/logs',
+  'mkdir -p bootstrap/cache',
+  'chmod -R 775 storage bootstrap/cache',
+  # Laravel optimization
   'php artisan config:cache',
   'php artisan route:cache',
-  'php artisan view:cache'
+  'php artisan view:cache',
+  # Final verification
+  'echo "=== Final manifest check ==="',
+  'cat public/build/manifest.json || echo "ERROR: manifest.json not found"'
 ]
 
 [start]
