@@ -5,13 +5,16 @@ nixPkgs = ['nodejs_20', 'php82', 'php82Packages.composer']
 
 [phases.install]
 cmds = [
-  'composer install --no-dev --optimize-autoloader --no-interaction'
+  'composer install --no-dev --optimize-autoloader --no-interaction',
+  'npm ci'
 ]
 
 [phases.build]
 cmds = [
-  # Verify assets are present from Git
-  'echo "=== Checking committed assets ==="',
+  # Compile frontend assets
+  'npm run build',
+  # Verify assets were generated
+  'echo "=== Checking generated assets ==="',
   'ls -la public/build/ || echo "WARNING: No build directory"',
   'ls -la public/build/manifest.json || ls -la public/build/.vite/manifest.json || echo "WARNING: No manifest found"',
   # If manifest is in .vite subdirectory, copy it to root
