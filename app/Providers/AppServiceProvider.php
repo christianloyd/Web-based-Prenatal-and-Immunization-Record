@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Pagination\Paginator;
 use App\View\Composers\ChildRecordComposer;
 use App\Models\Patient;
@@ -69,6 +70,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Force HTTPS in production environment
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+            
+            // Trust all proxies (for Railway)
+            request()->server->set('HTTPS', 'on');
+        }
+
         // Use Tailwind for pagination
         Paginator::useTailwind();
 
@@ -204,5 +213,7 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\SmsLogRepositoryInterface::class,
             \App\Repositories\SmsLogRepository::class
         );
+        
     }
+    
 }
