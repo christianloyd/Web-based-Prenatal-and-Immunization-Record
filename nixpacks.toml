@@ -12,6 +12,8 @@ cmds = [
 [phases.build]
 cmds = [
   'npm run build',
+  'ls -la public/build',
+  'cat public/build/manifest.json',
   'php artisan config:cache',
   'php artisan route:cache',
   'php artisan view:cache'
