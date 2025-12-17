@@ -4,7 +4,7 @@
     "name": "vendor"
   },
   "resources/css/app.css": {
-    "file": "assets/app-yDJosUeg.css",
+    "file": "assets/app-CTaPLa5V.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "names": [
@@ -18,7 +18,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BVKGjHQZ.js",
+    "file": "assets/app-BVuthsYc.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -26,7 +26,7 @@
       "_vendor-NIGUFBhG.js"
     ],
     "css": [
-      "assets/app-yDJosUeg.css"
+      "assets/app-CTaPLa5V.css"
     ]
   },
   "resources/js/bhw/index.js": {
@@ -42,13 +42,13 @@
     "isEntry": true
   },
   "resources/js/pages/patients.js": {
-    "file": "assets/patients-XK7a02o0.js",
+    "file": "assets/patients-CD-F6xk3.js",
     "name": "patients",
     "src": "resources/js/pages/patients.js",
     "isEntry": true
   },
   "resources/js/shared/index.js": {
-    "file": "assets/index-CKkX80UF.js",
+    "file": "assets/index-DsgakwuI.js",
     "name": "index",
     "src": "resources/js/shared/index.js",
     "isEntry": true,

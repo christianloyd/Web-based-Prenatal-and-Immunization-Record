@@ -47,7 +47,7 @@ export default defineConfig({
         },
     },
     build: {
-        manifest: true,
+        manifest: 'manifest.json',
         outDir: 'public/build',
         // FIX: Force manifest to be at root of build directory for Laravel compatibility
         rollupOptions: {
