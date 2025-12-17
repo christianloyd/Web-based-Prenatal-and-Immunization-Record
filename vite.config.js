@@ -49,8 +49,15 @@ export default defineConfig({
     build: {
         manifest: true,
         outDir: 'public/build',
+        // FIX: Force manifest to be at root of build directory for Laravel compatibility
         rollupOptions: {
             output: {
+                // Place manifest at root of outDir instead of .vite subdirectory
+                assetFileNames: (assetInfo) => {
+                    return 'assets/[name]-[hash][extname]';
+                },
+                chunkFileNames: 'assets/[name]-[hash].js',
+                entryFileNames: 'assets/[name]-[hash].js',
                 manualChunks: {
                     // Vendor chunk for third-party libraries
                     vendor: ['axios'],
