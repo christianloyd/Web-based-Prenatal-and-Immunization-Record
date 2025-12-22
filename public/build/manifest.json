@@ -1,4 +1,8 @@
 {
+  "_form-CTbhfyRB.js": {
+    "file": "assets/form-CTbhfyRB.js",
+    "name": "form"
+  },
   "_vendor-NIGUFBhG.js": {
     "file": "assets/vendor-NIGUFBhG.js",
     "name": "vendor"
@@ -42,18 +46,32 @@
     "isEntry": true
   },
   "resources/js/pages/patients.js": {
-    "file": "assets/patients-CD-F6xk3.js",
+    "file": "assets/patients-pYag1a-i.js",
     "name": "patients",
     "src": "resources/js/pages/patients.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_form-CTbhfyRB.js"
+    ]
   },
   "resources/js/shared/index.js": {
-    "file": "assets/index-DsgakwuI.js",
+    "file": "assets/index-BsYz1xTY.js",
     "name": "index",
     "src": "resources/js/shared/index.js",
     "isEntry": true,
     "imports": [
-      "resources/js/pages/patients.js"
+      "_form-CTbhfyRB.js",
+      "resources/js/pages/patients.js",
+      "resources/js/shared/pages/prenatalrecords.js"
+    ]
+  },
+  "resources/js/shared/pages/prenatalrecords.js": {
+    "file": "assets/prenatalrecords-zVfC2aEK.js",
+    "name": "prenatalrecords",
+    "src": "resources/js/shared/pages/prenatalrecords.js",
+    "isEntry": true,
+    "imports": [
+      "_form-CTbhfyRB.js"
     ]
   }
 }

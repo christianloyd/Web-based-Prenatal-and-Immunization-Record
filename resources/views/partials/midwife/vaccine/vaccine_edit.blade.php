@@ -98,7 +98,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock *</label>
                                 <input type="number" name="current_stock" id="edit-current-stock" required min="0"
-                                       value="{{ old('current_stock', $vaccine->current_stock) }}"
+                                       value="{{ old('current_stock', isset($vaccine) ? $vaccine->current_stock : '') }}"
                                        class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary"
                                        placeholder="Units on hand">
                                 @error('current_stock')
@@ -109,7 +109,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Stock Threshold *</label>
                                 <input type="number" name="min_stock" id="edit-min-stock" required min="0"
-                                       value="{{ old('min_stock', $vaccine->min_stock) }}"
+                                       value="{{ old('min_stock', isset($vaccine) ? $vaccine->min_stock : '') }}"
                                        class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary"
                                        placeholder="Alert threshold">
                                 @error('min_stock')

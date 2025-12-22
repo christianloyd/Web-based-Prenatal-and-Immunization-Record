@@ -22,6 +22,7 @@ export default defineConfig({
 
                 // Page-specific entries
                 'resources/js/pages/patients.js',
+                'resources/js/shared/pages/prenatalrecords.js',
             ],
             refresh: true,
         }),
