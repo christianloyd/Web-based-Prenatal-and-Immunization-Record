@@ -45,13 +45,13 @@ class SecurityHeaders
         }
 
         // Content Security Policy - Prevent XSS and injection attacks
-        // This policy allows scripts, styles, and images from the same origin
-        // and allows inline styles (needed for Tailwind CSS)
+        // Strict policy: All resources loaded from same origin (local assets via Vite)
+        // No external CDNs needed - all libraries bundled locally
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-            "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+            "style-src 'self' 'unsafe-inline'",
+            "font-src 'self' data:",
             "img-src 'self' data: https:",
             "connect-src 'self'",
             "frame-ancestors 'none'",

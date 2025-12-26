@@ -29,6 +29,10 @@
     },
     "dependencies": {
         "@fortawesome/fontawesome-free": "^7.1.0",
-        "@tailwindcss/cli": "^4.1.11"
+        "@tailwindcss/cli": "^4.1.11",
+        "alpinejs": "^3.14.3",
+        "chart.js": "^4.4.7",
+        "flowbite": "^2.5.2",
+        "sweetalert2": "^11.15.2"
     }
 }

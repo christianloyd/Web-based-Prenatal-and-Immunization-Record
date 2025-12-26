@@ -1,6 +1,25 @@
 import './bootstrap';
 import '../css/app.css';
 
+// Import Font Awesome CSS
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
+// Import Flowbite
+import 'flowbite';
+
+// Import Chart.js
+import Chart from 'chart.js/auto';
+window.Chart = Chart;
+
+// Import SweetAlert2
+import Swal from 'sweetalert2';
+window.Swal = Swal;
+
+// Import Alpine.js
+import Alpine from 'alpinejs';
+window.Alpine = Alpine;
+Alpine.start();
+
 // Ensure font sizes are applied after page load
 document.addEventListener('DOMContentLoaded', () => {
     // Force font size application for any dynamically loaded content
