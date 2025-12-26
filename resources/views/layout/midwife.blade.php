@@ -51,22 +51,7 @@
     <link rel="icon" type="{{ $faviconType }}" sizes="16x16" href="{{ asset($favicon) }}">
     <link rel="shortcut icon" href="{{ asset($favicon) }}">
 
-    <!-- Preload Inter font for faster loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome (Local) -->
-    <link href="{{ asset('vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
-    <!-- Flowbite CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
-
-    <!-- SweetAlert2 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
-    <!-- SweetAlert2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- All assets bundled via Vite (Font Awesome, Flowbite, SweetAlert2, Alpine.js) -->
 
     <!-- Midwife SweetAlert Handler -->
     <script src="{{ asset('js/midwife/sweetalert-handler.js') }}"></script>
@@ -729,10 +714,7 @@
         </div>
     </div>
 
-    <!-- Alpine.js for dropdown functionality -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Flowbite JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <!-- Alpine.js and Flowbite loaded via Vite -->
     <!-- Notification System -->
     <script>
         // Enhanced notification system with toast integration

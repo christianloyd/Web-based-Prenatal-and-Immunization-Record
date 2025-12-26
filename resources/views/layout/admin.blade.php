@@ -39,10 +39,7 @@
     <link rel="icon" type="{{ $faviconType }}" sizes="16x16" href="{{ asset($favicon) }}">
     <link rel="shortcut icon" href="{{ asset($favicon) }}">
 
-    <!-- Font Awesome (Local) -->
-    <link href="{{ asset('vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
-    <!-- Flowbite CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <!-- All assets bundled via Vite (Font Awesome, Flowbite, Alpine.js) -->
 
     <style>
         /* Import Inter font for system-wide use - optimized weights only */
@@ -424,8 +421,7 @@
         </div>
     </div>
 
-    <!-- Flowbite JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+                   <!-- Alpine.js and Flowbite loaded via Vite -->
 
     <script>
         // Navigation loading functionality
