@@ -1,0 +1,1613 @@
+﻿Reading PDF: C:\xampp\htdocs\capstone\health-care/docs/Final-Concluding-Activity-1.pdf
+================================================================================
+
+PDF METADATA:
+--------------------------------------------------------------------------------
+Author: shiniekie@outlook.com
+Creator: Microsoft┬« Word for Microsoft 365
+CreationDate: 2025-12-15T14:48:04+08:00
+ModDate: 2025-12-15T14:48:04+08:00
+Producer: Microsoft┬« Word for Microsoft 365
+Pages: 20
+pdf:producer: Microsoft┬« Word for Microsoft 365
+dc:creator: shiniekie@outlook.com
+xmp:creatortool: Microsoft┬« Word for Microsoft 365
+xmp:createdate: 2025-12-15T14:48:04+08:00
+xmp:modifydate: 2025-12-15T14:48:04+08:00
+xmpmm:documentid: uuid:B9411FA7-AA23-4FF2-A5D1-4C2127F55C92
+xmpmm:instanceid: uuid:B9411FA7-AA23-4FF2-A5D1-4C2127F55C92
+
+Total Pages: 20
+
+================================================================================
+FULL TEXT CONTENT:
+================================================================================
+
+Final Concluding Activity: Integrated Security Evaluation of Capstone System 
+Title: Security Architecture Audit & Defense Presentation: Applying IAS2 Concepts to Your 
+Capstone SystemΓÇ¥ 
+Learning Outcomes Verified 
+This concluding activity confirms that students can: 
+ΓÇó Integrate ALL security concepts from the subject 
+ΓÇó Apply cybersecurity principles in real-world systems 
+ΓÇó Communicate security design professionally 
+ΓÇó Produce a system aligned with industry security standards 
+Purpose of the Activity: 
+This concluding activity will verify how you understand and apply the full scope of Information 
+Assurance and Security 2 by connecting the concepts to your own capstone system. 
+You will present how your system addresses the following areas: 
+ΓÇó Cryptography 
+ΓÇó Network Security Architecture 
+ΓÇó Identity and Access Management 
+ΓÇó Security Monitoring and Operations 
+ΓÇó Cloud & Virtualization Security 
+ΓÇó Legal, Ethical, Regulatory Compliance 
+ΓÇó Emerging Threats & Defensive Strategies 
+This ensures that your capstone is not only functional but secure, meeting real-world 
+requirements. 
+ 
+ Activity Description 
+Each group must conduct a Security Audit & Defense Presentation of their capstone system. You 
+will present: 
+1. System Overview (3ΓÇô5 minutes) 
+ΓÇó Name of system 
+ΓÇó Purpose and target users 
+ΓÇó Architecture (basic block diagram) 
+ΓÇó Technologies used 
+ 2. Security Implementation Mapping (Core Part) 
+The group must explain how their system implements (or plans to implement) the required security 
+measures. 
+Below is the checklist you must follow: 
+A. Cryptographic Controls 
+Students must show (choose what applies): 
+ΓÇó What data needs encryption (passwords, personal data, transactions, logs)? 
+ΓÇó Which algorithms or protocols were used (AES, RSA, SHA-256, HMAC, TLS)? 
+ΓÇó How keys are generated, stored, or exchanged
+
+ΓÇó How integrity is maintained (hashing, digital signatures) 
+ΓÇó How they avoid common cryptographic attacks 
+ 
+B. Network Security Architecture 
+Explain: 
+ΓÇó Network topology of the system (local app, cloud, hosted server, hybrid) 
+ΓÇó Security zones (DMZ, internal network, public interface) 
+ΓÇó Firewall rules, filters, or segmentation strategies 
+ΓÇó How they apply defense-in-depth, least privilege, fail-safe defaults 
+ΓÇó Use of HTTPS, SSL/TLS, VPN, or secure communication 
+ 
+C. Identity and Access Management (IAM) 
+They must present: 
+ΓÇó Authentication implemented (password, OTP, biometrics, tokens, SSO) 
+ΓÇó Authorization model used (RBAC, ABAC, DAC) 
+ΓÇó Password policy, MFA requirement, and account lockout 
+ΓÇó IAM lifecycle (account creation, role change, termination) 
+ΓÇó Privileged access safeguards 
+ 
+D. Security Monitoring and Operations 
+Students must demonstrate: 
+ΓÇó What logs the system generates 
+ΓÇó How are logs stored (centralized? encrypted?) 
+ΓÇó How they detect anomalies or attacks 
+ΓÇó Use of SIEM-like logic (even simplified version) 
+ΓÇó Incident response plan for their system 
+ΓÇó Vulnerability and patch management approach 
+ 
+E. Cloud / Virtualization Security (if applicable to their system) 
+Explain: 
+ΓÇó Cloud model (IaaS/PaaS/SaaS) and deployment model 
+ΓÇó Shared responsibility model 
+ΓÇó Cloud security settings (ACLs, security groups, encryption) 
+ΓÇó VM/container security 
+ΓÇó Misconfiguration prevention 
+ΓÇó Backup and disaster recovery plan 
+ 
+F. Legal, Ethical & Regulatory Compliance
+
+They must map their system to: 
+ΓÇó Data Privacy Act of 2012 (PH) 
+ΓÇó GDPR principles (if applicable) 
+ΓÇó Ethical data handling 
+ΓÇó Consent, data retention, lawful processing 
+ΓÇó Audit trails and accountability 
+ΓÇó Compliance with intellectual property laws 
+ 
+G. Emerging Threats and Modern Security Trends 
+Students should identify: 
+ΓÇó Potential threats their system faces (ransomware, phishing, MITM, DoS) 
+ΓÇó Modern defense strategies that they applied 
+ΓÇó How Zero Trust, micro-segmentation, AI-based detection, and API security apply 
+ΓÇó How their system stays secure for the next 3ΓÇô5 years 
+ 
+ 3. Security Gaps & Improvement Plan 
+Students must present: 
+ΓÇó 3ΓÇô5 security vulnerabilities found in their system 
+ΓÇó Proposed mitigation strategies 
+ΓÇó Possible future implementation (ZTA, MFA, SIEM integration, encryption improvements, 
+etc.) 
+ 
+ 4. Final Presentation Format 
+Duration: 15ΓÇô18 minutes 
+ΓÇó 5 minutes ΓÇô System Overview 
+ΓÇó 10 minutes ΓÇô Security Mapping (AΓÇôG) 
+ΓÇó 3 minutes ΓÇô Security Gaps & Improvement Plan 
+Materials Required 
+ΓÇó PowerPoint presentation 
+ΓÇó Optional demo of the system 
+ΓÇó System architecture diagram 
+  
+ 6. Output Submission 
+Students must submit: 
+ΓÇó Security Audit Report (PDF) 
+ΓÇó Presentation Slides (PPT) 
+ΓÇó Updated Data Flow Diagram with security layers 
+ 
+Sample Final Output: Security Audit & Defense Presentation
+
+System Chosen: LAZADA E-Commerce Platform (Sample Only) 
+ 
+1. System Overview 
+System Name: Lazada E-Commerce Platform 
+Purpose: 
+To provide an online marketplace where customers can browse products, place orders, and 
+complete secure digital transactions. 
+Target Users: 
+ΓÇó Buyers 
+ΓÇó Sellers 
+ΓÇó Delivery Partners 
+ΓÇó Administrators 
+System Architecture (Simplified): 
+ΓÇó Frontend (Web & Mobile App) 
+ΓÇó Backend API 
+ΓÇó Database Cluster (User Data, Orders, Inventory) 
+ΓÇó Payment Gateway (3rd Party + In-App Wallet) 
+ΓÇó Content Delivery Network (CDN) 
+ΓÇó Cloud Infrastructure (AWS) 
+2. Security Implementation Mapping (AΓÇôG) 
+A. Cryptographic Controls 
+Data Encryption 
+ΓÇó Sensitive Data at Rest: 
+o User passwords hashed using bcrypt (SHA-2 family) 
+o Payment tokens encrypted using AES-256 
+ΓÇó Data in Transit: 
+o All communication uses HTTPS with TLS 1.3 
+o API calls use HMAC signatures 
+Key Management 
+ΓÇó Keys stored in AWS KMS (Key Management Service) 
+ΓÇó Regular key rotation every 90 days 
+Integrity & Non-Repudiation 
+ΓÇó Digital signatures on API transactions 
+ΓÇó Hashing is used for file uploads and product images 
+Defense Against Cryptographic Attacks 
+ΓÇó Salted password hashing prevents rainbow table attacks 
+ΓÇó TLS prevents MITM, downgrade, and replay attacks 
+ 
+B. Network Security Architecture
+
+Network Segmentation 
+ΓÇó Public Zone: Customer-facing portal 
+ΓÇó DMZ: API gateway, CDN endpoints 
+ΓÇó Private Zone: Databases, authentication services 
+ΓÇó Admin Zone: Internal dashboards 
+Firewalls & Access Control 
+ΓÇó WAF filters SQL injection, XSS, request floods 
+ΓÇó Rate limiting to prevent brute-force & DoS 
+ΓÇó Network ACLs block unauthorized IP ranges 
+Secure Communication 
+ΓÇó HTTPS, TLS 1.3 
+ΓÇó VPN for admin access 
+ΓÇó Hardened SSH for server maintenance 
+Defense-in-Depth 
+ΓÇó Multi-layered firewalls + IDS + SIEM 
+ΓÇó Continuous patching and vulnerability scans 
+ 
+C. Identity and Access Management (IAM) 
+Authentication 
+ΓÇó Buyers & Sellers: 
+o Username + password 
+o Optional MFA via SMS/Authenticator App 
+ΓÇó Admin Accounts: 
+o Mandatory MFA 
+o Device fingerprinting 
+Authorization 
+ΓÇó Uses RBAC (Role-Based Access Control) 
+ΓÇó Roles: Buyer, Seller, Delivery Rider, Admin, Super Admin 
+ΓÇó Sellers cannot access buyer data; Admins cannot see card details 
+IAM Lifecycle 
+ΓÇó Seller onboarding includes ID verification 
+ΓÇó Automated account lockout after failed attempts 
+ΓÇó Account deactivation after long inactivity 
+Privileged Access Management 
+ΓÇó Admin activities logged 
+ΓÇó Session recording for sensitive actions 
+ 
+D. Security Monitoring & Operations
+
+Logging 
+ΓÇó Login events 
+ΓÇó Payment activities 
+ΓÇó Failed login attempts 
+ΓÇó Seller product changes 
+ΓÇó Admin actions 
+SIEM Integration 
+ΓÇó Logs go to AWS CloudWatch + Elastic SIEM 
+ΓÇó Correlation rules detect: 
+o Suspicious IPs 
+o Sudden spike in orders 
+o Fraudulent transactions 
+Incident Response Workflow 
+1. Detect 
+2. Analyze 
+3. Contain 
+4. Recover 
+5. Document 
+Vulnerability & Patch Management 
+ΓÇó Weekly scans for misconfigurations 
+ΓÇó Monthly patching window 
+ΓÇó Bug bounty program 
+ 
+E. Cloud & Virtualization Security 
+Cloud Deployment 
+ΓÇó AWS Hybrid Cloud (EC2 + S3 + RDS) 
+ΓÇó Shared Responsibility Model Followed 
+Cloud Security Controls 
+ΓÇó IAM roles for services 
+ΓÇó Security groups per microservice 
+ΓÇó S3 buckets encrypted (AES-256) 
+ΓÇó CloudTrail for auditing 
+Virtualization Security 
+ΓÇó Uses AWS EC2 instances with hardened AMIs 
+ΓÇó Containerized microservices (Docker + Kubernetes) 
+ΓÇó Prevents VM escape by limiting hypervisor access 
+Backup & Recovery 
+ΓÇó Daily encrypted backups to S3
+
+ΓÇó DR site on another region 
+ΓÇó RTO: 4 hours | RPO: 15 minutes 
+ 
+F. Legal, Ethical & Regulatory Compliance 
+Applicable Laws 
+ΓÇó Data Privacy Act of 2012 (PH) 
+ΓÇó Cybercrime Prevention Act of 2012 
+ΓÇó GDPR (for international customers) 
+Data Subject Rights 
+ΓÇó Users can request account deletion 
+ΓÇó Consent collected for tracking & cookies 
+Audit & Compliance 
+ΓÇó Yearly 3rd-party security assessment 
+ΓÇó PCI DSS compliance for card payments 
+ΓÇó Intellectual property compliance for seller products 
+Ethical Standards 
+ΓÇó Transparent privacy policy 
+ΓÇó Responsible disclosure program 
+ΓÇó Anti-fraud and anti-scam mechanisms 
+ 
+G. Emerging Threats & Modern Defenses 
+Threats Identified 
+ΓÇó AI-powered phishing targeting buyers 
+ΓÇó Fake seller listings 
+ΓÇó Credential stuffing 
+ΓÇó Supply chain attacks on plugins/APIs 
+ΓÇó DDoS attacks during sale events 
+Modern Defense Strategies 
+ΓÇó AI-based anomaly detection 
+ΓÇó Behavioral analytics 
+ΓÇó Zero Trust for internal admin systems 
+ΓÇó API Gateways with OAuth 2.0 
+ΓÇó Bot detection using ML models 
+ 
+3. Security Gaps & Improvement Plan 
+Identified Weakness Possible Impact Mitigation 
+Some sellers use weak 
+passwords 
+Account takeover Enforce mandatory MFA
+
+Identified Weakness Possible Impact Mitigation 
+Large number of third-party 
+plugins 
+Supply chain attacks 
+Pen-test all plugins; reduce 
+dependencies 
+Heavy traffic during double-digit 
+sales 
+Risk of DDoS 
+Add auto-scaling and advanced WAF 
+rules 
+Social engineering scams 
+Poor customer 
+protection 
+More user education and fraud 
+detection AI 
+Potential API abuse Data leakage 
+Add stricter API throttling and OAuth 
+scopes 
+Below is a complete sample output for a Web-Based Booking System, following your required 
+concluding activity format. 
+This is ready to be given as a model/sample output for students. 
+ 
+Sample Final Output: Security Audit & Defense Presentation 
+System Chosen: Web-Based Booking System (Sample Capstone System) 
+ 
+1. System Overview 
+System Name: 
+EZBook ΓÇô Web-Based Booking and Reservation Platform 
+Purpose: 
+To allow users to book appointments, reserve rooms/seats/services, view schedules, and manage 
+reservations online. 
+Target Users: 
+ΓÇó Customers 
+ΓÇó Service Providers / Staff 
+ΓÇó Administrators 
+System Architecture (Simplified): 
+ΓÇó Web Frontend (HTML/CSS/JS) 
+ΓÇó Backend Application (PHP / Node.js) 
+ΓÇó MySQL / PostgreSQL Database 
+ΓÇó Authentication & Session Server 
+ΓÇó Admin Dashboard 
+ΓÇó Cloud Hosting (AWS EC2 / Google Cloud VM) 
+ 
+2. Security Implementation Mapping (AΓÇôG) 
+ 
+A. Cryptographic Controls 
+Data Encryption 
+ΓÇó Data in Transit: 
+o HTTPS with TLS 1.3
+
+ΓÇó Data at Rest: 
+o User passwords hashed using bcrypt (SHA-256 family) 
+o Sensitive booking details (IDs, phone numbers) encrypted using AES-256 
+Key Management 
+ΓÇó Keys stored in a secure configuration vault 
+ΓÇó Key rotation every 90 days 
+Integrity & Digital Trust 
+ΓÇó Hashing for uploaded attachments (PDF, receipts) 
+ΓÇó HMAC signing for API communication (booking confirmations) 
+Protection from Crypto Attacks 
+ΓÇó Salted password hashing (prevents rainbow tables) 
+ΓÇó TLS prevents MITM and replay attacks 
+ΓÇó Strong 2048-bit RSA for certificate exchange 
+ 
+B. Network Security Architecture 
+Network Segmentation 
+ΓÇó Public Zone: Website, booking interface 
+ΓÇó Application Zone (DMZ): API server 
+ΓÇó Private/Internal Zone: Database, admin portal 
+Firewalls & Access Control 
+ΓÇó WAF blocks SQL Injection, XSS, CSRF 
+ΓÇó Rate-limiting for login and booking requests 
+ΓÇó Only backend servers may access DB (via private subnet) 
+Secure Communication 
+ΓÇó HTTPS enforced (no HTTP allowed) 
+ΓÇó Hardened SSH (key-based authentication) 
+Defense-in-Depth Implementation 
+ΓÇó Layered firewalls + IDS (Snort/Security Onion) 
+ΓÇó Automated patching of OS and server software 
+ 
+C. Identity and Access Management (IAM) 
+Authentication 
+ΓÇó Standard login (email + password) 
+ΓÇó Optional MFA (email OTP / Google Authenticator) 
+ΓÇó Session tokens secured with HttpOnly & Secure flags 
+Authorization 
+ΓÇó RBAC roles: 
+o Customer
+
+o Staff 
+o Admin 
+ΓÇó Staff cannot access admin reports 
+ΓÇó Customers only view/manage their own bookings 
+Account Security 
+ΓÇó Password strength requirement 
+ΓÇó Email verification for new accounts 
+ΓÇó Automatic account lockout after too many failed logins 
+Privileged Access Management 
+ΓÇó Admin actions logged (audit trail) 
+ΓÇó Access review every semester 
+ 
+D. Security Monitoring and Operations 
+Logging 
+System logs: 
+ΓÇó Login attempts (success & failed) 
+ΓÇó Booking modifications 
+ΓÇó Cancelled reservations 
+ΓÇó Admin configuration changes 
+Event Correlation (SIEM-like process) 
+ΓÇó Logs sent to a central logging server 
+ΓÇó Alerts triggered for: 
+o High failed login count 
+o Suspicious IP attempting bookings 
+o Staff accessing data outside their working hours 
+Incident Response Plan 
+1. Detect unusual activity 
+2. Analyze logs 
+3. Contain (lock user or disable booking functions) 
+4. Recover (restore system or data) 
+5. Document incident 
+Patch Management 
+ΓÇó Weekly OS updates 
+ΓÇó Monthly vulnerability scanning 
+ΓÇó Use of OWASP security checklist 
+ 
+E. Cloud & Virtualization Security 
+Cloud Deployment
+
+ΓÇó Hosted on AWS EC2 with RDS for database 
+ΓÇó S3 used for storing attachments 
+Security Controls 
+ΓÇó Security groups allow port 443 only 
+ΓÇó IAM roles restrict access per service 
+ΓÇó S3 buckets encrypted using SSE-S3 
+ΓÇó CloudTrail logs for auditing 
+ΓÇó Auto-backups enabled for database 
+Virtualization 
+ΓÇó Hardened VM image 
+ΓÇó Limited user accounts (root disabled for remote login) 
+Backup & Disaster Recovery 
+ΓÇó Daily database backup 
+ΓÇó Weekly full system image backup 
+ΓÇó Failover instance in another region 
+ΓÇó RTO: 4 hours | RPO: 30 minutes 
+ 
+F. Legal, Ethical & Regulatory Compliance 
+Applicable Laws 
+ΓÇó Data Privacy Act of 2012 (PH) 
+ΓÇó Cybercrime Prevention Act of 2012 
+ΓÇó Privacy-by-design principle applied 
+Data Protection Practices 
+ΓÇó Only necessary user data collected 
+ΓÇó Users can modify or delete accounts 
+ΓÇó Retention of logs limited to 6 months 
+Ethics 
+ΓÇó Honest data usage disclosure 
+ΓÇó Transparent privacy notice 
+ΓÇó No hidden data-sharing practices 
+Audit & Compliance 
+ΓÇó Quarterly internal security audit 
+ΓÇó Compliance with OWASP Top 10 
+ΓÇó Consent required before storing user details 
+ 
+G. Emerging Threats & Modern Security Defenses 
+Potential Threats 
+ΓÇó Phishing attacks on customer logins
+
+ΓÇó Booking manipulation / fake bookings 
+ΓÇó Bot attacks (automated mass reservations) 
+ΓÇó Insider threats (disgruntled staff) 
+ΓÇó DoS attacks on peak booking periods 
+Modern Defenses 
+ΓÇó CAPTCHA for new bookings 
+ΓÇó Bot detection (rate limit + user behavior analysis) 
+ΓÇó Zero Trust approach for admin area 
+ΓÇó AI-based anomaly detection for fraud bookings 
+ΓÇó Regular pentesting using OWASP ZAP or Burp Suite 
+ 
+3. Security Gaps & Improvement Plan 
+Identified Weakness Impact 	Mitigation 
+No full MFA for all users Account compromise Make MFA mandatory 
+Staff reuse passwords Insider risk 
+Enforce password rotation 
+policies 
+API endpoints vulnerable to brute 
+force 
+Unauthorized access Add API throttling and IP blocking 
+Logs are not yet centralized 
+Slow detection of 
+breaches 
+Use ELK Stack or a SIEM tool 
+Only daily backups 	Possible data loss 
+Increase to 12-hour interval 
+backup 
+ 
+Refer to this list on how to Present your work output  
+FINAL CONCLUDING ACTIVITY 
+Integrated Security Evaluation of Capstone System 
+1. System Overview  
+Each group must introduce its capstone system by presenting: 
+Γ£ö Name of the System 
+Example: Web-Based Booking System, Inventory Management System, LMS, Event Management 
+App, etc. 
+Γ£ö Purpose of the System 
+Brief description of what the system does. 
+Γ£ö Target Users 
+Who uses the system (customers, staff, admins, etc.) 
+Γ£ö System Architecture (Basic Block Diagram) 
+At minimum, it must show: 
+ΓÇó Frontend 
+ΓÇó Backend
+
+ΓÇó Database 
+ΓÇó External services / APIs 
+ΓÇó Hosting (local server or cloud) 
+Γ£ö Technologies Used 
+Examples: PHP, Python, Node.js, MySQL, Firebase, AWS, Docker, etc. 
+ 
+2. SECURITY IMPLEMENTATION MAPPING (CORE PART) 
+     The heart of the presentation. 
+Students must explain how their system applies the security concepts from ALL modules in 
+IAS2. 
+They must explicitly discuss the following areas: 
+ 
+A. Cryptography 
+Students must explain: 
+ΓÇó What data is encrypted (passwords, personal info, payments, logs, etc.) 
+ΓÇó Algorithms used (AES, RSA, SHA-256, bcrypt) 
+ΓÇó How hashing and digital signatures are applied 
+ΓÇó How data integrity is ensured 
+ΓÇó How keys are generated, stored, and rotated 
+ΓÇó Protection against common crypto attacks 
+ 
+B. Network Security Architecture 
+Students must present: 
+ΓÇó SystemΓÇÖs network layout / zones (public, DMZ, internal, admin) 
+ΓÇó Firewall rules, packet filtering 
+ΓÇó Use of HTTPS, SSL/TLS, VPN 
+ΓÇó Server hardening and segmentation (VLANs, subnetting) 
+ΓÇó Defense-in-depth implementation 
+ΓÇó Prevention of network attacks (MITM, DoS, ARP poisoning) 
+ 
+C. Identity and Access Management (IAM) 
+Students will explain: 
+ΓÇó Authentication methods (password, OTP, MFA) 
+ΓÇó Authorization model (RBAC, ABAC, DAC) 
+ΓÇó Access control policies (least privilege, need-to-know) 
+ΓÇó Password policy and account lockout 
+ΓÇó Session management and timeout 
+ΓÇó Privileged access handling (admins, super admins) 
+ΓÇó Identity lifecycle management
+
+D. Security Monitoring & Operations 
+Students must show: 
+ΓÇó What logs the system records (logins, actions, errors, failed attempts) 
+ΓÇó Where logs are stored and how long they are retained 
+ΓÇó How incidents are detected and reported (alerts, thresholds, SIEM-like logic) 
+ΓÇó Incident response process (detect ΓåÆ analyze ΓåÆ contain ΓåÆ recover ΓåÆ document) 
+ΓÇó Vulnerability scanning and patch management plan 
+ 
+E. Cloud & Virtualization Security 
+(Required if system uses cloud or virtual machines) 
+Students must explain: 
+ΓÇó Cloud service model (IaaS, PaaS, SaaS) 
+ΓÇó Deployment model (public, private, hybrid) 
+ΓÇó Shared responsibility model 
+ΓÇó Cloud security controls (KMS, IAM roles, ACLs, encryption) 
+ΓÇó VM/container security (Docker, VMs, snapshots) 
+ΓÇó Backup and disaster recovery strategy 
+ 
+F. Legal, Ethical & Regulatory Compliance 
+Students identify: 
+ΓÇó Applicable laws (Data Privacy Act of 2012, Cybercrime Law, GDPR) 
+ΓÇó Data handling and consent mechanisms 
+ΓÇó Data retention policies 
+ΓÇó User rights (access, correction, deletion) 
+ΓÇó Compliance with ethical standards 
+ΓÇó Documentation and audit trail requirements 
+ 
+G. Emerging Threats & Defensive Strategies 
+Students will evaluate: 
+ΓÇó Possible threats to their system (phishing, ransomware, SQLi, DDoS, credential stuffing, 
+insider threats) 
+ΓÇó Modern defenses applied (Zero Trust, MFA, AI-based detection, CAPTCHA, SIEM, hardened 
+APIs) 
+ΓÇó How the system remains secure for the next 3ΓÇô5 years 
+ΓÇó Risk assessment and preventive measures 
+End Goal 
+Students must prove that their capstone system is: 
+ΓÇó Secure
+
+ΓÇó Compliant 
+ΓÇó Well-designed 
+ΓÇó Resistant to common attacks 
+ΓÇó Scalable and future-proof 
+ 
+   1. GRADING RUBRIC (Comprehensive & Final) 
+Final Concluding Activity: Security Architecture Audit & Defense Presentation 
+A. Group Performance ΓÇô 70% 
+Criteria 	Description 	Points 
+Content Mastery 
+Accuracy, depth, and completeness of security concepts 
+mapped to the capstone system 
+20 pts 
+Organization & Clarity Logical flow, coherence, easy to follow presentation 10 pts 
+Creativity & Engagement 
+Quality of visuals, diagrams, activities, demo, audience 
+engagement 
+10 pts 
+Security Implementation 
+Mapping (AΓÇôG) 
+How well the team applied all IAS2 topics to their system 15 pts 
+Visual Aids 
+Clean PPT design, readable text, diagrams, proper 
+formatting 
+10 pts 
+Time Management Presented within 15ΓÇô18 minutes, smooth transition 5 pts 
+Subtotal: 70 points 
+ 
+B. Individual Performance ΓÇô 30% 
+Criteria 	Description 	Points 
+Participation Contribution in presentation and preparation 10 pts 
+Communication Skills Clarity, confidence, proper pacing, eye contact 10 pts 
+Teamwork & Cooperation Coordination, respect, initiative 10 pts 
+Subtotal: 30 points 
+ 
+TOTAL: 100 POINTS 
+ 
+   2. FULL SAMPLE OUTPUT (Web-Based Booking System) 
+This is a complete student-quality sample they can follow. 
+You can provide this as an example but instruct them not to copy. 
+ 
+Sample Final Output ΓÇô Web-Based Booking System 
+1. System Overview 
+ΓÇó System Name: Booking Online Booking Platform
+
+ΓÇó Purpose: Allows customers to create bookings, check availability, cancel schedules, and 
+receive confirmations. 
+ΓÇó Target Users: Customers, Staff, Admin 
+ΓÇó Architecture: 
+o Frontend: HTML/CSS/JS 
+o Backend: PHP or Node.js 
+o DB: MySQL 
+o Hosting: AWS EC2 
+ΓÇó Technologies: Bootstrap, JWT, bcrypt password hashing, TLS 1.3 enabled hosting. 
+ 
+2. Security Implementation Mapping (AΓÇôG) 
+A. Cryptography 
+ΓÇó TLS 1.3 for secure data transfer 
+ΓÇó AES-256 for encrypting sensitive booking notes 
+ΓÇó bcrypt hashing for passwords 
+ΓÇó HMAC verification for API calls 
+B. Network Security Architecture 
+ΓÇó 3-layer network: Public ΓåÆ DMZ ΓåÆ Private 
+ΓÇó WAF blocks SQLi, XSS 
+ΓÇó Firewall rules restrict DB access 
+ΓÇó Rate limiting enabled 
+C. Identity and Access Management 
+ΓÇó RBAC: Customer, Staff, Admin 
+ΓÇó MFA optional 
+ΓÇó Session timeout & secure cookies 
+ΓÇó Account lockout after 5 failed attempts 
+D. Security Monitoring & Operations 
+ΓÇó Logs: login, booking changes, admin actions 
+ΓÇó Centralized log storage 
+ΓÇó Alerts for suspicious IPs or failed logins 
+ΓÇó Weekly vulnerability scans 
+E. Cloud & Virtualization Security 
+ΓÇó AWS EC2 + RDS 
+ΓÇó Security groups enforce least privilege 
+ΓÇó Encrypted backups (daily) 
+ΓÇó IAM roles for cloud services 
+F. Legal & Ethical Compliance 
+ΓÇó Data Privacy Act of 2012 
+ΓÇó Consent for data collection
+
+ΓÇó Data retention policy (180 days logs) 
+ΓÇó Secure deletion process for accounts 
+G. Emerging Threats & Defensive Strategies 
+ΓÇó CAPTCHA to prevent bot bookings 
+ΓÇó Zero Trust for admin access 
+ΓÇó AI-based anomaly detection planned 
+ΓÇó Anti-DoS rate limits enabled 
+ 
+3. Gaps & Mitigation 
+Gap Risk Fix 
+No forced MFA Account takeover Require MFA for staff & admin 
+Manual log review Slow response Implement automated alerts 
+Single region backup Downtime risk Multi-region DR strategy 
+ 
+Sample Completed. 
+Students should produce something similar. 
+ 
+ 3. STUDENT TEMPLATE  
+STUDENT TEMPLATE ΓÇö FINAL OUTPUT 
+Security Architecture Audit & Defense Presentation 
+Group Name: 
+System Title: 
+Course: IAS2 
+Instructor: 
+ 
+1. System Overview 
+ΓÇó System Name: 
+ΓÇó Purpose: 
+ΓÇó Target Users: 
+ΓÇó System Description: 
+ΓÇó System Architecture Diagram (Insert Image) 
+ΓÇó Technologies Used: 
+ 
+2. Security Implementation Mapping (AΓÇôG) 
+A. Cryptography 
+ΓÇó Encryption at rest: 
+ΓÇó Encryption in transit: 
+ΓÇó Hashing: 
+ΓÇó Key management:
+
+B. Network Security Architecture 
+ΓÇó Network topology: 
+ΓÇó Firewalls / filters: 
+ΓÇó Secure communication: 
+ΓÇó Defense-in-depth: 
+C. Identity & Access Management 
+ΓÇó Authentication: 
+ΓÇó Authorization: 
+ΓÇó Password policies: 
+ΓÇó Privileged access: 
+D. Security Monitoring & Operations 
+ΓÇó Logs collected: 
+ΓÇó Monitoring tools: 
+ΓÇó Incident response flow: 
+ΓÇó Patch management: 
+E. Cloud & Virtualization Security 
+ΓÇó Cloud model: 
+ΓÇó Virtualization security: 
+ΓÇó Backup & DR: 
+F. Legal, Ethical & Regulatory Compliance 
+ΓÇó Laws applied: 
+ΓÇó Data handling: 
+ΓÇó Retention & disposal: 
+G. Emerging Threats & Defensive Strategies 
+ΓÇó Possible threats: 
+ΓÇó Modern defenses: 
+ΓÇó Future-proofing plan: 
+ 
+3. Security Gaps & Mitigation Plan 
+Weakness Impact Proposed Solution 
+ 
+4. Conclusion 
+Short summary of the systemΓÇÖs overall security posture. 
+ 
+5. References 
+ 
+4. POWERPOINT OUTLINE (For Their Defense Presentation) 
+Slide 1 ΓÇô Title Slide
+
+ΓÇó System Name 
+ΓÇó Group Members 
+ΓÇó Course, Date 
+Slide 2 ΓÇô Introduction 
+ΓÇó Purpose of the system 
+ΓÇó Target users 
+Slide 3 ΓÇô System Architecture 
+ΓÇó Architecture diagram 
+ΓÇó Technologies used 
+Slide 4 ΓÇô Cryptography 
+ΓÇó Encryption (AES, TLS) 
+ΓÇó Hashing (bcrypt) 
+ΓÇó Key management 
+Slide 5 ΓÇô Network Security Architecture 
+ΓÇó Network diagram 
+ΓÇó Firewalls, IDS/IPS 
+ΓÇó Defense layers 
+Slide 6 ΓÇô Identity & Access Management 
+ΓÇó RBAC roles 
+ΓÇó MFA, password policies 
+ΓÇó Session security 
+Slide 7 ΓÇô Security Monitoring 
+ΓÇó Logs 
+ΓÇó Alerts 
+ΓÇó Incident response 
+Slide 8 ΓÇô Cloud & Virtualization Security 
+ΓÇó Hosting 
+ΓÇó Virtual machine/container security 
+ΓÇó Backup & DR 
+Slide 9 ΓÇô Legal & Ethical Compliance 
+ΓÇó Data Privacy Act 
+ΓÇó Consent & retention 
+ΓÇó Compliance requirements 
+Slide 10 ΓÇô Emerging Threats 
+ΓÇó Ransomware 
+ΓÇó Bot attacks 
+ΓÇó API exploitation 
+ΓÇó Mitigation strategies
+
+Slide 11 ΓÇô Security Gaps 
+ΓÇó Table of weaknesses 
+Slide 12 ΓÇô Recommendations 
+ΓÇó Improvements and enhancements 
+Slide 13 ΓÇô Conclusion 
+ΓÇó Final evaluation of system security 
+!
+
+================================================================================
+PAGE-BY-PAGE CONTENT:
+================================================================================
+
+--- PAGE 1 ---
+Final Concluding Activity: Integrated Security Evaluation of Capstone System 
+Title: Security Architecture Audit & Defense Presentation: Applying IAS2 Concepts to Your 
+Capstone SystemΓÇ¥ 
+Learning Outcomes Verified 
+This concluding activity confirms that students can: 
+ΓÇó Integrate ALL security concepts from the subject 
+ΓÇó Apply cybersecurity principles in real-world systems 
+ΓÇó Communicate security design professionally 
+ΓÇó Produce a system aligned with industry security standards 
+Purpose of the Activity: 
+This concluding activity will verify how you understand and apply the full scope of Information 
+Assurance and Security 2 by connecting the concepts to your own capstone system. 
+You will present how your system addresses the following areas: 
+ΓÇó Cryptography 
+ΓÇó Network Security Architecture 
+ΓÇó Identity and Access Management 
+ΓÇó Security Monitoring and Operations 
+ΓÇó Cloud & Virtualization Security 
+ΓÇó Legal, Ethical, Regulatory Compliance 
+ΓÇó Emerging Threats & Defensive Strategies 
+This ensures that your capstone is not only functional but secure, meeting real-world 
+requirements. 
+ 
+ Activity Description 
+Each group must conduct a Security Audit & Defense Presentation of their capstone system. You 
+will present: 
+1. System Overview (3ΓÇô5 minutes) 
+ΓÇó Name of system 
+ΓÇó Purpose and target users 
+ΓÇó Architecture (basic block diagram) 
+ΓÇó Technologies used 
+ 2. Security Implementation Mapping (Core Part) 
+The group must explain how their system implements (or plans to implement) the required security 
+measures. 
+Below is the checklist you must follow: 
+A. Cryptographic Controls 
+Students must show (choose what applies): 
+ΓÇó What data needs encryption (passwords, personal data, transactions, logs)? 
+ΓÇó Which algorithms or protocols were used (AES, RSA, SHA-256, HMAC, TLS)? 
+ΓÇó How keys are generated, stored, or exchanged  
+
+--- PAGE 2 ---
+ΓÇó How integrity is maintained (hashing, digital signatures) 
+ΓÇó How they avoid common cryptographic attacks 
+ 
+B. Network Security Architecture 
+Explain: 
+ΓÇó Network topology of the system (local app, cloud, hosted server, hybrid) 
+ΓÇó Security zones (DMZ, internal network, public interface) 
+ΓÇó Firewall rules, filters, or segmentation strategies 
+ΓÇó How they apply defense-in-depth, least privilege, fail-safe defaults 
+ΓÇó Use of HTTPS, SSL/TLS, VPN, or secure communication 
+ 
+C. Identity and Access Management (IAM) 
+They must present: 
+ΓÇó Authentication implemented (password, OTP, biometrics, tokens, SSO) 
+ΓÇó Authorization model used (RBAC, ABAC, DAC) 
+ΓÇó Password policy, MFA requirement, and account lockout 
+ΓÇó IAM lifecycle (account creation, role change, termination) 
+ΓÇó Privileged access safeguards 
+ 
+D. Security Monitoring and Operations 
+Students must demonstrate: 
+ΓÇó What logs the system generates 
+ΓÇó How are logs stored (centralized? encrypted?) 
+ΓÇó How they detect anomalies or attacks 
+ΓÇó Use of SIEM-like logic (even simplified version) 
+ΓÇó Incident response plan for their system 
+ΓÇó Vulnerability and patch management approach 
+ 
+E. Cloud / Virtualization Security (if applicable to their system) 
+Explain: 
+ΓÇó Cloud model (IaaS/PaaS/SaaS) and deployment model 
+ΓÇó Shared responsibility model 
+ΓÇó Cloud security settings (ACLs, security groups, encryption) 
+ΓÇó VM/container security 
+ΓÇó Misconfiguration prevention 
+ΓÇó Backup and disaster recovery plan 
+ 
+F. Legal, Ethical & Regulatory Compliance  
+
+--- PAGE 3 ---
+They must map their system to: 
+ΓÇó Data Privacy Act of 2012 (PH) 
+ΓÇó GDPR principles (if applicable) 
+ΓÇó Ethical data handling 
+ΓÇó Consent, data retention, lawful processing 
+ΓÇó Audit trails and accountability 
+ΓÇó Compliance with intellectual property laws 
+ 
+G. Emerging Threats and Modern Security Trends 
+Students should identify: 
+ΓÇó Potential threats their system faces (ransomware, phishing, MITM, DoS) 
+ΓÇó Modern defense strategies that they applied 
+ΓÇó How Zero Trust, micro-segmentation, AI-based detection, and API security apply 
+ΓÇó How their system stays secure for the next 3ΓÇô5 years 
+ 
+ 3. Security Gaps & Improvement Plan 
+Students must present: 
+ΓÇó 3ΓÇô5 security vulnerabilities found in their system 
+ΓÇó Proposed mitigation strategies 
+ΓÇó Possible future implementation (ZTA, MFA, SIEM integration, encryption improvements, 
+etc.) 
+ 
+ 4. Final Presentation Format 
+Duration: 15ΓÇô18 minutes 
+ΓÇó 5 minutes ΓÇô System Overview 
+ΓÇó 10 minutes ΓÇô Security Mapping (AΓÇôG) 
+ΓÇó 3 minutes ΓÇô Security Gaps & Improvement Plan 
+Materials Required 
+ΓÇó PowerPoint presentation 
+ΓÇó Optional demo of the system 
+ΓÇó System architecture diagram 
+  
+ 6. Output Submission 
+Students must submit: 
+ΓÇó Security Audit Report (PDF) 
+ΓÇó Presentation Slides (PPT) 
+ΓÇó Updated Data Flow Diagram with security layers 
+ 
+Sample Final Output: Security Audit & Defense Presentation  
+
+--- PAGE 4 ---
+System Chosen: LAZADA E-Commerce Platform (Sample Only) 
+ 
+1. System Overview 
+System Name: Lazada E-Commerce Platform 
+Purpose: 
+To provide an online marketplace where customers can browse products, place orders, and 
+complete secure digital transactions. 
+Target Users: 
+ΓÇó Buyers 
+ΓÇó Sellers 
+ΓÇó Delivery Partners 
+ΓÇó Administrators 
+System Architecture (Simplified): 
+ΓÇó Frontend (Web & Mobile App) 
+ΓÇó Backend API 
+ΓÇó Database Cluster (User Data, Orders, Inventory) 
+ΓÇó Payment Gateway (3rd Party + In-App Wallet) 
+ΓÇó Content Delivery Network (CDN) 
+ΓÇó Cloud Infrastructure (AWS) 
+2. Security Implementation Mapping (AΓÇôG) 
+A. Cryptographic Controls 
+Data Encryption 
+ΓÇó Sensitive Data at Rest: 
+o User passwords hashed using bcrypt (SHA-2 family) 
+o Payment tokens encrypted using AES-256 
+ΓÇó Data in Transit: 
+o All communication uses HTTPS with TLS 1.3 
+o API calls use HMAC signatures 
+Key Management 
+ΓÇó Keys stored in AWS KMS (Key Management Service) 
+ΓÇó Regular key rotation every 90 days 
+Integrity & Non-Repudiation 
+ΓÇó Digital signatures on API transactions 
+ΓÇó Hashing is used for file uploads and product images 
+Defense Against Cryptographic Attacks 
+ΓÇó Salted password hashing prevents rainbow table attacks 
+ΓÇó TLS prevents MITM, downgrade, and replay attacks 
+ 
+B. Network Security Architecture  
+
+--- PAGE 5 ---
+Network Segmentation 
+ΓÇó Public Zone: Customer-facing portal 
+ΓÇó DMZ: API gateway, CDN endpoints 
+ΓÇó Private Zone: Databases, authentication services 
+ΓÇó Admin Zone: Internal dashboards 
+Firewalls & Access Control 
+ΓÇó WAF filters SQL injection, XSS, request floods 
+ΓÇó Rate limiting to prevent brute-force & DoS 
+ΓÇó Network ACLs block unauthorized IP ranges 
+Secure Communication 
+ΓÇó HTTPS, TLS 1.3 
+ΓÇó VPN for admin access 
+ΓÇó Hardened SSH for server maintenance 
+Defense-in-Depth 
+ΓÇó Multi-layered firewalls + IDS + SIEM 
+ΓÇó Continuous patching and vulnerability scans 
+ 
+C. Identity and Access Management (IAM) 
+Authentication 
+ΓÇó Buyers & Sellers: 
+o Username + password 
+o Optional MFA via SMS/Authenticator App 
+ΓÇó Admin Accounts: 
+o Mandatory MFA 
+o Device fingerprinting 
+Authorization 
+ΓÇó Uses RBAC (Role-Based Access Control) 
+ΓÇó Roles: Buyer, Seller, Delivery Rider, Admin, Super Admin 
+ΓÇó Sellers cannot access buyer data; Admins cannot see card details 
+IAM Lifecycle 
+ΓÇó Seller onboarding includes ID verification 
+ΓÇó Automated account lockout after failed attempts 
+ΓÇó Account deactivation after long inactivity 
+Privileged Access Management 
+ΓÇó Admin activities logged 
+ΓÇó Session recording for sensitive actions 
+ 
+D. Security Monitoring & Operations  
+
+--- PAGE 6 ---
+Logging 
+ΓÇó Login events 
+ΓÇó Payment activities 
+ΓÇó Failed login attempts 
+ΓÇó Seller product changes 
+ΓÇó Admin actions 
+SIEM Integration 
+ΓÇó Logs go to AWS CloudWatch + Elastic SIEM 
+ΓÇó Correlation rules detect: 
+o Suspicious IPs 
+o Sudden spike in orders 
+o Fraudulent transactions 
+Incident Response Workflow 
+1. Detect 
+2. Analyze 
+3. Contain 
+4. Recover 
+5. Document 
+Vulnerability & Patch Management 
+ΓÇó Weekly scans for misconfigurations 
+ΓÇó Monthly patching window 
+ΓÇó Bug bounty program 
+ 
+E. Cloud & Virtualization Security 
+Cloud Deployment 
+ΓÇó AWS Hybrid Cloud (EC2 + S3 + RDS) 
+ΓÇó Shared Responsibility Model Followed 
+Cloud Security Controls 
+ΓÇó IAM roles for services 
+ΓÇó Security groups per microservice 
+ΓÇó S3 buckets encrypted (AES-256) 
+ΓÇó CloudTrail for auditing 
+Virtualization Security 
+ΓÇó Uses AWS EC2 instances with hardened AMIs 
+ΓÇó Containerized microservices (Docker + Kubernetes) 
+ΓÇó Prevents VM escape by limiting hypervisor access 
+Backup & Recovery 
+ΓÇó Daily encrypted backups to S3  
+
+--- PAGE 7 ---
+ΓÇó DR site on another region 
+ΓÇó RTO: 4 hours | RPO: 15 minutes 
+ 
+F. Legal, Ethical & Regulatory Compliance 
+Applicable Laws 
+ΓÇó Data Privacy Act of 2012 (PH) 
+ΓÇó Cybercrime Prevention Act of 2012 
+ΓÇó GDPR (for international customers) 
+Data Subject Rights 
+ΓÇó Users can request account deletion 
+ΓÇó Consent collected for tracking & cookies 
+Audit & Compliance 
+ΓÇó Yearly 3rd-party security assessment 
+ΓÇó PCI DSS compliance for card payments 
+ΓÇó Intellectual property compliance for seller products 
+Ethical Standards 
+ΓÇó Transparent privacy policy 
+ΓÇó Responsible disclosure program 
+ΓÇó Anti-fraud and anti-scam mechanisms 
+ 
+G. Emerging Threats & Modern Defenses 
+Threats Identified 
+ΓÇó AI-powered phishing targeting buyers 
+ΓÇó Fake seller listings 
+ΓÇó Credential stuffing 
+ΓÇó Supply chain attacks on plugins/APIs 
+ΓÇó DDoS attacks during sale events 
+Modern Defense Strategies 
+ΓÇó AI-based anomaly detection 
+ΓÇó Behavioral analytics 
+ΓÇó Zero Trust for internal admin systems 
+ΓÇó API Gateways with OAuth 2.0 
+ΓÇó Bot detection using ML models 
+ 
+3. Security Gaps & Improvement Plan 
+Identified Weakness Possible Impact Mitigation 
+Some sellers use weak 
+passwords 
+Account takeover Enforce mandatory MFA  
+
+--- PAGE 8 ---
+Identified Weakness Possible Impact Mitigation 
+Large number of third-party 
+plugins 
+Supply chain attacks 
+Pen-test all plugins; reduce 
+dependencies 
+Heavy traffic during double-digit 
+sales 
+Risk of DDoS 
+Add auto-scaling and advanced WAF 
+rules 
+Social engineering scams 
+Poor customer 
+protection 
+More user education and fraud 
+detection AI 
+Potential API abuse Data leakage 
+Add stricter API throttling and OAuth 
+scopes 
+Below is a complete sample output for a Web-Based Booking System, following your required 
+concluding activity format. 
+This is ready to be given as a model/sample output for students. 
+ 
+Sample Final Output: Security Audit & Defense Presentation 
+System Chosen: Web-Based Booking System (Sample Capstone System) 
+ 
+1. System Overview 
+System Name: 
+EZBook ΓÇô Web-Based Booking and Reservation Platform 
+Purpose: 
+To allow users to book appointments, reserve rooms/seats/services, view schedules, and manage 
+reservations online. 
+Target Users: 
+ΓÇó Customers 
+ΓÇó Service Providers / Staff 
+ΓÇó Administrators 
+System Architecture (Simplified): 
+ΓÇó Web Frontend (HTML/CSS/JS) 
+ΓÇó Backend Application (PHP / Node.js) 
+ΓÇó MySQL / PostgreSQL Database 
+ΓÇó Authentication & Session Server 
+ΓÇó Admin Dashboard 
+ΓÇó Cloud Hosting (AWS EC2 / Google Cloud VM) 
+ 
+2. Security Implementation Mapping (AΓÇôG) 
+ 
+A. Cryptographic Controls 
+Data Encryption 
+ΓÇó Data in Transit: 
+o HTTPS with TLS 1.3  
+
+--- PAGE 9 ---
+ΓÇó Data at Rest: 
+o User passwords hashed using bcrypt (SHA-256 family) 
+o Sensitive booking details (IDs, phone numbers) encrypted using AES-256 
+Key Management 
+ΓÇó Keys stored in a secure configuration vault 
+ΓÇó Key rotation every 90 days 
+Integrity & Digital Trust 
+ΓÇó Hashing for uploaded attachments (PDF, receipts) 
+ΓÇó HMAC signing for API communication (booking confirmations) 
+Protection from Crypto Attacks 
+ΓÇó Salted password hashing (prevents rainbow tables) 
+ΓÇó TLS prevents MITM and replay attacks 
+ΓÇó Strong 2048-bit RSA for certificate exchange 
+ 
+B. Network Security Architecture 
+Network Segmentation 
+ΓÇó Public Zone: Website, booking interface 
+ΓÇó Application Zone (DMZ): API server 
+ΓÇó Private/Internal Zone: Database, admin portal 
+Firewalls & Access Control 
+ΓÇó WAF blocks SQL Injection, XSS, CSRF 
+ΓÇó Rate-limiting for login and booking requests 
+ΓÇó Only backend servers may access DB (via private subnet) 
+Secure Communication 
+ΓÇó HTTPS enforced (no HTTP allowed) 
+ΓÇó Hardened SSH (key-based authentication) 
+Defense-in-Depth Implementation 
+ΓÇó Layered firewalls + IDS (Snort/Security Onion) 
+ΓÇó Automated patching of OS and server software 
+ 
+C. Identity and Access Management (IAM) 
+Authentication 
+ΓÇó Standard login (email + password) 
+ΓÇó Optional MFA (email OTP / Google Authenticator) 
+ΓÇó Session tokens secured with HttpOnly & Secure flags 
+Authorization 
+ΓÇó RBAC roles: 
+o Customer  
+
+--- PAGE 10 ---
+o Staff 
+o Admin 
+ΓÇó Staff cannot access admin reports 
+ΓÇó Customers only view/manage their own bookings 
+Account Security 
+ΓÇó Password strength requirement 
+ΓÇó Email verification for new accounts 
+ΓÇó Automatic account lockout after too many failed logins 
+Privileged Access Management 
+ΓÇó Admin actions logged (audit trail) 
+ΓÇó Access review every semester 
+ 
+D. Security Monitoring and Operations 
+Logging 
+System logs: 
+ΓÇó Login attempts (success & failed) 
+ΓÇó Booking modifications 
+ΓÇó Cancelled reservations 
+ΓÇó Admin configuration changes 
+Event Correlation (SIEM-like process) 
+ΓÇó Logs sent to a central logging server 
+ΓÇó Alerts triggered for: 
+o High failed login count 
+o Suspicious IP attempting bookings 
+o Staff accessing data outside their working hours 
+Incident Response Plan 
+1. Detect unusual activity 
+2. Analyze logs 
+3. Contain (lock user or disable booking functions) 
+4. Recover (restore system or data) 
+5. Document incident 
+Patch Management 
+ΓÇó Weekly OS updates 
+ΓÇó Monthly vulnerability scanning 
+ΓÇó Use of OWASP security checklist 
+ 
+E. Cloud & Virtualization Security 
+Cloud Deployment  
+
+--- PAGE 11 ---
+ΓÇó Hosted on AWS EC2 with RDS for database 
+ΓÇó S3 used for storing attachments 
+Security Controls 
+ΓÇó Security groups allow port 443 only 
+ΓÇó IAM roles restrict access per service 
+ΓÇó S3 buckets encrypted using SSE-S3 
+ΓÇó CloudTrail logs for auditing 
+ΓÇó Auto-backups enabled for database 
+Virtualization 
+ΓÇó Hardened VM image 
+ΓÇó Limited user accounts (root disabled for remote login) 
+Backup & Disaster Recovery 
+ΓÇó Daily database backup 
+ΓÇó Weekly full system image backup 
+ΓÇó Failover instance in another region 
+ΓÇó RTO: 4 hours | RPO: 30 minutes 
+ 
+F. Legal, Ethical & Regulatory Compliance 
+Applicable Laws 
+ΓÇó Data Privacy Act of 2012 (PH) 
+ΓÇó Cybercrime Prevention Act of 2012 
+ΓÇó Privacy-by-design principle applied 
+Data Protection Practices 
+ΓÇó Only necessary user data collected 
+ΓÇó Users can modify or delete accounts 
+ΓÇó Retention of logs limited to 6 months 
+Ethics 
+ΓÇó Honest data usage disclosure 
+ΓÇó Transparent privacy notice 
+ΓÇó No hidden data-sharing practices 
+Audit & Compliance 
+ΓÇó Quarterly internal security audit 
+ΓÇó Compliance with OWASP Top 10 
+ΓÇó Consent required before storing user details 
+ 
+G. Emerging Threats & Modern Security Defenses 
+Potential Threats 
+ΓÇó Phishing attacks on customer logins  
+
+--- PAGE 12 ---
+ΓÇó Booking manipulation / fake bookings 
+ΓÇó Bot attacks (automated mass reservations) 
+ΓÇó Insider threats (disgruntled staff) 
+ΓÇó DoS attacks on peak booking periods 
+Modern Defenses 
+ΓÇó CAPTCHA for new bookings 
+ΓÇó Bot detection (rate limit + user behavior analysis) 
+ΓÇó Zero Trust approach for admin area 
+ΓÇó AI-based anomaly detection for fraud bookings 
+ΓÇó Regular pentesting using OWASP ZAP or Burp Suite 
+ 
+3. Security Gaps & Improvement Plan 
+Identified Weakness Impact 	Mitigation 
+No full MFA for all users Account compromise Make MFA mandatory 
+Staff reuse passwords Insider risk 
+Enforce password rotation 
+policies 
+API endpoints vulnerable to brute 
+force 
+Unauthorized access Add API throttling and IP blocking 
+Logs are not yet centralized 
+Slow detection of 
+breaches 
+Use ELK Stack or a SIEM tool 
+Only daily backups 	Possible data loss 
+Increase to 12-hour interval 
+backup 
+ 
+Refer to this list on how to Present your work output  
+FINAL CONCLUDING ACTIVITY 
+Integrated Security Evaluation of Capstone System 
+1. System Overview  
+Each group must introduce its capstone system by presenting: 
+Γ£ö Name of the System 
+Example: Web-Based Booking System, Inventory Management System, LMS, Event Management 
+App, etc. 
+Γ£ö Purpose of the System 
+Brief description of what the system does. 
+Γ£ö Target Users 
+Who uses the system (customers, staff, admins, etc.) 
+Γ£ö System Architecture (Basic Block Diagram) 
+At minimum, it must show: 
+ΓÇó Frontend 
+ΓÇó Backend  
+
+--- PAGE 13 ---
+ΓÇó Database 
+ΓÇó External services / APIs 
+ΓÇó Hosting (local server or cloud) 
+Γ£ö Technologies Used 
+Examples: PHP, Python, Node.js, MySQL, Firebase, AWS, Docker, etc. 
+ 
+2. SECURITY IMPLEMENTATION MAPPING (CORE PART) 
+     The heart of the presentation. 
+Students must explain how their system applies the security concepts from ALL modules in 
+IAS2. 
+They must explicitly discuss the following areas: 
+ 
+A. Cryptography 
+Students must explain: 
+ΓÇó What data is encrypted (passwords, personal info, payments, logs, etc.) 
+ΓÇó Algorithms used (AES, RSA, SHA-256, bcrypt) 
+ΓÇó How hashing and digital signatures are applied 
+ΓÇó How data integrity is ensured 
+ΓÇó How keys are generated, stored, and rotated 
+ΓÇó Protection against common crypto attacks 
+ 
+B. Network Security Architecture 
+Students must present: 
+ΓÇó SystemΓÇÖs network layout / zones (public, DMZ, internal, admin) 
+ΓÇó Firewall rules, packet filtering 
+ΓÇó Use of HTTPS, SSL/TLS, VPN 
+ΓÇó Server hardening and segmentation (VLANs, subnetting) 
+ΓÇó Defense-in-depth implementation 
+ΓÇó Prevention of network attacks (MITM, DoS, ARP poisoning) 
+ 
+C. Identity and Access Management (IAM) 
+Students will explain: 
+ΓÇó Authentication methods (password, OTP, MFA) 
+ΓÇó Authorization model (RBAC, ABAC, DAC) 
+ΓÇó Access control policies (least privilege, need-to-know) 
+ΓÇó Password policy and account lockout 
+ΓÇó Session management and timeout 
+ΓÇó Privileged access handling (admins, super admins) 
+ΓÇó Identity lifecycle management  
+
+--- PAGE 14 ---
+ 
+D. Security Monitoring & Operations 
+Students must show: 
+ΓÇó What logs the system records (logins, actions, errors, failed attempts) 
+ΓÇó Where logs are stored and how long they are retained 
+ΓÇó How incidents are detected and reported (alerts, thresholds, SIEM-like logic) 
+ΓÇó Incident response process (detect ΓåÆ analyze ΓåÆ contain ΓåÆ recover ΓåÆ document) 
+ΓÇó Vulnerability scanning and patch management plan 
+ 
+E. Cloud & Virtualization Security 
+(Required if system uses cloud or virtual machines) 
+Students must explain: 
+ΓÇó Cloud service model (IaaS, PaaS, SaaS) 
+ΓÇó Deployment model (public, private, hybrid) 
+ΓÇó Shared responsibility model 
+ΓÇó Cloud security controls (KMS, IAM roles, ACLs, encryption) 
+ΓÇó VM/container security (Docker, VMs, snapshots) 
+ΓÇó Backup and disaster recovery strategy 
+ 
+F. Legal, Ethical & Regulatory Compliance 
+Students identify: 
+ΓÇó Applicable laws (Data Privacy Act of 2012, Cybercrime Law, GDPR) 
+ΓÇó Data handling and consent mechanisms 
+ΓÇó Data retention policies 
+ΓÇó User rights (access, correction, deletion) 
+ΓÇó Compliance with ethical standards 
+ΓÇó Documentation and audit trail requirements 
+ 
+G. Emerging Threats & Defensive Strategies 
+Students will evaluate: 
+ΓÇó Possible threats to their system (phishing, ransomware, SQLi, DDoS, credential stuffing, 
+insider threats) 
+ΓÇó Modern defenses applied (Zero Trust, MFA, AI-based detection, CAPTCHA, SIEM, hardened 
+APIs) 
+ΓÇó How the system remains secure for the next 3ΓÇô5 years 
+ΓÇó Risk assessment and preventive measures 
+End Goal 
+Students must prove that their capstone system is: 
+ΓÇó Secure  
+
+--- PAGE 15 ---
+ΓÇó Compliant 
+ΓÇó Well-designed 
+ΓÇó Resistant to common attacks 
+ΓÇó Scalable and future-proof 
+ 
+   1. GRADING RUBRIC (Comprehensive & Final) 
+Final Concluding Activity: Security Architecture Audit & Defense Presentation 
+A. Group Performance ΓÇô 70% 
+Criteria 	Description 	Points 
+Content Mastery 
+Accuracy, depth, and completeness of security concepts 
+mapped to the capstone system 
+20 pts 
+Organization & Clarity Logical flow, coherence, easy to follow presentation 10 pts 
+Creativity & Engagement 
+Quality of visuals, diagrams, activities, demo, audience 
+engagement 
+10 pts 
+Security Implementation 
+Mapping (AΓÇôG) 
+How well the team applied all IAS2 topics to their system 15 pts 
+Visual Aids 
+Clean PPT design, readable text, diagrams, proper 
+formatting 
+10 pts 
+Time Management Presented within 15ΓÇô18 minutes, smooth transition 5 pts 
+Subtotal: 70 points 
+ 
+B. Individual Performance ΓÇô 30% 
+Criteria 	Description 	Points 
+Participation Contribution in presentation and preparation 10 pts 
+Communication Skills Clarity, confidence, proper pacing, eye contact 10 pts 
+Teamwork & Cooperation Coordination, respect, initiative 10 pts 
+Subtotal: 30 points 
+ 
+TOTAL: 100 POINTS 
+ 
+   2. FULL SAMPLE OUTPUT (Web-Based Booking System) 
+This is a complete student-quality sample they can follow. 
+You can provide this as an example but instruct them not to copy. 
+ 
+Sample Final Output ΓÇô Web-Based Booking System 
+1. System Overview 
+ΓÇó System Name: Booking Online Booking Platform  
+
+--- PAGE 16 ---
+ΓÇó Purpose: Allows customers to create bookings, check availability, cancel schedules, and 
+receive confirmations. 
+ΓÇó Target Users: Customers, Staff, Admin 
+ΓÇó Architecture: 
+o Frontend: HTML/CSS/JS 
+o Backend: PHP or Node.js 
+o DB: MySQL 
+o Hosting: AWS EC2 
+ΓÇó Technologies: Bootstrap, JWT, bcrypt password hashing, TLS 1.3 enabled hosting. 
+ 
+2. Security Implementation Mapping (AΓÇôG) 
+A. Cryptography 
+ΓÇó TLS 1.3 for secure data transfer 
+ΓÇó AES-256 for encrypting sensitive booking notes 
+ΓÇó bcrypt hashing for passwords 
+ΓÇó HMAC verification for API calls 
+B. Network Security Architecture 
+ΓÇó 3-layer network: Public ΓåÆ DMZ ΓåÆ Private 
+ΓÇó WAF blocks SQLi, XSS 
+ΓÇó Firewall rules restrict DB access 
+ΓÇó Rate limiting enabled 
+C. Identity and Access Management 
+ΓÇó RBAC: Customer, Staff, Admin 
+ΓÇó MFA optional 
+ΓÇó Session timeout & secure cookies 
+ΓÇó Account lockout after 5 failed attempts 
+D. Security Monitoring & Operations 
+ΓÇó Logs: login, booking changes, admin actions 
+ΓÇó Centralized log storage 
+ΓÇó Alerts for suspicious IPs or failed logins 
+ΓÇó Weekly vulnerability scans 
+E. Cloud & Virtualization Security 
+ΓÇó AWS EC2 + RDS 
+ΓÇó Security groups enforce least privilege 
+ΓÇó Encrypted backups (daily) 
+ΓÇó IAM roles for cloud services 
+F. Legal & Ethical Compliance 
+ΓÇó Data Privacy Act of 2012 
+ΓÇó Consent for data collection  
+
+--- PAGE 17 ---
+ΓÇó Data retention policy (180 days logs) 
+ΓÇó Secure deletion process for accounts 
+G. Emerging Threats & Defensive Strategies 
+ΓÇó CAPTCHA to prevent bot bookings 
+ΓÇó Zero Trust for admin access 
+ΓÇó AI-based anomaly detection planned 
+ΓÇó Anti-DoS rate limits enabled 
+ 
+3. Gaps & Mitigation 
+Gap Risk Fix 
+No forced MFA Account takeover Require MFA for staff & admin 
+Manual log review Slow response Implement automated alerts 
+Single region backup Downtime risk Multi-region DR strategy 
+ 
+Sample Completed. 
+Students should produce something similar. 
+ 
+ 3. STUDENT TEMPLATE  
+STUDENT TEMPLATE ΓÇö FINAL OUTPUT 
+Security Architecture Audit & Defense Presentation 
+Group Name: 
+System Title: 
+Course: IAS2 
+Instructor: 
+ 
+1. System Overview 
+ΓÇó System Name: 
+ΓÇó Purpose: 
+ΓÇó Target Users: 
+ΓÇó System Description: 
+ΓÇó System Architecture Diagram (Insert Image) 
+ΓÇó Technologies Used: 
+ 
+2. Security Implementation Mapping (AΓÇôG) 
+A. Cryptography 
+ΓÇó Encryption at rest: 
+ΓÇó Encryption in transit: 
+ΓÇó Hashing: 
+ΓÇó Key management:  
+
+--- PAGE 18 ---
+B. Network Security Architecture 
+ΓÇó Network topology: 
+ΓÇó Firewalls / filters: 
+ΓÇó Secure communication: 
+ΓÇó Defense-in-depth: 
+C. Identity & Access Management 
+ΓÇó Authentication: 
+ΓÇó Authorization: 
+ΓÇó Password policies: 
+ΓÇó Privileged access: 
+D. Security Monitoring & Operations 
+ΓÇó Logs collected: 
+ΓÇó Monitoring tools: 
+ΓÇó Incident response flow: 
+ΓÇó Patch management: 
+E. Cloud & Virtualization Security 
+ΓÇó Cloud model: 
+ΓÇó Virtualization security: 
+ΓÇó Backup & DR: 
+F. Legal, Ethical & Regulatory Compliance 
+ΓÇó Laws applied: 
+ΓÇó Data handling: 
+ΓÇó Retention & disposal: 
+G. Emerging Threats & Defensive Strategies 
+ΓÇó Possible threats: 
+ΓÇó Modern defenses: 
+ΓÇó Future-proofing plan: 
+ 
+3. Security Gaps & Mitigation Plan 
+Weakness Impact Proposed Solution 
+ 
+4. Conclusion 
+Short summary of the systemΓÇÖs overall security posture. 
+ 
+5. References 
+ 
+4. POWERPOINT OUTLINE (For Their Defense Presentation) 
+Slide 1 ΓÇô Title Slide  
+
+--- PAGE 19 ---
+ΓÇó System Name 
+ΓÇó Group Members 
+ΓÇó Course, Date 
+Slide 2 ΓÇô Introduction 
+ΓÇó Purpose of the system 
+ΓÇó Target users 
+Slide 3 ΓÇô System Architecture 
+ΓÇó Architecture diagram 
+ΓÇó Technologies used 
+Slide 4 ΓÇô Cryptography 
+ΓÇó Encryption (AES, TLS) 
+ΓÇó Hashing (bcrypt) 
+ΓÇó Key management 
+Slide 5 ΓÇô Network Security Architecture 
+ΓÇó Network diagram 
+ΓÇó Firewalls, IDS/IPS 
+ΓÇó Defense layers 
+Slide 6 ΓÇô Identity & Access Management 
+ΓÇó RBAC roles 
+ΓÇó MFA, password policies 
+ΓÇó Session security 
+Slide 7 ΓÇô Security Monitoring 
+ΓÇó Logs 
+ΓÇó Alerts 
+ΓÇó Incident response 
+Slide 8 ΓÇô Cloud & Virtualization Security 
+ΓÇó Hosting 
+ΓÇó Virtual machine/container security 
+ΓÇó Backup & DR 
+Slide 9 ΓÇô Legal & Ethical Compliance 
+ΓÇó Data Privacy Act 
+ΓÇó Consent & retention 
+ΓÇó Compliance requirements 
+Slide 10 ΓÇô Emerging Threats 
+ΓÇó Ransomware 
+ΓÇó Bot attacks 
+ΓÇó API exploitation 
+ΓÇó Mitigation strategies  
+
+--- PAGE 20 ---
+Slide 11 ΓÇô Security Gaps 
+ΓÇó Table of weaknesses 
+Slide 12 ΓÇô Recommendations 
+ΓÇó Improvements and enhancements 
+Slide 13 ΓÇô Conclusion 
+ΓÇó Final evaluation of system security 
+! 
+  
+
