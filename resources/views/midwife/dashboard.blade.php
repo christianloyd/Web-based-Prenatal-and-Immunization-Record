@@ -253,10 +253,7 @@
 @endsection
 
 @push('scripts')
-{{-- Include Chart.js library with fallback --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"
-        onerror="console.error('Primary CDN failed, trying fallback...'); this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js';"></script>
-
+<!-- Chart.js loaded via Vite in layout -->
 {{-- Configuration data for dashboard charts --}}
 <script>
     window.DASHBOARD_DATA = {!! json_encode($charts) !!};

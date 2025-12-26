@@ -45,19 +45,39 @@ class SecurityHeaders
         }
 
         // Content Security Policy - Prevent XSS and injection attacks
-        // Strict policy: All resources loaded from same origin (local assets via Vite)
-        // No external CDNs needed - all libraries bundled locally
-        $csp = implode('; ', [
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-            "style-src 'self' 'unsafe-inline'",
-            "font-src 'self' data:",
-            "img-src 'self' data: https:",
-            "connect-src 'self'",
-            "frame-ancestors 'none'",
-            "base-uri 'self'",
-            "form-action 'self'",
-        ]);
+        // In development: Allow Vite dev server (localhost:5173)
+        // In production: Strict local-only policy
+        
+        $isDevelopment = config('app.env') !== 'production';
+        
+        if ($isDevelopment) {
+            // Development: Allow Vite dev server
+            $csp = implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173 ws://localhost:5173",
+                "style-src 'self' 'unsafe-inline' http://localhost:5173",
+                "font-src 'self' data: http://localhost:5173",
+                "img-src 'self' data: https:",
+                "connect-src 'self' http://localhost:5173 ws://localhost:5173",
+                "frame-ancestors 'none'",
+                "base-uri 'self'",
+                "form-action 'self'",
+            ]);
+        } else {
+            // Production: Strict local-only policy
+            $csp = implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                "style-src 'self' 'unsafe-inline'",
+                "font-src 'self' data:",
+                "img-src 'self' data: https:",
+                "connect-src 'self'",
+                "frame-ancestors 'none'",
+                "base-uri 'self'",
+                "form-action 'self'",
+            ]);
+        }
+        
         $response->headers->set('Content-Security-Policy', $csp);
 
         // Remove server identification headers to prevent information disclosure

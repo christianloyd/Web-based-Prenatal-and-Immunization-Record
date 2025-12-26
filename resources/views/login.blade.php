@@ -14,150 +14,120 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .login-container {
+            min-height: 100vh;
             display: flex;
-            height: 100vh;
-            width: 100%;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
         }
 
-        /* Left Panel - Imagery */
+        .login-card {
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        /* Left Panel - Illustration */
         .left-panel {
             flex: 1;
-            background: linear-gradient(135deg, #D4A373 0%, #ECB99E 100%);
+            background: linear-gradient(135deg, #D4A373 0%, #C9956B 100%);
+            padding: 60px 40px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 60px 40px;
+            justify-content: center;
             position: relative;
-            overflow: hidden;
-        }
-
-        .left-panel::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 15s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.1); opacity: 0.5; }
         }
 
         .branding {
-            position: relative;
-            z-index: 2;
             text-align: center;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .logo-circle {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
         .logo-circle img {
-            width: 90px;
-            height: 90px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             object-fit: cover;
         }
 
         .branding h1 {
-            font-size: 36px;
+            font-size: 26px;
             font-weight: 700;
-            margin-bottom: 12px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
         }
 
         .branding p {
-            font-size: 16px;
+            font-size: 14px;
             opacity: 0.95;
-            font-weight: 400;
         }
 
         .illustration {
-            position: relative;
-            z-index: 2;
-            max-width: 500px;
+            max-width: 350px;
             width: 100%;
-            margin-top: 40px;
+            margin-top: 20px;
         }
 
         .illustration img {
             width: 100%;
             height: auto;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15));
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
         }
 
         .features {
-            position: relative;
-            z-index: 2;
-            margin-top: 50px;
+            margin-top: 30px;
             display: flex;
-            gap: 30px;
+            gap: 15px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .feature-badge {
+            background: rgba(255,255,255,0.2);
             color: white;
-            font-size: 14px;
-            background: rgba(255,255,255,0.15);
-            padding: 10px 20px;
-            border-radius: 25px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
             backdrop-filter: blur(10px);
-        }
-
-        .feature-item i {
-            font-size: 18px;
         }
 
         /* Right Panel - Login Form */
         .right-panel {
             flex: 1;
-            background: #f9fafb;
+            padding: 60px 50px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            padding: 40px;
-        }
-
-        .login-box {
-            width: 100%;
-            max-width: 440px;
         }
 
         .login-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .login-header h2 {
             font-size: 28px;
             font-weight: 700;
             color: #1f2937;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .secure-badge {
@@ -166,23 +136,22 @@
             gap: 8px;
             background: #fef3c7;
             color: #92400e;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            margin-top: 12px;
         }
 
         .login-description {
             text-align: center;
             color: #6b7280;
             font-size: 14px;
-            margin-bottom: 32px;
-            line-height: 1.6;
+            margin-bottom: 30px;
+            line-height: 1.5;
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
@@ -199,7 +168,7 @@
 
         .input-icon {
             position: absolute;
-            left: 16px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: #9ca3af;
@@ -208,23 +177,24 @@
 
         .form-input {
             width: 100%;
-            padding: 14px 16px 14px 48px;
+            padding: 12px 14px 12px 45px;
             font-size: 15px;
             border: 2px solid #e5e7eb;
-            border-radius: 12px;
+            border-radius: 10px;
             transition: all 0.3s ease;
-            background: white;
+            background: #f9fafb;
         }
 
         .form-input:focus {
             outline: none;
             border-color: #D4A373;
-            box-shadow: 0 0 0 4px rgba(212, 163, 115, 0.1);
+            box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.1);
+            background: white;
         }
 
         .password-toggle {
             position: absolute;
-            right: 16px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
@@ -233,7 +203,6 @@
             cursor: pointer;
             font-size: 16px;
             padding: 8px;
-            transition: color 0.2s;
         }
 
         .password-toggle:hover {
@@ -244,7 +213,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 28px;
+            margin-bottom: 25px;
             font-size: 14px;
         }
 
@@ -257,8 +226,8 @@
         }
 
         .remember-me input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             accent-color: #D4A373;
             cursor: pointer;
         }
@@ -267,11 +236,9 @@
             color: #D4A373;
             text-decoration: none;
             font-weight: 600;
-            transition: color 0.2s;
         }
 
         .forgot-link:hover {
-            color: #B8956A;
             text-decoration: underline;
         }
 
@@ -280,8 +247,8 @@
             background: linear-gradient(135deg, #D4A373 0%, #B8956A 100%);
             color: white;
             border: none;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 14px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -295,43 +262,38 @@
 
         .login-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 163, 115, 0.4);
-        }
-
-        .login-button:active {
-            transform: translateY(0);
+            box-shadow: 0 6px 20px rgba(212, 163, 115, 0.4);
         }
 
         .portal-note {
             text-align: center;
-            margin-top: 24px;
-            font-size: 13px;
+            margin-top: 20px;
+            font-size: 12px;
             color: #6b7280;
-            padding: 16px;
+            padding: 12px;
             background: #fef3c7;
-            border-radius: 10px;
-            border-left: 4px solid #D4A373;
+            border-radius: 8px;
+            border-left: 3px solid #D4A373;
         }
 
         .footer-text {
             text-align: center;
-            margin-top: 32px;
-            font-size: 12px;
+            margin-top: 25px;
+            font-size: 11px;
             color: #9ca3af;
         }
 
         .footer-text span {
             display: block;
-            margin-top: 8px;
+            margin-top: 5px;
             font-weight: 600;
             letter-spacing: 1px;
             color: #D4A373;
         }
 
-        /* Error Messages */
         .error-message {
             color: #ef4444;
-            font-size: 13px;
+            font-size: 12px;
             margin-top: 6px;
             display: flex;
             align-items: center;
@@ -339,34 +301,28 @@
         }
 
         /* Responsive Design */
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
+            .login-card {
+                flex-direction: column;
+                max-width: 500px;
+            }
+
             .left-panel {
-                display: none;
+                padding: 40px 30px;
             }
-            
+
             .right-panel {
-                flex: 1;
-                background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
-            }
-        }
-
-        @media (max-width: 640px) {
-            .right-panel {
-                padding: 24px 20px;
+                padding: 40px 30px;
             }
 
-            .login-header h2 {
-                font-size: 24px;
-            }
-
-            .login-box {
-                max-width: 100%;
+            .illustration {
+                max-width: 250px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="login-card">
         <!-- Left Panel - Branding & Imagery -->
         <div class="left-panel">
             <div class="branding">
@@ -382,15 +338,12 @@
             </div>
 
             <div class="features">
-                <div class="feature-item">
-                    <i class="fas fa-shield-heart"></i>
-                    <span>Secure & Reliable</span>
-                </div>
-                <div class="feature-item">
+                
+                <div class="feature-badge">
                     <i class="fas fa-baby"></i>
                     <span>Prenatal Care</span>
                 </div>
-                <div class="feature-item">
+                <div class="feature-badge">
                     <i class="fas fa-syringe"></i>
                     <span>Immunization</span>
                 </div>
@@ -401,7 +354,7 @@
         <div class="right-panel">
             <div class="login-box">
                 <div class="login-header">
-                    <h2>Welcome Back</h2>
+                    <h2>Login</h2>
                     <div class="secure-badge">
                         <i class="fas fa-lock"></i>
                         <span>Authorized Access Only</span>
@@ -479,14 +432,11 @@
                     </button>
                 </form>
 
-                <div class="portal-note">
-                    <i class="fas fa-info-circle"></i>
-                    Only authorized barangay health workers and midwives have access to this portal.
-                </div>
+                
 
                 <div class="footer-text">
                     Preventive Healthcare Management System © {{ date('Y') }}
-                    <span>SECURE • RELIABLE • PROFESSIONAL</span>
+                    
                 </div>
             </div>
         </div>
