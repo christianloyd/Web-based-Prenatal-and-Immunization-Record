@@ -737,4 +737,156 @@ class ImmunizationController extends Controller
         }
     }
 
+    /**
+     * Auto-generate immunization schedule for a child
+     * Creates all immunization schedules based on DOH guidelines and child's birthdate
+     */
+    public function autoGenerateSchedule($childId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+
+        $user = Auth::user();
+
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access'], 403);
+        }
+
+        try {
+            $child = ChildRecord::findOrFail($childId);
+            $schedules = $this->immunizationService->autoGenerateScheduleForChild($childId);
+
+            $doneCount = collect($schedules)->where('status', 'Done')->count();
+            $missedCount = collect($schedules)->where('status', 'Missed')->count();
+            $upcomingCount = collect($schedules)->where('status', 'Upcoming')->count();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($schedules) . ' immunization schedules created successfully!',
+                'data' => [
+                    'total' => count($schedules),
+                    'done' => $doneCount,
+                    'missed' => $missedCount,
+                    'upcoming' => $upcomingCount,
+                    'schedules' => $schedules,
+                    'child_name' => $child->full_name
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error auto-generating immunization schedule', [
+                'child_id' => $childId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate schedule: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get the next recommended vaccine for a child
+     * Used for smart vaccine selection when manually adding schedules
+     */
+    public function getNextRecommendedVaccine($childId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Authentication required'], 401);
+        }
+
+        $user = Auth::user();
+        if (!in_array($user->role, ['midwife', 'bhw'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access'], 403);
+        }
+
+        try {
+            $child = ChildRecord::findOrFail($childId);
+            $birthdate = Carbon::parse($child->birthdate);
+            $currentAge = $birthdate->diffInMonths(now());
+
+            // Get all vaccines with schedules
+            $vaccines = Vaccine::whereNotNull('age_schedule')->get();
+            
+            // Get completed immunizations for this child
+            $completedImmunizations = Immunization::where('child_record_id', $childId)
+                ->where('status', 'Done')
+                ->get()
+                ->groupBy('vaccine_id')
+                ->map(function ($group) {
+                    return $group->count();
+                });
+
+            $recommendations = [];
+
+            foreach ($vaccines as $vaccine) {
+                $schedule = $vaccine->age_schedule;
+                if (!isset($schedule['doses'])) continue;
+
+                $completedDoses = $completedImmunizations->get($vaccine->id, 0);
+                
+                // Find the next dose that hasn't been completed
+                foreach ($schedule['doses'] as $dose) {
+                    if ($dose['dose_number'] > $completedDoses) {
+                        // Calculate the recommended age in months
+                        $recommendedAgeInMonths = match($dose['unit']) {
+                            'weeks' => $dose['age'] / 4.33, // approximate weeks to months
+                            'months' => $dose['age'],
+                            'years' => $dose['age'] * 12,
+                            default => 0
+                        };
+
+                        $recommendations[] = [
+                            'vaccine_id' => $vaccine->id,
+                            'vaccine_name' => $vaccine->name,
+                            'dose' => $dose['label'],
+                            'dose_number' => $dose['dose_number'],
+                            'recommended_age' => $dose['age'] . ' ' . $dose['unit'],
+                            'recommended_age_months' => $recommendedAgeInMonths,
+                            'child_current_age_months' => $currentAge,
+                            'is_due' => $currentAge >= $recommendedAgeInMonths,
+                            'is_overdue' => $currentAge > ($recommendedAgeInMonths + 1), // 1 month grace period
+                            'priority' => $currentAge >= $recommendedAgeInMonths ? 1 : 2 // Due vaccines have priority 1
+                        ];
+                        
+                        break; // Only get the next dose for this vaccine
+                    }
+                }
+            }
+
+            // Sort by priority (due vaccines first), then by recommended age
+            usort($recommendations, function($a, $b) {
+                if ($a['priority'] != $b['priority']) {
+                    return $a['priority'] - $b['priority'];
+                }
+                return $a['recommended_age_months'] - $b['recommended_age_months'];
+            });
+
+            // Get the top recommendation (next vaccine the child should receive)
+            $nextVaccine = !empty($recommendations) ? $recommendations[0] : null;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'next_vaccine' => $nextVaccine,
+                    'all_pending' => $recommendations,
+                    'child_age_months' => $currentAge
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error getting next recommended vaccine', [
+                'child_id' => $childId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get recommendation: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

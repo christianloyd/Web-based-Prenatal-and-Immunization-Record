@@ -141,6 +141,30 @@ class ChildRecordController extends BaseController
         try {
             $childRecord = $this->childRecordService->createChildRecord($request->validated());
 
+            // Auto-generate immunization schedule based on DOH guidelines
+            try {
+                $immunizationService = app(\App\Services\ImmunizationService::class);
+                $schedules = $immunizationService->autoGenerateScheduleForChild($childRecord->id);
+                
+                $doneCount = collect($schedules)->where('status', 'Done')->count();
+                $missedCount = collect($schedules)->where('status', 'Missed')->count();
+                $upcomingCount = collect($schedules)->where('status', 'Upcoming')->count();
+                
+                \Log::info('Auto-generated immunization schedule for new child', [
+                    'child_id' => $childRecord->id,
+                    'total_schedules' => count($schedules),
+                    'done' => $doneCount,
+                    'missed' => $missedCount,
+                    'upcoming' => $upcomingCount
+                ]);
+            } catch (\Exception $e) {
+                // Log error but don't fail child registration
+                \Log::error('Failed to auto-generate immunization schedule', [
+                    'child_id' => $childRecord->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
             // Return JSON for AJAX requests
             if ($request->ajax()) {
                 return response()->json([
@@ -153,7 +177,7 @@ class ChildRecordController extends BaseController
             $redirectRoute = $user->role === 'bhw' ? 'bhw.childrecord.index' : 'midwife.childrecord.index';
 
             return redirect()->route($redirectRoute)
-                             ->with('success', 'Child record created successfully!');
+                             ->with('success', 'Child record created successfully! Immunization schedule has been auto-generated.');
 
         } catch (\Exception $e) {
             // Return JSON error for AJAX requests

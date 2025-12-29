@@ -26,11 +26,17 @@ class VaccineSeeder extends Seeder
                 'category' => 'Tuberculosis Prevention',
                 'dosage' => '1 dose (0.05ml for infants)',
                 'dose_count' => 1,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 0, 'unit' => 'months', 'label' => '1st Dose']
+                    ]
+                ]),
+                'is_birth_dose' => true,
                 'current_stock' => rand(50, 200),
                 'min_stock' => 20,
                 'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
                 'storage_temp' => '2-8°C',
-                'notes' => 'Protects against tuberculosis. Given at birth to 2 months. Intradermal injection.',
+                'notes' => 'Protects against tuberculosis. Given at birth. Intradermal injection.',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ],
@@ -39,6 +45,13 @@ class VaccineSeeder extends Seeder
                 'category' => 'Polio Prevention',
                 'dosage' => '2 doses (0.5ml each)',
                 'dose_count' => 2,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 14, 'unit' => 'weeks', 'label' => '1st Dose'],
+                        ['dose_number' => 2, 'age' => 9, 'unit' => 'months', 'label' => '2nd Dose']
+                    ]
+                ]),
+                'is_birth_dose' => false,
                 'current_stock' => rand(50, 200),
                 'min_stock' => 20,
                 'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
@@ -52,6 +65,13 @@ class VaccineSeeder extends Seeder
                 'category' => 'Measles Prevention',
                 'dosage' => '2 doses (0.5ml each)',
                 'dose_count' => 2,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 9, 'unit' => 'months', 'label' => '1st Dose'],
+                        ['dose_number' => 2, 'age' => 12, 'unit' => 'months', 'label' => '2nd Dose']
+                    ]
+                ]),
+                'is_birth_dose' => false,
                 'current_stock' => rand(50, 200),
                 'min_stock' => 25,
                 'expiry_date' => Carbon::now()->addYears(1)->format('Y-m-d'),
@@ -65,6 +85,13 @@ class VaccineSeeder extends Seeder
                 'category' => 'Polio Prevention',
                 'dosage' => '2 doses (2 drops each)',
                 'dose_count' => 2,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 6, 'unit' => 'weeks', 'label' => '1st Dose'],
+                        ['dose_number' => 2, 'age' => 10, 'unit' => 'weeks', 'label' => '2nd Dose']
+                    ]
+                ]),
+                'is_birth_dose' => false,
                 'current_stock' => rand(50, 200),
                 'min_stock' => 25,
                 'expiry_date' => Carbon::now()->addYears(1)->format('Y-m-d'),
@@ -78,6 +105,14 @@ class VaccineSeeder extends Seeder
                 'category' => 'Pneumonia Prevention',
                 'dosage' => '3 doses (0.5ml each)',
                 'dose_count' => 3,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 6, 'unit' => 'weeks', 'label' => '1st Dose'],
+                        ['dose_number' => 2, 'age' => 10, 'unit' => 'weeks', 'label' => '2nd Dose'],
+                        ['dose_number' => 3, 'age' => 14, 'unit' => 'weeks', 'label' => '3rd Dose']
+                    ]
+                ]),
+                'is_birth_dose' => false,
                 'current_stock' => rand(50, 200),
                 'min_stock' => 30,
                 'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
@@ -91,6 +126,14 @@ class VaccineSeeder extends Seeder
                 'category' => 'Multi-disease Prevention',
                 'dosage' => '3 doses (0.5ml each)',
                 'dose_count' => 3,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 6, 'unit' => 'weeks', 'label' => '1st Dose'],
+                        ['dose_number' => 2, 'age' => 10, 'unit' => 'weeks', 'label' => '2nd Dose'],
+                        ['dose_number' => 3, 'age' => 14, 'unit' => 'weeks', 'label' => '3rd Dose']
+                    ]
+                ]),
+                'is_birth_dose' => false,
                 'current_stock' => rand(50, 200),
                 'min_stock' => 30,
                 'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
@@ -100,10 +143,36 @@ class VaccineSeeder extends Seeder
                 'updated_at' => Carbon::now()
             ],
             [
+                'name' => 'Hepatitis B',
+                'category' => 'Hepatitis Prevention',
+                'dosage' => '1 dose (0.5ml)',
+                'dose_count' => 1,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 0, 'unit' => 'months', 'label' => '1st Dose']
+                    ]
+                ]),
+                'is_birth_dose' => true,
+                'current_stock' => rand(50, 200),
+                'min_stock' => 30,
+                'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
+                'storage_temp' => '2-8°C',
+                'notes' => 'Protects against Hepatitis B. Given at birth. Intramuscular injection.',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ],
+            [
                 'name' => 'Vitamin A',
                 'category' => 'Vitamin Supplementation',
                 'dosage' => '2 doses (capsule/drops)',
                 'dose_count' => 2,
+                'age_schedule' => json_encode([
+                    'doses' => [
+                        ['dose_number' => 1, 'age' => 6, 'unit' => 'months', 'label' => '1st Dose'],
+                        ['dose_number' => 2, 'age' => 12, 'unit' => 'months', 'label' => '2nd Dose']
+                    ]
+                ]),
+                'is_birth_dose' => false,
                 'current_stock' => rand(100, 300),
                 'min_stock' => 50,
                 'expiry_date' => Carbon::now()->addYears(3)->format('Y-m-d'),
@@ -118,7 +187,7 @@ class VaccineSeeder extends Seeder
         DB::table('vaccines')->insert($vaccines);
 
         $this->command->info('Vaccine seeder completed successfully!');
-        $this->command->info('Generated: 7 vaccines with complete immunization schedule information');
-        $this->command->info('Vaccines: BCG (1 dose), Pentavalent (3 doses), OPV (2 doses), IPV (2 doses), PCV (3 doses), MCV (2 doses), Vitamin A (2 doses)');
+        $this->command->info('Generated: 8 vaccines with complete DOH immunization schedule information');
+        $this->command->info('Vaccines: BCG (birth), Hepatitis B (birth), Pentavalent (3 doses), OPV (2 doses), IPV (2 doses), PCV (3 doses), MCV (2 doses), Vitamin A (2 doses)');
     }
 }

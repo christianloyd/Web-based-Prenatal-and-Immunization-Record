@@ -596,4 +596,136 @@ class ImmunizationService
             Cache::forget("recent_notifications_{$worker->id}");
         }
     }
+
+    /**
+     * Auto-generate immunization schedule for a child based on birthdate
+     * Handles both new registrations and late registrations with catch-up logic
+     * 
+     * @param int $childRecordId
+     * @return array Created immunizations with status info
+     */
+    public function autoGenerateScheduleForChild($childRecordId)
+    {
+        DB::beginTransaction();
+
+        try {
+            $child = ChildRecord::findOrFail($childRecordId);
+            $birthdate = Carbon::parse($child->birthdate);
+            $registrationDate = Carbon::now(); // Current date when child is registered
+            $createdSchedules = [];
+            
+            // Get all vaccines with their age schedules
+            $vaccines = Vaccine::whereNotNull('age_schedule')->get();
+            
+            if ($vaccines->isEmpty()) {
+                throw new \Exception('No vaccines with age schedules found. Please run the vaccine seeder first.');
+            }
+
+            foreach ($vaccines as $vaccine) {
+                $schedule = $vaccine->age_schedule;
+                
+                if (!isset($schedule['doses']) || empty($schedule['doses'])) {
+                    continue;
+                }
+                
+                foreach ($schedule['doses'] as $dose) {
+                    // Calculate recommended schedule date based on birthdate + age
+                    $recommendedDate = $this->calculateScheduleDateFromAge(
+                        $birthdate, 
+                        $dose['age'], 
+                        $dose['unit']
+                    );
+                    
+                    // Check if already scheduled
+                    $exists = Immunization::where('child_record_id', $childRecordId)
+                        ->where('vaccine_id', $vaccine->id)
+                        ->where('dose', $dose['label'])
+                        ->exists();
+                    
+                    if (!$exists) {
+                        // Determine status based on catch-up logic
+                        // Special handling for birth vaccines (BCG, Hepatitis B)
+                        // These are ALWAYS given at hospital at birth, so mark as Done
+                        if ($vaccine->is_birth_dose) {
+                            $status = 'Done';
+                            $notes = 'Auto-marked as Done (birth vaccine - administered at hospital).';
+                        } 
+                        // For non-birth vaccines:
+                        // If recommended date is in the past, mark as Missed (can be rescheduled)
+                        // If recommended date is today or future, mark as Upcoming
+                        else {
+                            $status = $recommendedDate->lt($registrationDate->startOfDay()) ? 'Missed' : 'Upcoming';
+                            $notes = $status === 'Missed' 
+                                ? 'Auto-marked as missed (late registration). Can be rescheduled or marked as Done if already given.'
+                                : 'Auto-generated based on DOH immunization schedule.';
+                        }
+                        
+                        $immunization = Immunization::create([
+                            'child_record_id' => $childRecordId,
+                            'vaccine_id' => $vaccine->id,
+                            'vaccine_name' => $vaccine->name,
+                            'dose' => $dose['label'],
+                            'schedule_date' => $recommendedDate->toDateString(),
+                            'schedule_time' => '09:00:00', // Default time
+                            'status' => $status,
+                            'notes' => $notes,
+                        ]);
+                        
+                        $createdSchedules[] = [
+                            'immunization' => $immunization,
+                            'vaccine_name' => $vaccine->name,
+                            'dose' => $dose['label'],
+                            'recommended_age' => $dose['age'] . ' ' . $dose['unit'],
+                            'schedule_date' => $recommendedDate->toDateString(),
+                            'status' => $status
+                        ];
+                    }
+                }
+            }
+
+            DB::commit();
+
+            Log::info('Auto-generated immunization schedule', [
+                'child_id' => $childRecordId,
+                'total_schedules' => count($createdSchedules),
+                'done_count' => collect($createdSchedules)->where('status', 'Done')->count(),
+                'missed_count' => collect($createdSchedules)->where('status', 'Missed')->count(),
+                'upcoming_count' => collect($createdSchedules)->where('status', 'Upcoming')->count()
+            ]);
+
+            return $createdSchedules;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error auto-generating immunization schedule', [
+                'child_id' => $childRecordId,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Calculate schedule date based on birthdate and age offset
+     * 
+     * @param Carbon $birthdate
+     * @param int $age
+     * @param string $unit ('weeks', 'months', 'years')
+     * @return Carbon
+     */
+    private function calculateScheduleDateFromAge($birthdate, $age, $unit)
+    {
+        $date = Carbon::parse($birthdate);
+        
+        switch ($unit) {
+            case 'weeks':
+                return $date->addWeeks($age);
+            case 'months':
+                return $date->addMonths($age);
+            case 'years':
+                return $date->addYears($age);
+            default:
+                return $date;
+        }
+    }
 }

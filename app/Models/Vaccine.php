@@ -16,6 +16,8 @@ class Vaccine extends Model
         'category',
         'dosage',
         'dose_count',
+        'age_schedule',
+        'is_birth_dose',
         'current_stock',
         'min_stock',
         'expiry_date',
@@ -27,7 +29,9 @@ class Vaccine extends Model
         'expiry_date' => 'date',
         'current_stock' => 'integer',
         'min_stock' => 'integer',
-        'dose_count' => 'integer'
+        'dose_count' => 'integer',
+        'age_schedule' => 'array',
+        'is_birth_dose' => 'boolean'
     ];
 
     /* ----------------------------------------------------------
@@ -246,5 +250,98 @@ class Vaccine extends Model
         if ($doseNumber == 3) return '3rd Dose';
 
         return $doseNumber . 'th Dose';
+    }
+
+    /* ----------------------------------------------------------
+       Age Schedule Helper Methods
+    ---------------------------------------------------------- */
+    
+    /**
+     * Get the parsed age schedule array
+     *
+     * @return array|null
+     */
+    public function getAgeSchedule()
+    {
+        return $this->age_schedule;
+    }
+
+    /**
+     * Calculate the schedule date for a specific dose based on child's birthdate
+     *
+     * @param Carbon|string $childBirthdate
+     * @param int $doseNumber
+     * @return Carbon|null
+     */
+    public function getScheduleDateForChild($childBirthdate, $doseNumber)
+    {
+        if (!$this->age_schedule || !isset($this->age_schedule['doses'])) {
+            return null;
+        }
+
+        $birthdate = Carbon::parse($childBirthdate);
+        
+        foreach ($this->age_schedule['doses'] as $dose) {
+            if ($dose['dose_number'] == $doseNumber) {
+                return $this->calculateScheduleDate($birthdate, $dose['age'], $dose['unit']);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get all schedule dates for a child based on birthdate
+     *
+     * @param Carbon|string $childBirthdate
+     * @return array Array of ['dose_number' => int, 'label' => string, 'date' => Carbon, 'age' => string]
+     */
+    public function getAllScheduleDatesForChild($childBirthdate)
+    {
+        if (!$this->age_schedule || !isset($this->age_schedule['doses'])) {
+            return [];
+        }
+
+        $birthdate = Carbon::parse($childBirthdate);
+        $schedules = [];
+
+        foreach ($this->age_schedule['doses'] as $dose) {
+            $scheduleDate = $this->calculateScheduleDate($birthdate, $dose['age'], $dose['unit']);
+            
+            $schedules[] = [
+                'dose_number' => $dose['dose_number'],
+                'label' => $dose['label'],
+                'date' => $scheduleDate,
+                'age' => $dose['age'] . ' ' . $dose['unit'],
+                'age_value' => $dose['age'],
+                'age_unit' => $dose['unit']
+            ];
+        }
+
+        return $schedules;
+    }
+
+    /**
+     * Calculate schedule date by adding age offset to birthdate
+     *
+     * @param Carbon $birthdate
+     * @param int $age
+     * @param string $unit ('weeks', 'months', 'years')
+     * @return Carbon
+     */
+    private function calculateScheduleDate($birthdate, $age, $unit)
+    {
+        $date = $birthdate->copy();
+        
+        switch ($unit) {
+            case 'weeks':
+                return $date->addWeeks($age);
+            case 'months':
+                return $date->addMonths($age);
+            case 'years':
+                return $date->addYears($age);
+            default:
+                return $date;
+        }
     }
 }

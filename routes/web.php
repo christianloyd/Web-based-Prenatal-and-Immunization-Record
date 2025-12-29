@@ -123,6 +123,8 @@ Route::middleware(['auth'])->group(function () {
                  ->name('vaccines.stock-transaction');
 
             //Immunization Routes - Specific routes must come BEFORE resource routes
+            Route::post('immunization/auto-generate/{childId}', [ImmunizationController::class, 'autoGenerateSchedule'])->name('immunization.auto-generate');
+            Route::get('immunization/next-vaccine/{childId}', [ImmunizationController::class, 'getNextRecommendedVaccine'])->name('immunization.next-vaccine');
             Route::get('immunization/children-data', [ImmunizationController::class, 'getChildrenForImmunization'])->name('immunization.children-data');
             Route::get('immunization/child/{childId}/vaccines', [ImmunizationController::class, 'getAvailableVaccinesForChild'])->name('immunization.child-vaccines');
             Route::get('immunization/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunization.child-doses');
@@ -212,6 +214,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('childrecord-search', [ChildRecordController::class, 'search'])->name('childrecord.search');
 
             //Immunization Routes for BHW - Specific routes must come BEFORE resource routes
+            Route::post('immunizations/auto-generate/{childId}', [ImmunizationController::class, 'autoGenerateSchedule'])->name('immunizations.auto-generate');
+            Route::get('immunizations/next-vaccine/{childId}', [ImmunizationController::class, 'getNextRecommendedVaccine'])->name('immunizations.next-vaccine');
             Route::get('immunizations/children-data', [ImmunizationController::class, 'getChildrenForImmunization'])->name('immunizations.children-data');
             Route::get('immunizations/child/{childId}/vaccines', [ImmunizationController::class, 'getAvailableVaccinesForChild'])->name('immunizations.child-vaccines');
             Route::get('immunizations/child/{childId}/vaccines/{vaccineId}/doses', [ImmunizationController::class, 'getAvailableDosesForChild'])->name('immunizations.child-doses');
