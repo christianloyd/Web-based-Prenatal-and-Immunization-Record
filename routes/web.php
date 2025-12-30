@@ -254,8 +254,34 @@ Route::middleware(['auth'])->group(function () {
 // TEMPORARY SEED ROUTE — remove after use
 Route::get('/seed-users', function() {
     Artisan::call('db:seed', [
-        '--class' => 'UserSeeder', // replace with your seeder class name
-        '--force' => true           // allows running in production
+        '--class' => 'UserSeeder',
+        '--force' => true
     ]);
     return 'User accounts have been seeded!';
+});
+
+// TEMPORARY VACCINE SEEDER ROUTE — REMOVE AFTER USE!
+Route::get('/seed-vaccines', function() {
+    $existingCount = \App\Models\Vaccine::count();
+    
+    if ($existingCount > 0) {
+        return response()->json([
+            'status' => 'skipped',
+            'message' => 'Vaccines already exist',
+            'count' => $existingCount,
+            'vaccines' => \App\Models\Vaccine::pluck('name')
+        ]);
+    }
+    
+    Artisan::call('db:seed', [
+        '--class' => 'VaccineSeeder',
+        '--force' => true
+    ]);
+    
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Vaccines seeded successfully!',
+        'count' => \App\Models\Vaccine::count(),
+        'vaccines' => \App\Models\Vaccine::pluck('name')
+    ]);
 });
