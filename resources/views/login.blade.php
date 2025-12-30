@@ -124,10 +124,11 @@
         }
 
         .login-header h2 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 10px;
+            font-size: 56px !important;
+            font-weight: 700 !important;
+            color: #1f2937 !important;
+            margin-bottom: 15px !important;
+            letter-spacing: -1px !important;
         }
 
         .secure-badge {
@@ -354,7 +355,7 @@
         <div class="right-panel">
             <div class="login-box">
                 <div class="login-header">
-                    <h2>Login</h2>
+                    <h2 style="font-size: 56px !important; font-weight: 700 !important; letter-spacing: -1px !important;">Login</h2>
                     <div class="secure-badge">
                         <i class="fas fa-lock"></i>
                         <span>Authorized Access Only</span>

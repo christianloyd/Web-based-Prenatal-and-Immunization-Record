@@ -29,6 +29,14 @@ class AuthController extends Controller
             $seconds = RateLimiter::availableIn($throttleKey);
             $minutes = ceil($seconds / 60);
 
+            // Log the blocked attempt for security monitoring
+            \Log::warning('Login rate limit exceeded', [
+                'username' => $credentials['username'],
+                'ip' => $request->ip(),
+                'remaining_seconds' => $seconds,
+                'attempts' => RateLimiter::attempts($throttleKey)
+            ]);
+
             return back()->withErrors([
                 'username' => "Too many login attempts. Please try again in {$minutes} minute(s).",
             ])->onlyInput('username');
@@ -55,17 +63,35 @@ class AuthController extends Controller
                     ->with('error', 'Invalid user role. Please contact administrator.');
             }
 
+            // Log successful login
+            \Log::info('Successful login', [
+                'username' => $user->username,
+                'role' => $user->role,
+                'ip' => $request->ip()
+            ]);
+
             // Redirect based on role
             return redirect()->route('dashboard')
                 ->with('success', 'Welcome back, ' . ucfirst($user->role) . '!');
         }
 
-        // Increment failed attempts (lock for 5 minutes after 5 attempts)
+        // Increment failed attempts (lock for 5 minutes = 300 seconds)
         RateLimiter::hit($throttleKey, 300);
+
+        // Get current attempt count for logging
+        $attempts = RateLimiter::attempts($throttleKey);
+
+        // Log failed attempt
+        \Log::info('Failed login attempt', [
+            'username' => $credentials['username'],
+            'ip' => $request->ip(),
+            'attempts' => $attempts,
+            'remaining_attempts' => max(0, 5 - $attempts)
+        ]);
 
         // Failed login - could be wrong credentials or deactivated account
         return back()->withErrors([
-            'username' => 'Invalid credentials or your account has been deactivated.Please contact administrator.',
+            'username' => 'Invalid credentials or your account has been deactivated. Please contact administrator.',
         ])->onlyInput('username');
     }
 
