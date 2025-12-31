@@ -6,7 +6,7 @@
     aria-labelledby="add-modal-title"
     onclick="closePatientModal(event)">
 
-    <div class="modal-content relative w-full max-w-2xl bg-white rounded-xl shadow-2xl p-6 my-8"
+    <div class="modal-content relative w-full max-w-md bg-white rounded-xl shadow-2xl p-6 my-8"
         onclick="event.stopPropagation()">
 
         <!-- Header -->
