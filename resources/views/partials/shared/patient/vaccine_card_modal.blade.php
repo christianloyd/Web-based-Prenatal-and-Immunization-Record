@@ -204,8 +204,13 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Date Administered <span class="text-red-500">*</span></label>
-                                <input type="date" name="date_administered" max="{{ date('Y-m-d') }}" required
-                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <i class="fas fa-calendar-alt text-gray-400"></i>
+                                    </div>
+                                    <input datepicker datepicker-autohide datepicker-format="yyyy-mm-dd" type="text" name="date_administered" required placeholder="Choose your date"
+                                           class="w-full pl-10 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer">
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">

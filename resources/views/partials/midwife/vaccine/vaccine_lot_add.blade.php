@@ -30,8 +30,13 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Expiry Date <span class="text-red-500">*</span></label>
-                    <input type="date" name="expiry_date" required
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <i class="fas fa-calendar-alt text-gray-400"></i>
+                        </div>
+                        <input datepicker datepicker-autohide datepicker-format="yyyy-mm-dd" type="text" name="expiry_date" required placeholder="Choose your date"
+                               class="w-full pl-10 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Qty Received <span class="text-red-500">*</span></label>
@@ -45,8 +50,13 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Date Received</label>
-                    <input type="date" name="received_date" max="{{ date('Y-m-d') }}"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <i class="fas fa-calendar-alt text-gray-400"></i>
+                        </div>
+                        <input datepicker datepicker-autohide datepicker-format="yyyy-mm-dd" type="text" name="received_date" placeholder="Choose your date"
+                               class="w-full pl-10 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer">
+                    </div>
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Supplier</label>
