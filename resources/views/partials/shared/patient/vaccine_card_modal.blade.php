@@ -165,7 +165,7 @@
                             <div><span class="text-gray-400">Date:</span> <span class="font-medium">{{ $dose->date_administered->format('M j, Y') }}</span></div>
                             <div><span class="text-gray-400">GA at Dose:</span> <span class="font-medium">{{ $dose->gestational_week_at_dose ? $dose->gestational_week_at_dose . ' weeks' : '—' }}</span></div>
                             <div><span class="text-gray-400">Given By:</span> <span class="font-medium">{{ $dose->administered_by ?: '—' }}</span></div>
-                            <div><span class="text-gray-400">Lot #:</span> <span class="font-medium">{{ $dose->vaccineLot?->lot_number ?: ($dose->is_external ? 'N/A (External)' : '—') }}</span></div>
+                            <div><span class="text-gray-400">Lot #:</span> <span class="font-medium">{{ $dose->vaccineLot?->lot_number ?: ($dose->is_external ? ($dose->external_vaccine_lot ?: 'N/A (External)') : '—') }}</span></div>
                             @if($dose->dose_number == 1 && $dose->next_dose_due_date)
                                 <div class="col-span-2">
                                     <span class="text-gray-400">Next Dose Due:</span>
@@ -232,6 +232,8 @@
                                         class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
                                     <option value="">— Select lot —</option>
                                 </select>
+                                <input type="text" name="external_vaccine_lot" id="externalLotInput" placeholder="External Vaccine Name / Lot No."
+                                       class="hidden w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Administered By</label>
@@ -243,7 +245,13 @@
                         <div class="mt-3">
                             <label class="flex items-center space-x-2 cursor-pointer">
                                 <input type="checkbox" name="is_external" value="1" id="isExternalCheck"
-                                       onchange="document.getElementById('vaccineLotSelect').disabled = this.checked"
+                                       onchange="
+                                           const isChecked = this.checked;
+                                           document.getElementById('vaccineLotSelect').classList.toggle('hidden', isChecked);
+                                           document.getElementById('externalLotInput').classList.toggle('hidden', !isChecked);
+                                           if(isChecked) document.getElementById('vaccineLotSelect').value = '';
+                                           else document.getElementById('externalLotInput').value = '';
+                                       "
                                        class="rounded text-teal-500">
                                 <span class="text-xs text-gray-600">Dose administered externally (private clinic) — no inventory deduction</span>
                             </label>

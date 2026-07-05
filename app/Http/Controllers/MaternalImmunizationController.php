@@ -25,6 +25,7 @@ class MaternalImmunizationController extends Controller
             'vaccine_lot_id'          => 'nullable|exists:vaccine_lots,id',
             'administered_by'         => 'nullable|string|max:255',
             'is_external'             => 'nullable|boolean',
+            'external_vaccine_lot'    => 'nullable|string|max:255',
             'notes'                   => 'nullable|string|max:1000',
         ]);
 
@@ -78,6 +79,7 @@ class MaternalImmunizationController extends Controller
                 'vaccine_lot_id'           => !$isExternal ? $lotId : null,
                 'administered_by'          => $request->administered_by,
                 'is_external'              => $isExternal,
+                'external_vaccine_lot'     => $isExternal ? $request->external_vaccine_lot : null,
                 'notes'                    => $request->notes,
             ]);
 

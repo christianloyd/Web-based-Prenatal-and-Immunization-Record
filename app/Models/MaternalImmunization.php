@@ -20,6 +20,7 @@ class MaternalImmunization extends Model
         'vaccine_lot_id',
         'administered_by',
         'is_external',
+        'external_vaccine_lot',
         'notes',
     ];
 
