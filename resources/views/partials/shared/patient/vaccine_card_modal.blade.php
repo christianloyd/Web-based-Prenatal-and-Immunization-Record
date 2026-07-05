@@ -79,18 +79,18 @@
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-slide-up">
 
         {{-- Modal Header --}}
-        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-teal-600 to-teal-500">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-primary-dark to-primary">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                     <i class="fas fa-syringe text-white text-lg"></i>
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-white">TDaP Vaccine Card</h3>
-                    <p class="text-teal-100 text-sm">Tetanus-Diphtheria-acellular Pertussis · 2-Dose Series</p>
+                    <p class="text-header-color text-sm">Tetanus-Diphtheria-acellular Pertussis · 2-Dose Series</p>
                 </div>
             </div>
             <button onclick="document.getElementById('vaccineCardModal').classList.add('hidden')"
-                    class="text-white hover:text-teal-100 transition-colors">
+                    class="text-white hover:text-header-color transition-colors">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
@@ -115,19 +115,19 @@
                     <span>{{ $doses->count() }} / 2 doses</span>
                 </div>
                 <div class="relative h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full bg-teal-500 transition-all duration-500"
+                    <div class="h-full rounded-full bg-primary transition-all duration-500"
                          style="width: {{ $doses->count() >= 2 ? 100 : ($doses->count() == 1 ? 50 : 0) }}%"></div>
                 </div>
                 <div class="flex justify-between mt-2">
                     @foreach([1, 2] as $doseNum)
                         @php $d = $doses->firstWhere('dose_number', $doseNum); @endphp
-                        <div class="flex items-center space-x-1.5 text-xs {{ $d ? 'text-teal-700 font-semibold' : 'text-gray-400' }}">
+                        <div class="flex items-center space-x-1.5 text-xs {{ $d ? 'text-primary-dark font-semibold' : 'text-gray-400' }}">
                             <div class="w-5 h-5 rounded-full flex items-center justify-center
-                                {{ $d ? 'bg-teal-500 text-white' : 'bg-gray-200 text-gray-400' }}">
+                                {{ $d ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400' }}">
                                 {{ $doseNum }}
                             </div>
                             <span>{{ $doseNum == 1 ? '1st Dose' : '2nd Dose' }}</span>
-                            @if($d) <i class="fas fa-check text-teal-600"></i> @endif
+                            @if($d) <i class="fas fa-check text-primary-dark"></i> @endif
                         </div>
                     @endforeach
                 </div>
@@ -136,7 +136,7 @@
             {{-- Dose History --}}
             <div>
                 <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                    <i class="fas fa-list-ul text-teal-500 mr-2"></i>
+                    <i class="fas fa-list-ul text-primary mr-2"></i>
                     Dose History
                 </h4>
 
@@ -144,7 +144,7 @@
                     <div class="mb-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex items-center space-x-2">
-                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-100 text-teal-700 text-xs font-bold">
+                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary-dark text-xs font-bold">
                                     {{ $dose->dose_number }}
                                 </span>
                                 <span class="font-semibold text-gray-800 text-sm">{{ $dose->dose_label }}</span>
@@ -165,11 +165,11 @@
                             <div><span class="text-gray-400">Date:</span> <span class="font-medium">{{ $dose->date_administered->format('M j, Y') }}</span></div>
                             <div><span class="text-gray-400">GA at Dose:</span> <span class="font-medium">{{ $dose->gestational_week_at_dose ? $dose->gestational_week_at_dose . ' weeks' : '—' }}</span></div>
                             <div><span class="text-gray-400">Given By:</span> <span class="font-medium">{{ $dose->administered_by ?: '—' }}</span></div>
-                            <div><span class="text-gray-400">Lot #:</span> <span class="font-medium">{{ $dose->vaccineLot?->lot_number ?: ($dose->is_external ? ($dose->external_vaccine_lot ?: 'N/A (External)') : '—') }}</span></div>
+                            <div><span class="text-gray-400">Vaccine:</span> <span class="font-medium">{{ $dose->vaccineLot?->vaccine_name ?: ($dose->is_external ? ($dose->external_vaccine_lot ?: 'N/A (External)') : '—') }}</span></div>
                             @if($dose->dose_number == 1 && $dose->next_dose_due_date)
                                 <div class="col-span-2">
                                     <span class="text-gray-400">Next Dose Due:</span>
-                                    <span class="font-semibold {{ $dose->next_dose_due_date->isPast() && !$dose2 ? 'text-red-600' : 'text-teal-700' }}">
+                                    <span class="font-semibold {{ $dose->next_dose_due_date->isPast() && !$dose2 ? 'text-red-600' : 'text-primary-dark' }}">
                                         {{ $dose->next_dose_due_date->format('M j, Y') }}
                                     </span>
                                 </div>
@@ -191,7 +191,7 @@
             @if($doses->count() < 2 && auth()->user()->role === 'midwife')
                 <div class="border-t border-gray-100 pt-5">
                     <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                        <i class="fas fa-plus-circle text-teal-500 mr-2"></i>
+                        <i class="fas fa-plus-circle text-primary mr-2"></i>
                         Record
                         @if(!$dose1) 1st @else 2nd @endif
                         Dose
@@ -205,40 +205,40 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Date Administered <span class="text-red-500">*</span></label>
                                 <input type="date" name="date_administered" max="{{ date('Y-m-d') }}" required
-                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">
                                     Gestational Week at Dose
                                     @if($currentGestationalWeek)
-                                        <span class="ml-1 text-teal-600 font-normal">(auto-filled from prenatal record)</span>
+                                        <span class="ml-1 text-primary-dark font-normal">(auto-filled from prenatal record)</span>
                                     @endif
                                 </label>
                                 <input type="number" name="gestational_week_at_dose" min="1" max="45"
                                        value="{{ $currentGestationalWeek ?? '' }}"
                                        placeholder="e.g. 28"
-                                       class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400
-                                              {{ $currentGestationalWeek ? 'border-teal-300 bg-teal-50' : 'border-gray-200' }}">
+                                       class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary
+                                              {{ $currentGestationalWeek ? 'border-primary/40 bg-primary/10' : 'border-gray-200' }}">
                                 @if($currentGestationalWeek)
-                                    <p class="text-xs text-teal-600 mt-1">
+                                    <p class="text-xs text-primary-dark mt-1">
                                         <i class="fas fa-info-circle mr-1"></i>
                                         Currently {{ $currentGestationalWeek }} weeks pregnant. You can edit if needed.
                                     </p>
                                 @endif
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Vaccine Lot</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Vaccine</label>
                                 <select name="vaccine_lot_id" id="vaccineLotSelect"
-                                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
-                                    <option value="">— Select lot —</option>
+                                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="">— Select vaccine —</option>
                                 </select>
-                                <input type="text" name="external_vaccine_lot" id="externalLotInput" placeholder="External Vaccine Name / Lot No."
-                                       class="hidden w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                                <input type="text" name="external_vaccine_lot" id="externalLotInput" placeholder="External Vaccine Name"
+                                       class="hidden w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Administered By</label>
                                 <input type="text" name="administered_by" placeholder="Staff name" value="{{ auth()->user()->name }}"
-                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                             </div>
                         </div>
 
@@ -252,7 +252,7 @@
                                            if(isChecked) document.getElementById('vaccineLotSelect').value = '';
                                            else document.getElementById('externalLotInput').value = '';
                                        "
-                                       class="rounded text-teal-500">
+                                       class="rounded text-primary">
                                 <span class="text-xs text-gray-600">Dose administered externally (private clinic) — no inventory deduction</span>
                             </label>
                         </div>
@@ -260,12 +260,12 @@
                         <div class="mt-3">
                             <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
                             <textarea name="notes" rows="2" placeholder="Optional remarks..."
-                                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"></textarea>
+                                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
                         </div>
 
                         <div class="mt-4 flex justify-end">
                             <button type="submit" id="submitDoseBtn"
-                                    class="inline-flex items-center px-5 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm">
+                                    class="inline-flex items-center px-5 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors shadow-sm">
                                 <i class="fas fa-save mr-2"></i>
                                 Save Dose
                             </button>
@@ -286,10 +286,10 @@ document.getElementById('openVaccineCardBtn')?.addEventListener('click', functio
         .then(lots => {
             const sel = document.getElementById('vaccineLotSelect');
             if (!sel) return;
-            sel.innerHTML = '<option value="">— Select lot —</option>';
+            sel.innerHTML = '<option value="">— Select vaccine —</option>';
             lots.forEach(lot => {
                 const expiry = new Date(lot.expiry_date).toLocaleDateString('en-PH', {month: 'short', day: 'numeric', year: 'numeric'});
-                sel.innerHTML += `<option value="${lot.id}">Lot ${lot.lot_number} (exp. ${expiry}, ${lot.quantity_on_hand} left)</option>`;
+                sel.innerHTML += `<option value="${lot.id}">${lot.vaccine_name} (Lot ${lot.lot_number}, exp. ${expiry}, ${lot.quantity_on_hand} left)</option>`;
             });
         })
         .catch(() => {});

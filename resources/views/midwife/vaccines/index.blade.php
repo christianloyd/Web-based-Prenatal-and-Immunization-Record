@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{{ asset('css/midwife/midwife.css') }}">
 <link rel="stylesheet" href="{{ asset('css/midwife/vaccines-index.css') }}">
 <style>
-    .tab-active { border-bottom: 3px solid #0d9488; color: #0d9488; font-weight: 600; }
+    .tab-active { border-bottom: 3px solid #D4A373; color: #D4A373; font-weight: 600; }
     .tab-inactive { border-bottom: 3px solid transparent; color: #6b7280; }
     .lot-status-in  { background: #d1fae5; color: #065f46; }
     .lot-status-low { background: #fef3c7; color: #92400e; }
@@ -180,7 +180,7 @@
         {{-- Stats row --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="lotStatsRow">
             <div class="bg-white rounded-xl shadow-sm border p-4 text-center">
-                <div class="text-2xl font-bold text-teal-600" id="statOnHand">0</div>
+                <div class="text-2xl font-bold text-primary-dark" id="statOnHand">0</div>
                 <div class="text-xs text-gray-500 mt-1">Total On Hand</div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border p-4 text-center">
@@ -199,10 +199,10 @@
 
         <div class="flex justify-between items-center">
             <h3 class="text-base font-semibold text-gray-700 flex items-center">
-                <i class="fas fa-boxes text-teal-500 mr-2"></i> TDaP Lot Inventory
+                <i class="fas fa-boxes text-primary mr-2"></i> TDaP Lot Inventory
             </h3>
             <button onclick="openAddLotModal()"
-                    class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm">
+                    class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors shadow-sm">
                 <i class="fas fa-plus mr-2"></i> Add New Lot
             </button>
         </div>
@@ -321,7 +321,7 @@ function renderLots(lots) {
         <tr class="hover:bg-gray-50 transition-colors">
             <td class="px-5 py-3 font-mono font-semibold text-gray-800">${lot.lot_number}</td>
             <td class="px-5 py-3 ${expiryClass}">${expDate.toLocaleDateString('en-PH', {month: 'short', day: 'numeric', year: 'numeric'})}${expiryLabel}</td>
-            <td class="px-5 py-3 font-semibold ${isOut ? 'text-red-600' : isLow ? 'text-yellow-600' : 'text-teal-700'}">${lot.quantity_on_hand}</td>
+            <td class="px-5 py-3 font-semibold ${isOut ? 'text-red-600' : isLow ? 'text-yellow-600' : 'text-primary-dark'}">${lot.quantity_on_hand}</td>
             <td class="px-5 py-3 text-gray-600">${lot.quantity_used}</td>
             <td class="px-5 py-3 text-gray-500">${lot.low_stock_threshold}</td>
             <td class="px-5 py-3">${statusHtml}</td>
@@ -365,7 +365,7 @@ function submitAddLot(e) {
 }
 
 function showLotToast(msg, type) {
-    const color = type === 'success' ? 'bg-teal-600' : 'bg-red-600';
+    const color = type === 'success' ? 'bg-primary' : 'bg-red-600';
     const t = document.createElement('div');
     t.className = `fixed bottom-4 right-4 z-[9999] px-5 py-3 rounded-xl text-white text-sm font-medium shadow-lg ${color}`;
     t.textContent = msg;
