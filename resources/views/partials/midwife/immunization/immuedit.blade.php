@@ -108,8 +108,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Schedule Date *</label>
-                            <input type="date" id="editScheduleDate" name="schedule_date" required 
-                                   class="form-input input-clean w-full px-4 py-2.5 rounded-lg">
+                            <x-datepicker name="schedule_date" id="editScheduleDate" required="true" class="input-clean" />
                         </div>
                         
                         <div>

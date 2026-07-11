@@ -151,6 +151,33 @@ class ChildRecordController extends BaseController
                     'missed' => $missedCount,
                     'upcoming' => $upcomingCount
                 ]);
+
+                // Send welcome/confirmation SMS to mother
+                $childRecord->load('mother');
+                if ($childRecord->mother && !empty($childRecord->mother->contact)) {
+                    $motherName = $childRecord->mother->name ?? null;
+                    $senderName = config('services.iprog.sender_name');
+                    
+                    if ($motherName) {
+                        $message = "Hi {$motherName}, your child {$childRecord->full_name} has been registered. Their DOH immunization schedule has been generated. You'll receive reminders before each schedule. - {$senderName}";
+                    } else {
+                        $message = "Hi! Your child {$childRecord->full_name} has been registered and their DOH immunization schedule is now active. You'll receive reminders before each schedule. - {$senderName}";
+                    }
+                    
+                    try {
+                        \App\Jobs\SendSmsJob::dispatchSync(
+                            $childRecord->mother->contact,
+                            $message,
+                            'child_registration',
+                            $motherName ?? $childRecord->full_name,
+                            'ChildRecord',
+                            $childRecord->id
+                        );
+                        \Log::info('Sent registration SMS to mother', ['child_id' => $childRecord->id]);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to dispatch registration SMS: ' . $e->getMessage());
+                    }
+                }
             } catch (\Exception $e) {
                 // Log error but don't fail child registration
                 \Log::error('Failed to auto-generate immunization schedule', [

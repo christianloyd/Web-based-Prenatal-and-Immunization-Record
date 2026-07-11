@@ -144,9 +144,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Schedule Date *</label>
-                        <input type="date" name="schedule_date" id="schedule_date" required
-                               class="form-input input-clean w-full px-4 py-2.5 rounded-lg"
-                               value="{{ old('schedule_date') }}" min="{{ date('Y-m-d') }}">
+                        <x-datepicker name="schedule_date" id="schedule_date" required="true" value="{{ old('schedule_date') }}" class="input-clean" />
                     </div>
 
                     <div>

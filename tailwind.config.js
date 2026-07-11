@@ -6,7 +6,9 @@ export default {
         "./resources/**/*.vue",
         "./storage/framework/views/*.php",
         "./app/View/Components/**/*.php",
+        "./node_modules/flowbite/**/*.js"
       ],
+  darkMode: 'class',
   theme: {
       extend: {
           colors: {
@@ -19,5 +21,7 @@ export default {
           }
       },
   },
-  plugins: [],
+  plugins: [
+      require('flowbite/plugin')
+  ],
 }

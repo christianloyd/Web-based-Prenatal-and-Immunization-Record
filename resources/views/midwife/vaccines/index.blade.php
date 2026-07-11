@@ -15,24 +15,7 @@
     .lot-status-exp { background: #f3f4f6; color: #6b7280; text-decoration: line-through; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-fade-in { animation: fadeIn 0.25s ease; }
-    
-    /* Flowbite Datepicker Overrides */
-    .datepicker {
-        z-index: 100000 !important;
-    }
-    .datepicker [class*="bg-blue-"] {
-        background-color: #D4A373 !important;
-        color: white !important;
-    }
-    .datepicker [class*="text-blue-"] {
-        color: #D4A373 !important;
-    }
-    .datepicker [class*="hover:bg-gray-"]:hover {
-        background-color: #FEFAE0 !important;
-        color: #B8956A !important;
-    }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/datepicker.min.js"></script>
 @endpush
 
 @section('content')

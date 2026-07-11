@@ -137,8 +137,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date *</label>
-                            <input type="date" name="expiry_date" id="edit-expiry-date" required
-                                class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary">
+                            <x-datepicker name="expiry_date" id="edit-expiry-date" required="true" />
                         </div>
 
                         <div>

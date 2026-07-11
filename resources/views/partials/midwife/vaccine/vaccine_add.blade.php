@@ -150,8 +150,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date *</label>
-                            <input type="date" name="expiry_date" id="add-expiry-date" required value="{{ old('expiry_date') }}"
-                                class="form-input w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-primary @error('expiry_date') error-border @enderror">
+                            <x-datepicker name="expiry_date" id="add-expiry-date" required="true" value="{{ old('expiry_date') }}" class="@error('expiry_date') error-border @enderror" />
                             @error('expiry_date')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
