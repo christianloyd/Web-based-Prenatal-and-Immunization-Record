@@ -18,6 +18,9 @@
         }
     }
 
+    // Calculate max date for the datepicker
+    $maxDate = now()->format('Y-m-d');
+
     // Compute status
     if (!$dose1) {
         $cardStatus  = 'no_record';
@@ -28,9 +31,16 @@
         $btnBadge    = '';
     } elseif (!$dose2) {
         $due = $dose1->next_dose_due_date;
-        $daysLeft = now()->diffInDays($due, false); // negative = past
+        $daysLeft = $due ? now()->diffInDays($due, false) : null; // negative = past
 
-        if ($daysLeft < 0) {
+        if (!$due) {
+            $cardStatus  = 'no_due_date';
+            $badgeText   = 'Dose 1 (External)';
+            $badgeClass  = 'bg-purple-100 text-purple-700';
+            $badgeIcon   = 'fa-hospital-alt';
+            $btnClass    = 'bg-purple-50 text-purple-700 border border-purple-300 hover:bg-purple-100';
+            $btnBadge    = '';
+        } elseif ($daysLeft < 0) {
             $cardStatus  = 'overdue';
             $badgeText   = 'Dose 2 Overdue';
             $badgeClass  = 'bg-red-100 text-red-700';
@@ -110,17 +120,18 @@
 
             {{-- Progress Bar --}}
             <div>
+                @php $internalDosesCount = $doses->where('is_external', false)->count(); @endphp
                 <div class="flex justify-between text-xs font-medium text-gray-500 mb-2">
-                    <span>Dose Progress</span>
-                    <span>{{ $doses->count() }} / 2 doses</span>
+                    <span>Facility Dose Progress</span>
+                    <span>{{ $internalDosesCount }} / 2 doses</span>
                 </div>
                 <div class="relative h-3 bg-gray-100 rounded-full overflow-hidden">
                     <div class="h-full rounded-full bg-primary transition-all duration-500"
-                         style="width: {{ $doses->count() >= 2 ? 100 : ($doses->count() == 1 ? 50 : 0) }}%"></div>
+                         style="width: {{ $internalDosesCount >= 2 ? 100 : ($internalDosesCount == 1 ? 50 : 0) }}%"></div>
                 </div>
                 <div class="flex justify-between mt-2">
                     @foreach([1, 2] as $doseNum)
-                        @php $d = $doses->firstWhere('dose_number', $doseNum); @endphp
+                        @php $d = $doses->where('is_external', false)->firstWhere('dose_number', $doseNum); @endphp
                         <div class="flex items-center space-x-1.5 text-xs {{ $d ? 'text-primary-dark font-semibold' : 'text-gray-400' }}">
                             <div class="w-5 h-5 rounded-full flex items-center justify-center
                                 {{ $d ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400' }}">
@@ -204,7 +215,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Date Administered <span class="text-red-500">*</span></label>
-                                <x-datepicker name="date_administered" required="true" />
+                                <x-datepicker name="date_administered" required="true" :max-date="$maxDate" />
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">

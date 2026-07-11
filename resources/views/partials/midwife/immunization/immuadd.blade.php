@@ -144,7 +144,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Schedule Date *</label>
-                        <x-datepicker name="schedule_date" id="schedule_date" required="true" value="{{ old('schedule_date') }}" class="input-clean" />
+                        <x-datepicker name="schedule_date" id="schedule_date" required="true" value="{{ old('schedule_date') }}" class="input-clean" :min-date="now()->format('Y-m-d')" />
                     </div>
 
                     <div>

@@ -42,7 +42,11 @@ class MaternalImmunization extends Model
 
         static::creating(function (MaternalImmunization $record) {
             if ($record->dose_number == 1 && $record->date_administered) {
-                $record->next_dose_due_date = Carbon::parse($record->date_administered)->addMonths(3);
+                if (!$record->is_external) {
+                    $record->next_dose_due_date = Carbon::parse($record->date_administered)->addMonths(3);
+                } else {
+                    $record->next_dose_due_date = null;
+                }
             }
         });
     }

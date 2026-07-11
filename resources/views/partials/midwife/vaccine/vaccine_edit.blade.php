@@ -137,7 +137,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date *</label>
-                            <x-datepicker name="expiry_date" id="edit-expiry-date" required="true" />
+                            <x-datepicker name="expiry_date" id="edit-expiry-date" required="true" :min-date="now()->format('Y-m-d')" />
                         </div>
 
                         <div>
@@ -166,14 +166,3 @@
         </form>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Set minimum date for edit expiry date to today
-    const editExpiryInput = document.getElementById('edit-expiry-date');
-    if (editExpiryInput) {
-        const today = new Date().toISOString().split('T')[0];
-        editExpiryInput.min = today;
-    }
-});
-</script>

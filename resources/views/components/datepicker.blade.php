@@ -3,7 +3,9 @@
     'id' => null,
     'required' => false,
     'placeholder' => 'Choose your date',
-    'value' => null
+    'value' => null,
+    'minDate' => null,
+    'maxDate' => null
 ])
 
 <div class="relative">
@@ -16,6 +18,8 @@
            id="{{ $id ?? $name }}"
            value="{{ $value }}"
            @if($required) required @endif
+           @if($minDate) datepicker-min-date="{{ $minDate }}" @endif
+           @if($maxDate) datepicker-max-date="{{ $maxDate }}" @endif
            placeholder="{{ $placeholder }}"
            {{ $attributes->merge(['class' => 'w-full pl-10 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer']) }}>
 </div>

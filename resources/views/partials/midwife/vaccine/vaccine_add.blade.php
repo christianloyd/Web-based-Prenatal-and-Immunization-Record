@@ -150,7 +150,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date *</label>
-                            <x-datepicker name="expiry_date" id="add-expiry-date" required="true" value="{{ old('expiry_date') }}" class="@error('expiry_date') error-border @enderror" />
+                            <x-datepicker name="expiry_date" id="add-expiry-date" required="true" value="{{ old('expiry_date') }}" class="@error('expiry_date') error-border @enderror" :min-date="now()->format('Y-m-d')" />
                             @error('expiry_date')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -185,14 +185,3 @@
         </form>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Set minimum date for expiry date to today
-    const expiryInput = document.getElementById('add-expiry-date');
-    if (expiryInput) {
-        const today = new Date().toISOString().split('T')[0];
-        expiryInput.min = today;
-    }
-});
-</script>

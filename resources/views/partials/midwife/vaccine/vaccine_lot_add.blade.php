@@ -30,7 +30,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Expiry Date <span class="text-red-500">*</span></label>
-                    <x-datepicker name="expiry_date" required="true" />
+                    <x-datepicker name="expiry_date" required="true" :min-date="now()->format('Y-m-d')" />
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Qty Received <span class="text-red-500">*</span></label>
@@ -44,7 +44,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Date Received</label>
-                    <x-datepicker name="received_date" />
+                    <x-datepicker name="received_date" :max-date="now()->format('Y-m-d')" />
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Supplier</label>

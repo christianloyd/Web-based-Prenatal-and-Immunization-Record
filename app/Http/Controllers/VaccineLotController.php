@@ -101,7 +101,7 @@ class VaccineLotController extends Controller
         $lots = VaccineLot::active()
             ->where('expiry_date', '>', now())
             ->orderBy('expiry_date')
-            ->get(['id', 'lot_number', 'expiry_date', 'quantity_on_hand']);
+            ->get(['id', 'lot_number', 'vaccine_name', 'expiry_date', 'quantity_on_hand']);
 
         return response()->json($lots);
     }

@@ -108,7 +108,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Schedule Date *</label>
-                            <x-datepicker name="schedule_date" id="editScheduleDate" required="true" class="input-clean" />
+                            <x-datepicker name="schedule_date" id="editScheduleDate" required="true" class="input-clean" :min-date="now()->format('Y-m-d')" />
                         </div>
                         
                         <div>
