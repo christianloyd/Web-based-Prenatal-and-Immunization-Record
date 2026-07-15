@@ -31,21 +31,28 @@ class MaternalImmunizationController extends Controller
 
         $patient = Patient::findOrFail($patientId);
 
+        $isExternal = (bool) $request->input('is_external', false);
+
         // Prevent duplicate doses
         $exists = $patient->maternalImmunizations()
+            ->where('is_external', $isExternal)
             ->where('dose_number', $request->dose_number)
             ->exists();
 
         if ($exists) {
+            $source = $isExternal ? 'external ' : '';
             return response()->json([
                 'success' => false,
-                'message' => "Dose {$request->dose_number} has already been recorded for this patient.",
+                'message' => "Dose {$request->dose_number} ({$source}record) has already been recorded for this patient.",
             ], 422);
         }
 
         // Prevent recording dose 2 before dose 1
         if ($request->dose_number == 2) {
-            $dose1 = $patient->maternalImmunizations()->where('dose_number', 1)->first();
+            $dose1 = $patient->maternalImmunizations()
+                ->where('is_external', $isExternal)
+                ->where('dose_number', 1)
+                ->first();
             if (!$dose1) {
                 return response()->json([
                     'success' => false,
@@ -54,8 +61,7 @@ class MaternalImmunizationController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($request, $patient) {
-            $isExternal = (bool) $request->input('is_external', false);
+        return DB::transaction(function () use ($request, $patient, $isExternal) {
             $lotId = $request->vaccine_lot_id;
 
             // Deduct inventory if facility-administered and a lot is selected

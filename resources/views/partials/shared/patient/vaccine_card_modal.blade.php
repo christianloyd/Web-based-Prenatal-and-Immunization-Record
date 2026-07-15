@@ -7,6 +7,8 @@
     $dose1 = $doses->firstWhere('dose_number', 1);
     $dose2 = $doses->firstWhere('dose_number', 2);
     $internalDosesCount = $doses->where('is_external', false)->count();
+    $nextInternalDose = !$doses->where('is_external', false)->firstWhere('dose_number', 1) ? 1 : 2;
+    $nextExternalDose = !$doses->where('is_external', true)->firstWhere('dose_number', 1) ? 1 : 2;
 
     // Compute current gestational week from the active prenatal record's LMP
     $currentGestationalWeek = null;
@@ -209,19 +211,19 @@
                 @endforelse
             </div>
 
-            {{-- Add Dose Form (only show if doses < 2 and role is midwife) --}}
-            @if($doses->count() < 2 && auth()->user()->role === 'midwife')
+            {{-- Add Dose Form (only show if internal doses < 2 and role is midwife) --}}
+            @if($internalDosesCount < 2 && auth()->user()->role === 'midwife')
                 <div class="border-t border-gray-100 pt-5">
                     <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                         <i class="fas fa-plus-circle text-primary mr-2"></i>
                         Record
-                        @if(!$dose1) 1st @else 2nd @endif
+                        <span id="formDoseLabel">@if($nextInternalDose == 1) 1st @else 2nd @endif</span>
                         Dose
                     </h4>
 
                     <form id="addDoseForm" onsubmit="submitDose(event, {{ $patient->id }})">
                         @csrf
-                        <input type="hidden" name="dose_number" value="{{ !$dose1 ? 1 : 2 }}">
+                        <input type="hidden" name="dose_number" id="formDoseNumber" value="{{ $nextInternalDose }}">
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -270,8 +272,15 @@
                                            const isChecked = this.checked;
                                            document.getElementById('vaccineLotSelect').classList.toggle('hidden', isChecked);
                                            document.getElementById('externalLotInput').classList.toggle('hidden', !isChecked);
-                                           if(isChecked) document.getElementById('vaccineLotSelect').value = '';
-                                           else document.getElementById('externalLotInput').value = '';
+                                           if(isChecked) {
+                                               document.getElementById('vaccineLotSelect').value = '';
+                                               document.getElementById('formDoseNumber').value = '{{ $nextExternalDose }}';
+                                               document.getElementById('formDoseLabel').textContent = '{{ $nextExternalDose == 1 ? '1st' : '2nd' }}';
+                                           } else {
+                                               document.getElementById('externalLotInput').value = '';
+                                               document.getElementById('formDoseNumber').value = '{{ $nextInternalDose }}';
+                                               document.getElementById('formDoseLabel').textContent = '{{ $nextInternalDose == 1 ? '1st' : '2nd' }}';
+                                           }
                                        "
                                        class="rounded text-primary">
                                 <span class="text-xs text-gray-600">Dose administered externally (private clinic) — no inventory deduction</span>
