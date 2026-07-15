@@ -6,6 +6,7 @@
     $doses = $patient->maternalImmunizations ?? collect();
     $dose1 = $doses->firstWhere('dose_number', 1);
     $dose2 = $doses->firstWhere('dose_number', 2);
+    $internalDosesCount = $doses->where('is_external', false)->count();
 
     // Compute current gestational week from the active prenatal record's LMP
     $currentGestationalWeek = null;
@@ -63,12 +64,21 @@
             $btnBadge    = '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500 text-white">Dose 2 Due ' . ($due ? $due->format('M j') : '') . '</span>';
         }
     } else {
-        $cardStatus  = 'complete';
-        $badgeText   = 'Series Complete';
-        $badgeClass  = 'bg-green-100 text-green-700';
-        $badgeIcon   = 'fa-check-circle';
-        $btnClass    = 'bg-green-50 text-green-700 border border-green-300 hover:bg-green-100';
-        $btnBadge    = '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-600 text-white">Complete</span>';
+        if ($internalDosesCount >= 2) {
+            $cardStatus  = 'complete';
+            $badgeText   = 'Series Complete';
+            $badgeClass  = 'bg-green-100 text-green-700';
+            $badgeIcon   = 'fa-check-circle';
+            $btnClass    = 'bg-green-50 text-green-700 border border-green-300 hover:bg-green-100';
+            $btnBadge    = '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-600 text-white">Complete</span>';
+        } else {
+            $cardStatus  = 'incomplete';
+            $badgeText   = 'Incomplete Series';
+            $badgeClass  = 'bg-yellow-100 text-yellow-700';
+            $badgeIcon   = 'fa-exclamation-triangle';
+            $btnClass    = 'bg-yellow-50 text-yellow-700 border border-yellow-300 hover:bg-yellow-100';
+            $btnBadge    = '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-500 text-white">Incomplete</span>';
+        }
     }
 @endphp
 
@@ -120,7 +130,6 @@
 
             {{-- Progress Bar --}}
             <div>
-                @php $internalDosesCount = $doses->where('is_external', false)->count(); @endphp
                 <div class="flex justify-between text-xs font-medium text-gray-500 mb-2">
                     <span>Facility Dose Progress</span>
                     <span>{{ $internalDosesCount }} / 2 doses</span>
@@ -155,14 +164,16 @@
                     <div class="mb-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex items-center space-x-2">
-                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary-dark text-xs font-bold">
-                                    {{ $dose->dose_number }}
-                                </span>
-                                <span class="font-semibold text-gray-800 text-sm">{{ $dose->dose_label }}</span>
                                 @if($dose->is_external)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700">
-                                        <i class="fas fa-hospital-alt mr-1"></i> External
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-purple-100 text-purple-700 text-xs font-bold">
+                                        <i class="fas fa-hospital-alt"></i>
                                     </span>
+                                    <span class="font-semibold text-gray-800 text-sm">External</span>
+                                @else
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary-dark text-xs font-bold">
+                                        {{ $dose->dose_number }}
+                                    </span>
+                                    <span class="font-semibold text-gray-800 text-sm">{{ $dose->dose_label }}</span>
                                 @endif
                             </div>
                             @can('midwife')

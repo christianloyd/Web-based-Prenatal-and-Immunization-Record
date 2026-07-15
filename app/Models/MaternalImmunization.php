@@ -71,6 +71,9 @@ class MaternalImmunization extends Model
 
     public function getDoseLabelAttribute(): string
     {
+        if ($this->is_external) {
+            return 'External';
+        }
         return match($this->dose_number) {
             1 => '1st Dose',
             2 => '2nd Dose',
